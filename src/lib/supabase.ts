@@ -40,6 +40,7 @@ export interface Calculation {
   user_id: string;
   name: string | null;
   ci_identity: string;
+  service_type: string;
   cpu_count: number;
   storage_gb: number;
   server_count: number;
