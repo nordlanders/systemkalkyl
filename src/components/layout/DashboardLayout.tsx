@@ -3,6 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import ChangePasswordDialog from '@/components/auth/ChangePasswordDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
   Calculator, 
   Settings, 
@@ -12,7 +18,9 @@ import {
   Menu,
   X,
   BarChart3,
-  Home
+  Home,
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,13 +28,16 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
+const mainNavItems = [
   { href: '/', icon: Home, label: 'Start', adminOnly: false },
   { href: '/calculator', icon: Calculator, label: 'Kalkylator', adminOnly: false },
   { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
-  { href: '/pricing', icon: Settings, label: 'Priskonfiguration', adminOnly: false },
-  { href: '/users', icon: Users, label: 'Användare', adminOnly: false },
   { href: '/history', icon: History, label: 'Historik', adminOnly: false },
+];
+
+const adminNavItems = [
+  { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
+  { href: '/users', icon: Users, label: 'Användare' },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -56,7 +67,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
-            {navItems
+            {mainNavItems
               .filter((item) => !item.adminOnly || isAdmin)
               .map((item) => {
                 const isActive = location.pathname === item.href;
@@ -75,6 +86,33 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 );
               })}
+            
+            {/* Administration dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant={adminNavItems.some(item => location.pathname === item.href) ? 'secondary' : 'ghost'}
+                  className={cn(
+                    'gap-2',
+                    adminNavItems.some(item => location.pathname === item.href) && 'bg-primary/10 text-primary hover:bg-primary/15'
+                  )}
+                >
+                  <Shield className="h-4 w-4" />
+                  Administration
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {adminNavItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link to={item.href} className="flex items-center gap-2 cursor-pointer">
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-4">
@@ -98,7 +136,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-16 z-40 bg-background/95 backdrop-blur">
           <nav className="flex flex-col p-4 gap-2">
-            {navItems
+            {mainNavItems
               .filter((item) => !item.adminOnly || isAdmin)
               .map((item) => {
                 const isActive = location.pathname === item.href;
@@ -121,6 +159,35 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 );
               })}
+            
+            {/* Administration section for mobile */}
+            <div className="pt-2 mt-2 border-t">
+              <span className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Shield className="h-3 w-3" />
+                Administration
+              </span>
+              {adminNavItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button
+                      variant={isActive ? 'secondary' : 'ghost'}
+                      className={cn(
+                        'w-full justify-start gap-3',
+                        isActive && 'bg-primary/10 text-primary'
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
         </div>
       )}
