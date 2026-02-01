@@ -17,7 +17,9 @@ import {
   Save,
   Loader2,
   DollarSign,
-  ArrowLeft
+  ArrowLeft,
+  ArrowRight,
+  FileText
 } from 'lucide-react';
 
 interface CostBreakdown {
@@ -45,11 +47,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [costs, setCosts] = useState<CostBreakdown>({ cpu: 0, storage: 0, server: 0, operations: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [step, setStep] = useState<1 | 2>(editCalculation ? 2 : 1);
   
   const { user } = useAuth();
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
+  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '';
 
   useEffect(() => {
     loadPricing();
@@ -201,21 +205,89 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   return (
     <div className="space-y-8 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <Button variant="ghost" onClick={onBack} className="gap-2 w-fit">
+        <Button variant="ghost" onClick={step === 1 ? onBack : () => setStep(1)} className="gap-2 w-fit">
           <ArrowLeft className="h-4 w-4" />
-          Tillbaka till lista
+          {step === 1 ? 'Tillbaka till lista' : 'Tillbaka till steg 1'}
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">
             {isEditing ? 'Redigera kalkyl' : 'Ny kalkyl'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isEditing ? 'Uppdatera din befintliga kalkyl' : 'Beräkna din årliga IT-infrastrukturkostnad'}
+            {step === 1 
+              ? 'Steg 1: Ange namn och CI-identitet' 
+              : 'Steg 2: Konfigurera infrastruktur'}
           </p>
+        </div>
+        {/* Step indicator */}
+        <div className="flex items-center gap-2">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 1 ? 'bg-primary text-primary-foreground' : 'bg-primary/20 text-primary'}`}>
+            1
+          </div>
+          <div className="w-8 h-0.5 bg-border" />
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+            2
+          </div>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      {step === 1 ? (
+        /* Step 1: Name and CI Identity */
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Grundläggande information
+            </CardTitle>
+            <CardDescription>
+              Ange namn och CI-identitet för kalkylen innan du fortsätter med konfigurationen
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="calcName">
+                Namn på kalkyl <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="calcName"
+                placeholder="T.ex. Produktionsmiljö Q1"
+                value={calculationName}
+                onChange={(e) => setCalculationName(e.target.value)}
+                autoFocus
+              />
+              <p className="text-sm text-muted-foreground">
+                Ett beskrivande namn som hjälper dig identifiera kalkylen
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ciIdentity">
+                CI-identitet (CMDB) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="ciIdentity"
+                placeholder="T.ex. CI-12345"
+                value={ciIdentity}
+                onChange={(e) => setCiIdentity(e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground">
+                Systemets unika identifierare i Configuration Management Database
+              </p>
+            </div>
+            <div className="pt-4">
+              <Button 
+                onClick={() => setStep(2)} 
+                disabled={!canProceedToStep2}
+                className="gap-2"
+              >
+                Fortsätt till konfiguration
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        /* Step 2: Configuration */
+        <div className="grid lg:grid-cols-3 gap-6">
         {/* Input Section */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
@@ -369,31 +441,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           {/* Save Section */}
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col gap-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="calcName">Namn på kalkyl</Label>
-                    <Input
-                      id="calcName"
-                      placeholder="T.ex. Produktionsmiljö Q1"
-                      value={calculationName}
-                      onChange={(e) => setCalculationName(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="ciIdentity">
-                      CI-identitet (CMDB) <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="ciIdentity"
-                      placeholder="T.ex. CI-12345"
-                      value={ciIdentity}
-                      onChange={(e) => setCiIdentity(e.target.value)}
-                      required
-                    />
-                  </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>{calculationName}</strong> • CI: {ciIdentity}
+                  </p>
                 </div>
-                <Button onClick={saveCalculation} disabled={saving} className="gap-2 w-fit">
+                <Button onClick={saveCalculation} disabled={saving} className="gap-2">
                   {saving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
@@ -482,6 +536,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           </Card>
         </div>
       </div>
+      )}
     </div>
   );
 }
