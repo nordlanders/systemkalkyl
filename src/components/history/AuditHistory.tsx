@@ -17,6 +17,7 @@ import {
   Calculator
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { sv } from 'date-fns/locale';
 
 export default function AuditHistory() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -59,8 +60,8 @@ export default function AuditHistory() {
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
-        title: 'Error loading history',
-        description: 'Could not load history data.',
+        title: 'Fel vid laddning av historik',
+        description: 'Kunde inte ladda historikdata.',
         variant: 'destructive',
       });
     } finally {
@@ -87,9 +88,14 @@ export default function AuditHistory() {
       update: 'secondary',
       delete: 'destructive',
     };
+    const labels: Record<string, string> = {
+      create: 'Skapad',
+      update: 'Uppdaterad',
+      delete: 'Borttagen',
+    };
     return (
-      <Badge variant={variants[action] || 'outline'} className="capitalize">
-        {action}
+      <Badge variant={variants[action] || 'outline'}>
+        {labels[action] || action}
       </Badge>
     );
   };
@@ -100,6 +106,16 @@ export default function AuditHistory() {
       currency: 'SEK',
       minimumFractionDigits: 2,
     }).format(value);
+  };
+
+  const translateTableName = (name: string) => {
+    const translations: Record<string, string> = {
+      'pricing_config': 'Priskonfiguration',
+      'calculations': 'Beräkningar',
+      'user_roles': 'Användarroller',
+      'profiles': 'Profiler',
+    };
+    return translations[name] || name;
   };
 
   if (loading) {
@@ -113,9 +129,9 @@ export default function AuditHistory() {
   return (
     <div className="space-y-8 fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">History</h1>
+        <h1 className="text-3xl font-bold text-foreground">Historik</h1>
         <p className="text-muted-foreground mt-1">
-          View your calculations and system audit trail
+          Visa dina beräkningar och systemets granskningslogg
         </p>
       </div>
 
@@ -123,11 +139,11 @@ export default function AuditHistory() {
         <TabsList>
           <TabsTrigger value="calculations" className="gap-2">
             <Calculator className="h-4 w-4" />
-            My Calculations
+            Mina beräkningar
           </TabsTrigger>
           <TabsTrigger value="audit" className="gap-2">
             <History className="h-4 w-4" />
-            Audit Log
+            Granskningslogg
           </TabsTrigger>
         </TabsList>
 
@@ -137,10 +153,10 @@ export default function AuditHistory() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5 text-primary" />
-                Saved Calculations
+                Sparade beräkningar
               </CardTitle>
               <CardDescription>
-                History of all cost calculations you've saved
+                Historik över alla kostnadsberäkningar du har sparat
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -148,37 +164,37 @@ export default function AuditHistory() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead>Name</TableHead>
-                      <TableHead>CPUs</TableHead>
-                      <TableHead>Storage</TableHead>
-                      <TableHead>Servers</TableHead>
-                      <TableHead>Hours</TableHead>
-                      <TableHead>Total Cost</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Namn</TableHead>
+                      <TableHead>CPU:er</TableHead>
+                      <TableHead>Lagring</TableHead>
+                      <TableHead>Servrar</TableHead>
+                      <TableHead>Timmar</TableHead>
+                      <TableHead>Total kostnad</TableHead>
+                      <TableHead>Datum</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {calculations.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                          No calculations saved yet. Use the calculator to create one!
+                          Inga beräkningar sparade ännu. Använd kalkylatorn för att skapa en!
                         </TableCell>
                       </TableRow>
                     ) : (
                       calculations.map((calc) => (
                         <TableRow key={calc.id}>
                           <TableCell className="font-medium">
-                            {calc.name || 'Unnamed'}
+                            {calc.name || 'Namnlös'}
                           </TableCell>
                           <TableCell className="font-mono">{calc.cpu_count}</TableCell>
                           <TableCell className="font-mono">{calc.storage_gb} GB</TableCell>
                           <TableCell className="font-mono">{calc.server_count}</TableCell>
-                          <TableCell className="font-mono">{calc.operation_hours.toLocaleString()}</TableCell>
+                          <TableCell className="font-mono">{calc.operation_hours.toLocaleString('sv-SE')}</TableCell>
                           <TableCell className="font-mono font-medium text-primary">
                             {formatCurrency(Number(calc.total_cost))}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {format(new Date(calc.created_at), 'MMM d, yyyy HH:mm')}
+                            {format(new Date(calc.created_at), 'd MMM yyyy HH:mm', { locale: sv })}
                           </TableCell>
                         </TableRow>
                       ))
@@ -196,10 +212,10 @@ export default function AuditHistory() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <History className="h-5 w-5 text-primary" />
-                System Audit Log
+                Systemets granskningslogg
               </CardTitle>
               <CardDescription>
-                Track all changes made to pricing, users, and calculations
+                Spåra alla ändringar gjorda på priser, användare och beräkningar
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -207,17 +223,17 @@ export default function AuditHistory() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead>Action</TableHead>
-                      <TableHead>Table</TableHead>
-                      <TableHead>Changes</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Åtgärd</TableHead>
+                      <TableHead>Tabell</TableHead>
+                      <TableHead>Ändringar</TableHead>
+                      <TableHead>Datum</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {auditLogs.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                          No audit entries yet
+                          Inga granskningsposter ännu
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -229,8 +245,8 @@ export default function AuditHistory() {
                               {getActionBadge(log.action)}
                             </div>
                           </TableCell>
-                          <TableCell className="capitalize">
-                            {log.table_name.replace('_', ' ')}
+                          <TableCell>
+                            {translateTableName(log.table_name)}
                           </TableCell>
                           <TableCell>
                             <div className="max-w-xs">
@@ -247,7 +263,7 @@ export default function AuditHistory() {
                             </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground whitespace-nowrap">
-                            {format(new Date(log.created_at), 'MMM d, yyyy HH:mm')}
+                            {format(new Date(log.created_at), 'd MMM yyyy HH:mm', { locale: sv })}
                           </TableCell>
                         </TableRow>
                       ))

@@ -56,8 +56,8 @@ export default function CostCalculator() {
     } catch (error) {
       console.error('Error loading pricing:', error);
       toast({
-        title: 'Error loading pricing',
-        description: 'Could not load current pricing configuration.',
+        title: 'Fel vid laddning av priser',
+        description: 'Kunde inte ladda aktuell priskonfiguration.',
         variant: 'destructive',
       });
     } finally {
@@ -94,7 +94,7 @@ export default function CostCalculator() {
         .from('calculations')
         .insert({
           user_id: user.id,
-          name: calculationName || `Calculation ${new Date().toLocaleDateString()}`,
+          name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
           cpu_count: cpuCount,
           storage_gb: storageGb,
           server_count: serverCount,
@@ -116,16 +116,16 @@ export default function CostCalculator() {
       });
 
       toast({
-        title: 'Calculation saved',
-        description: 'Your calculation has been saved to history.',
+        title: 'Beräkning sparad',
+        description: 'Din beräkning har sparats i historiken.',
       });
 
       setCalculationName('');
     } catch (error) {
       console.error('Error saving calculation:', error);
       toast({
-        title: 'Error saving',
-        description: 'Could not save the calculation.',
+        title: 'Fel vid sparande',
+        description: 'Kunde inte spara beräkningen.',
         variant: 'destructive',
       });
     } finally {
@@ -152,8 +152,8 @@ export default function CostCalculator() {
   return (
     <div className="space-y-8 fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Infrastructure Cost Calculator</h1>
-        <p className="text-muted-foreground mt-1">Estimate your annual IT infrastructure costs</p>
+        <h1 className="text-3xl font-bold text-foreground">Infrastruktur Kostnadskalkylator</h1>
+        <p className="text-muted-foreground mt-1">Beräkna din årliga IT-infrastrukturkostnad</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -163,10 +163,10 @@ export default function CostCalculator() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5 text-primary" />
-                Configuration
+                Konfiguration
               </CardTitle>
               <CardDescription>
-                Adjust the sliders to match your infrastructure requirements
+                Justera reglagen för att matcha dina infrastrukturbehov
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
@@ -178,8 +178,8 @@ export default function CostCalculator() {
                       <Cpu className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <Label className="text-base font-medium">CPU Cores</Label>
-                      <p className="text-sm text-muted-foreground">Number of processor cores</p>
+                      <Label className="text-base font-medium">CPU-kärnor</Label>
+                      <p className="text-sm text-muted-foreground">Antal processorkärnor</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -211,8 +211,8 @@ export default function CostCalculator() {
                       <HardDrive className="h-5 w-5 text-accent" />
                     </div>
                     <div>
-                      <Label className="text-base font-medium">Storage (GB)</Label>
-                      <p className="text-sm text-muted-foreground">Total storage capacity</p>
+                      <Label className="text-base font-medium">Lagring (GB)</Label>
+                      <p className="text-sm text-muted-foreground">Total lagringskapacitet</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -244,8 +244,8 @@ export default function CostCalculator() {
                       <Server className="h-5 w-5 text-success" />
                     </div>
                     <div>
-                      <Label className="text-base font-medium">Servers</Label>
-                      <p className="text-sm text-muted-foreground">Number of server instances</p>
+                      <Label className="text-base font-medium">Servrar</Label>
+                      <p className="text-sm text-muted-foreground">Antal serverinstanser</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -277,8 +277,8 @@ export default function CostCalculator() {
                       <Clock className="h-5 w-5 text-warning" />
                     </div>
                     <div>
-                      <Label className="text-base font-medium">Operation Hours/Year</Label>
-                      <p className="text-sm text-muted-foreground">Annual operating time</p>
+                      <Label className="text-base font-medium">Drifttimmar/år</Label>
+                      <p className="text-sm text-muted-foreground">Årlig drifttid</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -301,7 +301,7 @@ export default function CostCalculator() {
                   className="py-2"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Max 8,760 hours = 24/7 operation for one year
+                  Max 8 760 timmar = 24/7 drift under ett år
                 </p>
               </div>
             </CardContent>
@@ -312,7 +312,7 @@ export default function CostCalculator() {
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row gap-4">
                 <Input
-                  placeholder="Name your calculation (optional)"
+                  placeholder="Namnge din beräkning (valfritt)"
                   value={calculationName}
                   onChange={(e) => setCalculationName(e.target.value)}
                   className="flex-1"
@@ -323,7 +323,7 @@ export default function CostCalculator() {
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
-                  Save Calculation
+                  Spara beräkning
                 </Button>
               </div>
             </CardContent>
@@ -336,7 +336,7 @@ export default function CostCalculator() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-primary" />
-                Annual Cost Summary
+                Årlig kostnadssammanställning
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -349,19 +349,19 @@ export default function CostCalculator() {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border/50">
                   <span className="text-muted-foreground flex items-center gap-2">
-                    <HardDrive className="h-4 w-4" /> Storage
+                    <HardDrive className="h-4 w-4" /> Lagring
                   </span>
                   <span className="font-mono font-medium">{formatCurrency(costs.storage)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border/50">
                   <span className="text-muted-foreground flex items-center gap-2">
-                    <Server className="h-4 w-4" /> Servers
+                    <Server className="h-4 w-4" /> Servrar
                   </span>
                   <span className="font-mono font-medium">{formatCurrency(costs.server)}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border/50">
                   <span className="text-muted-foreground flex items-center gap-2">
-                    <Clock className="h-4 w-4" /> Operations
+                    <Clock className="h-4 w-4" /> Drift
                   </span>
                   <span className="font-mono font-medium">{formatCurrency(costs.operations)}</span>
                 </div>
@@ -369,13 +369,13 @@ export default function CostCalculator() {
 
               <div className="pt-4 border-t-2 border-primary/20">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Total Annual Cost</span>
+                  <span className="text-lg font-semibold">Total årskostnad</span>
                   <span className="text-2xl font-bold font-mono text-primary">
                     {formatCurrency(costs.total)}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Monthly: {formatCurrency(costs.total / 12)}
+                  Månadsvis: {formatCurrency(costs.total / 12)}
                 </p>
               </div>
             </CardContent>
@@ -385,17 +385,20 @@ export default function CostCalculator() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Current Pricing Rates
+                Aktuella pristariffer
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-2">
               {pricing.map((p) => (
                 <div key={p.id} className="flex justify-between">
                   <span className="capitalize text-muted-foreground">
-                    {p.component_type.replace('_', ' ')}
+                    {p.component_type === 'cpu' && 'CPU'}
+                    {p.component_type === 'storage_gb' && 'Lagring (GB)'}
+                    {p.component_type === 'server' && 'Server'}
+                    {p.component_type === 'operation_hour' && 'Drifttimme'}
                   </span>
                   <span className="font-mono">
-                    {formatCurrency(Number(p.price_per_unit))}/unit
+                    {formatCurrency(Number(p.price_per_unit))}/enhet
                   </span>
                 </div>
               ))}

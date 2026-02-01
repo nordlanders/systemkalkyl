@@ -12,8 +12,8 @@ import { Calculator, Loader2, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('Ange en giltig e-postadress'),
+  password: z.string().min(6, 'Lösenordet måste vara minst 6 tecken'),
   fullName: z.string().optional(),
 });
 
@@ -65,16 +65,16 @@ export default function Auth() {
 
     if (error) {
       toast({
-        title: 'Sign in failed',
+        title: 'Inloggning misslyckades',
         description: error.message === 'Invalid login credentials' 
-          ? 'Invalid email or password. Please try again.'
+          ? 'Ogiltig e-post eller lösenord. Försök igen.'
           : error.message,
         variant: 'destructive',
       });
     } else {
       toast({
-        title: 'Welcome back!',
-        description: 'You have successfully signed in.',
+        title: 'Välkommen tillbaka!',
+        description: 'Du har loggat in.',
       });
       navigate('/');
     }
@@ -91,21 +91,21 @@ export default function Auth() {
     if (error) {
       if (error.message.includes('already registered')) {
         toast({
-          title: 'Account exists',
-          description: 'An account with this email already exists. Please sign in instead.',
+          title: 'Kontot finns redan',
+          description: 'Ett konto med denna e-post finns redan. Logga in istället.',
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Sign up failed',
+          title: 'Registrering misslyckades',
           description: error.message,
           variant: 'destructive',
         });
       }
     } else {
       toast({
-        title: 'Check your email',
-        description: 'We sent you a confirmation link. Please check your email to verify your account.',
+        title: 'Kontrollera din e-post',
+        description: 'Vi har skickat en bekräftelselänk. Kontrollera din inkorg för att verifiera ditt konto.',
       });
     }
   };
@@ -114,7 +114,7 @@ export default function Auth() {
     e.preventDefault();
     
     if (!email || !z.string().email().safeParse(email).success) {
-      setErrors({ email: 'Please enter a valid email address' });
+      setErrors({ email: 'Ange en giltig e-postadress' });
       return;
     }
 
@@ -126,15 +126,15 @@ export default function Auth() {
 
     if (error) {
       toast({
-        title: 'Error',
+        title: 'Fel',
         description: error.message,
         variant: 'destructive',
       });
     } else {
       setResetEmailSent(true);
       toast({
-        title: 'Password reset email sent',
-        description: 'Check your email for the password reset link.',
+        title: 'E-post för lösenordsåterställning skickad',
+        description: 'Kontrollera din e-post för återställningslänken.',
       });
     }
   };
@@ -149,26 +149,26 @@ export default function Auth() {
               <Calculator className="h-8 w-8 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">IT Cost Calculator</h1>
-              <p className="text-sm text-muted-foreground">Infrastructure pricing made simple</p>
+              <h1 className="text-2xl font-bold text-foreground">IT-Kostnadskalkylator</h1>
+              <p className="text-sm text-muted-foreground">Infrastrukturprissättning på ett enkelt sätt</p>
             </div>
           </div>
 
           <Card className="shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle>Reset Password</CardTitle>
+              <CardTitle>Återställ lösenord</CardTitle>
               <CardDescription>
                 {resetEmailSent 
-                  ? "Check your email for the reset link" 
-                  : "Enter your email to receive a reset link"}
+                  ? "Kontrollera din e-post för återställningslänken" 
+                  : "Ange din e-post för att få en återställningslänk"}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {resetEmailSent ? (
                 <div className="space-y-4">
                   <p className="text-center text-muted-foreground">
-                    We've sent a password reset link to <strong>{email}</strong>. 
-                    Please check your inbox and follow the instructions.
+                    Vi har skickat en länk för lösenordsåterställning till <strong>{email}</strong>. 
+                    Kontrollera din inkorg och följ instruktionerna.
                   </p>
                   <Button 
                     variant="outline" 
@@ -179,17 +179,17 @@ export default function Auth() {
                     }}
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Sign In
+                    Tillbaka till inloggning
                   </Button>
                 </div>
               ) : (
                 <form onSubmit={handleForgotPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-email">Email</Label>
+                    <Label htmlFor="reset-email">E-post</Label>
                     <Input
                       id="reset-email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder="du@exempel.se"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -198,7 +198,7 @@ export default function Auth() {
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Send Reset Link
+                    Skicka återställningslänk
                   </Button>
                   <Button 
                     type="button"
@@ -207,7 +207,7 @@ export default function Auth() {
                     onClick={() => setShowForgotPassword(false)}
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    Back to Sign In
+                    Tillbaka till inloggning
                   </Button>
                 </form>
               )}
@@ -226,31 +226,31 @@ export default function Auth() {
             <Calculator className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">IT Cost Calculator</h1>
-            <p className="text-sm text-muted-foreground">Infrastructure pricing made simple</p>
+            <h1 className="text-2xl font-bold text-foreground">IT-Kostnadskalkylator</h1>
+            <p className="text-sm text-muted-foreground">Infrastrukturprissättning på ett enkelt sätt</p>
           </div>
         </div>
 
         <Card className="shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle>Welcome</CardTitle>
-            <CardDescription>Sign in to your account or create a new one</CardDescription>
+            <CardTitle>Välkommen</CardTitle>
+            <CardDescription>Logga in på ditt konto eller skapa ett nytt</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin">Logga in</TabsTrigger>
+                <TabsTrigger value="signup">Registrera</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email">E-post</Label>
                     <Input
                       id="signin-email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder="du@exempel.se"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -259,13 +259,13 @@ export default function Auth() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="signin-password">Password</Label>
+                      <Label htmlFor="signin-password">Lösenord</Label>
                       <button
                         type="button"
                         onClick={() => setShowForgotPassword(true)}
                         className="text-sm text-primary hover:underline"
                       >
-                        Forgot password?
+                        Glömt lösenord?
                       </button>
                     </div>
                     <Input
@@ -280,7 +280,7 @@ export default function Auth() {
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign In
+                    Logga in
                   </Button>
                 </form>
               </TabsContent>
@@ -288,21 +288,21 @@ export default function Auth() {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Label htmlFor="signup-name">Fullständigt namn</Label>
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="John Doe"
+                      placeholder="Anna Andersson"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">E-post</Label>
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder="du@exempel.se"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -310,7 +310,7 @@ export default function Auth() {
                     {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">Lösenord</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -323,7 +323,7 @@ export default function Auth() {
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Account
+                    Skapa konto
                   </Button>
                 </form>
               </TabsContent>

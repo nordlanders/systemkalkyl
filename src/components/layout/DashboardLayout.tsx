@@ -19,10 +19,10 @@ interface DashboardLayoutProps {
 }
 
 const navItems = [
-  { href: '/', icon: Calculator, label: 'Calculator' },
-  { href: '/pricing', icon: Settings, label: 'Pricing Config' },
-  { href: '/users', icon: Users, label: 'Users' },
-  { href: '/history', icon: History, label: 'History' },
+  { href: '/', icon: Calculator, label: 'Kalkylator' },
+  { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
+  { href: '/users', icon: Users, label: 'Användare' },
+  { href: '/history', icon: History, label: 'Historik' },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="p-2 rounded-lg bg-primary">
                 <Calculator className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-lg hidden sm:block">IT Cost Calculator</span>
+              <span className="font-semibold text-lg hidden sm:block">IT-Kostnadskalkylator</span>
             </div>
           </div>
 
@@ -80,7 +80,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </span>
               )}
             </div>
-            <Button variant="ghost" size="icon" onClick={signOut}>
+            <Button variant="ghost" size="icon" onClick={signOut} title="Logga ut">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
