@@ -14,7 +14,7 @@ import {
   Calculator,
   Save,
   Loader2,
-  DollarSign,
+  Coins,
   ArrowLeft,
   ArrowRight,
   FileText,
@@ -657,7 +657,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
             <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
+                  <Coins className="h-5 w-5 text-primary" />
                   Kostnadssammanställning
                 </CardTitle>
               </CardHeader>
