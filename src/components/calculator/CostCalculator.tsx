@@ -39,6 +39,15 @@ const SERVICE_TYPES = [
   { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
 ];
 
+const MUNICIPALITIES = [
+  'Sundsvalls kommun',
+  'Ånge kommun',
+  'Timrå kommun',
+  'Nordanstigs kommun',
+  'Hudiksvalls kommun',
+  'Ljusdals kommun',
+];
+
 interface CalculationRow {
   id: string;
   pricingConfigId: string;
@@ -60,6 +69,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
+  const [municipality, setMunicipality] = useState((editCalculation as any)?.municipality ?? '');
   const [calculationYear, setCalculationYear] = useState<number>((editCalculation as any)?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [rows, setRows] = useState<CalculationRow[]>([]);
@@ -72,7 +82,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
-  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '';
+  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && municipality !== '';
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
@@ -229,6 +239,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
+        municipality: municipality,
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
@@ -553,6 +564,29 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
+                <Label htmlFor="municipality">
+                  Kund <span className="text-destructive">*</span>
+                </Label>
+                <Select 
+                  value={municipality} 
+                  onValueChange={setMunicipality}
+                >
+                  <SelectTrigger id="municipality" className="w-full">
+                    <SelectValue placeholder="Välj kund" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MUNICIPALITIES.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Välj vilken kommun kalkylen avser
+                </p>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="calcName">
                   Namn på kalkyl <span className="text-destructive">*</span>
                 </Label>
@@ -561,7 +595,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   placeholder="T.ex. Produktionsmiljö Q1"
                   value={calculationName}
                   onChange={(e) => setCalculationName(e.target.value)}
-                  autoFocus
                 />
                 <p className="text-sm text-muted-foreground">
                   Ett beskrivande namn som hjälper dig identifiera kalkylen
