@@ -11,7 +11,7 @@ interface UserData {
   user_id: string;
   email: string;
   full_name: string | null;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'superadmin';
   permission_level: 'read_only' | 'read_write';
 }
 
@@ -31,7 +31,7 @@ export default function EditUserDialog({
   currentUserId 
 }: EditUserDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'user' | 'admin'>(user?.role || 'user');
+  const [role, setRole] = useState<'user' | 'admin' | 'superadmin'>(user?.role || 'user');
   const [permissionLevel, setPermissionLevel] = useState<'read_only' | 'read_write'>(
     user?.permission_level || 'read_write'
   );
@@ -102,7 +102,7 @@ export default function EditUserDialog({
             <Label htmlFor="role">Roll</Label>
             <Select 
               value={role} 
-              onValueChange={(v) => setRole(v as 'user' | 'admin')}
+              onValueChange={(v) => setRole(v as 'user' | 'admin' | 'superadmin')}
               disabled={isCurrentUser}
             >
               <SelectTrigger>
@@ -111,6 +111,7 @@ export default function EditUserDialog({
               <SelectContent>
                 <SelectItem value="user">Användare</SelectItem>
                 <SelectItem value="admin">Administratör</SelectItem>
+                <SelectItem value="superadmin">Superadmin</SelectItem>
               </SelectContent>
             </Select>
             {isCurrentUser && (
