@@ -15,6 +15,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { sv } from 'date-fns/locale';
 
 interface UserWithRole extends Profile {
   role: 'admin' | 'user';
@@ -63,8 +64,8 @@ export default function UsersManagement() {
     } catch (error) {
       console.error('Error loading users:', error);
       toast({
-        title: 'Error loading users',
-        description: 'Could not load user list.',
+        title: 'Fel vid laddning av användare',
+        description: 'Kunde inte ladda användarlistan.',
         variant: 'destructive',
       });
     } finally {
@@ -98,16 +99,16 @@ export default function UsersManagement() {
       );
 
       toast({
-        title: 'Role updated',
-        description: `User role changed to ${newRole}.`,
+        title: 'Roll uppdaterad',
+        description: `Användarens roll ändrad till ${newRole === 'admin' ? 'administratör' : 'användare'}.`,
       });
 
       loadUsers();
     } catch (error) {
       console.error('Error updating role:', error);
       toast({
-        title: 'Error updating role',
-        description: 'Could not update user role.',
+        title: 'Fel vid uppdatering av roll',
+        description: 'Kunde inte uppdatera användarens roll.',
         variant: 'destructive',
       });
     } finally {
@@ -127,15 +128,15 @@ export default function UsersManagement() {
     return (
       <div className="space-y-8 fade-in">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">User Management</h1>
-          <p className="text-muted-foreground mt-1">Manage system users and roles</p>
+          <h1 className="text-3xl font-bold text-foreground">Användarhantering</h1>
+          <p className="text-muted-foreground mt-1">Hantera systemanvändare och roller</p>
         </div>
 
         <Card className="border-warning/50 bg-warning/5">
           <CardContent className="flex items-center gap-3 pt-6">
             <AlertCircle className="h-5 w-5 text-warning" />
             <p className="text-muted-foreground">
-              You don't have permission to view this page. Only administrators can manage users.
+              Du har inte behörighet att visa denna sida. Endast administratörer kan hantera användare.
             </p>
           </CardContent>
         </Card>
@@ -146,9 +147,9 @@ export default function UsersManagement() {
   return (
     <div className="space-y-8 fade-in">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">User Management</h1>
+        <h1 className="text-3xl font-bold text-foreground">Användarhantering</h1>
         <p className="text-muted-foreground mt-1">
-          Manage system users and their roles
+          Hantera systemanvändare och deras roller
         </p>
       </div>
 
@@ -162,7 +163,7 @@ export default function UsersManagement() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{users.length}</p>
-                <p className="text-sm text-muted-foreground">Total Users</p>
+                <p className="text-sm text-muted-foreground">Totalt antal användare</p>
               </div>
             </div>
           </CardContent>
@@ -178,7 +179,7 @@ export default function UsersManagement() {
                 <p className="text-2xl font-bold">
                   {users.filter(u => u.role === 'admin').length}
                 </p>
-                <p className="text-sm text-muted-foreground">Administrators</p>
+                <p className="text-sm text-muted-foreground">Administratörer</p>
               </div>
             </div>
           </CardContent>
@@ -194,7 +195,7 @@ export default function UsersManagement() {
                 <p className="text-2xl font-bold">
                   {users.filter(u => u.role === 'user').length}
                 </p>
-                <p className="text-sm text-muted-foreground">Standard Users</p>
+                <p className="text-sm text-muted-foreground">Standardanvändare</p>
               </div>
             </div>
           </CardContent>
@@ -206,10 +207,10 @@ export default function UsersManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            All Users
+            Alla användare
           </CardTitle>
           <CardDescription>
-            View and manage user roles. Click to toggle admin privileges.
+            Visa och hantera användarroller. Klicka för att växla administratörsbehörighet.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -217,17 +218,17 @@ export default function UsersManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Användare</TableHead>
+                  <TableHead>Roll</TableHead>
+                  <TableHead>Registrerad</TableHead>
+                  <TableHead className="text-right">Åtgärder</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                      No users found
+                      Inga användare hittades
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -235,7 +236,7 @@ export default function UsersManagement() {
                     <TableRow key={u.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{u.full_name || 'Unnamed User'}</p>
+                          <p className="font-medium">{u.full_name || 'Namnlös användare'}</p>
                           <p className="text-sm text-muted-foreground">{u.email}</p>
                         </div>
                       </TableCell>
@@ -244,12 +245,12 @@ export default function UsersManagement() {
                           {u.role === 'admin' ? (
                             <><ShieldCheck className="h-3 w-3 mr-1" /> Admin</>
                           ) : (
-                            <><Shield className="h-3 w-3 mr-1" /> User</>
+                            <><Shield className="h-3 w-3 mr-1" /> Användare</>
                           )}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(u.created_at), 'MMM d, yyyy')}
+                        {format(new Date(u.created_at), 'd MMM yyyy', { locale: sv })}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -261,9 +262,9 @@ export default function UsersManagement() {
                           {updating === u.user_id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : u.role === 'admin' ? (
-                            'Remove Admin'
+                            'Ta bort admin'
                           ) : (
-                            'Make Admin'
+                            'Gör till admin'
                           )}
                         </Button>
                       </TableCell>

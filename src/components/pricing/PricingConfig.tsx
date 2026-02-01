@@ -21,12 +21,13 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { sv } from 'date-fns/locale';
 
 const componentTypes = [
-  { value: 'cpu', label: 'CPU Core' },
-  { value: 'storage_gb', label: 'Storage (per GB)' },
+  { value: 'cpu', label: 'CPU-kärna' },
+  { value: 'storage_gb', label: 'Lagring (per GB)' },
   { value: 'server', label: 'Server' },
-  { value: 'operation_hour', label: 'Operation Hour' },
+  { value: 'operation_hour', label: 'Drifttimme' },
 ];
 
 export default function PricingConfig() {
@@ -62,8 +63,8 @@ export default function PricingConfig() {
     } catch (error) {
       console.error('Error loading pricing:', error);
       toast({
-        title: 'Error loading pricing',
-        description: 'Could not load pricing configuration.',
+        title: 'Fel vid laddning av priser',
+        description: 'Kunde inte ladda priskonfiguration.',
         variant: 'destructive',
       });
     } finally {
@@ -91,8 +92,8 @@ export default function PricingConfig() {
   async function handleSave() {
     if (!user || !isAdmin) {
       toast({
-        title: 'Permission denied',
-        description: 'Only administrators can modify pricing.',
+        title: 'Åtkomst nekad',
+        description: 'Endast administratörer kan ändra priser.',
         variant: 'destructive',
       });
       return;
@@ -100,8 +101,8 @@ export default function PricingConfig() {
 
     if (!pricePerUnit || !effectiveFrom) {
       toast({
-        title: 'Validation error',
-        description: 'Please fill in all required fields.',
+        title: 'Valideringsfel',
+        description: 'Fyll i alla obligatoriska fält.',
         variant: 'destructive',
       });
       return;
@@ -132,7 +133,7 @@ export default function PricingConfig() {
           { price_per_unit: priceData.price_per_unit }
         );
 
-        toast({ title: 'Price updated', description: 'Pricing configuration has been updated.' });
+        toast({ title: 'Pris uppdaterat', description: 'Priskonfigurationen har uppdaterats.' });
       } else {
         // Insert new
         const { data, error } = await supabase
@@ -148,7 +149,7 @@ export default function PricingConfig() {
           price_per_unit: data.price_per_unit,
         });
 
-        toast({ title: 'Price added', description: 'New pricing configuration has been added.' });
+        toast({ title: 'Pris tillagt', description: 'Ny priskonfiguration har lagts till.' });
       }
 
       resetForm();
@@ -157,8 +158,8 @@ export default function PricingConfig() {
     } catch (error) {
       console.error('Error saving pricing:', error);
       toast({
-        title: 'Error saving',
-        description: 'Could not save pricing configuration.',
+        title: 'Fel vid sparande',
+        description: 'Kunde inte spara priskonfiguration.',
         variant: 'destructive',
       });
     } finally {
@@ -183,13 +184,13 @@ export default function PricingConfig() {
         price_per_unit: oldConfig?.price_per_unit,
       });
 
-      toast({ title: 'Price deleted', description: 'Pricing configuration has been removed.' });
+      toast({ title: 'Pris borttaget', description: 'Priskonfigurationen har tagits bort.' });
       loadPricing();
     } catch (error) {
       console.error('Error deleting pricing:', error);
       toast({
-        title: 'Error deleting',
-        description: 'Could not delete pricing configuration.',
+        title: 'Fel vid borttagning',
+        description: 'Kunde inte ta bort priskonfiguration.',
         variant: 'destructive',
       });
     }
@@ -215,9 +216,9 @@ export default function PricingConfig() {
     <div className="space-y-8 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Pricing Configuration</h1>
+          <h1 className="text-3xl font-bold text-foreground">Priskonfiguration</h1>
           <p className="text-muted-foreground mt-1">
-            Manage component pricing with effective dates
+            Hantera komponentpriser med giltighetsdatum
           </p>
         </div>
 
@@ -229,20 +230,20 @@ export default function PricingConfig() {
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
-                Add Price
+                Lägg till pris
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{editingId ? 'Edit Price' : 'Add New Price'}</DialogTitle>
+                <DialogTitle>{editingId ? 'Redigera pris' : 'Lägg till nytt pris'}</DialogTitle>
                 <DialogDescription>
-                  Configure pricing for infrastructure components
+                  Konfigurera prissättning för infrastrukturkomponenter
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label>Component Type</Label>
+                  <Label>Komponenttyp</Label>
                   <Select value={componentType} onValueChange={setComponentType}>
                     <SelectTrigger>
                       <SelectValue />
@@ -258,13 +259,13 @@ export default function PricingConfig() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Price Per Unit (USD)</Label>
+                  <Label>Pris per enhet (SEK)</Label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="number"
                       step="0.0001"
-                      placeholder="0.00"
+                      placeholder="0,00"
                       value={pricePerUnit}
                       onChange={(e) => setPricePerUnit(e.target.value)}
                       className="pl-9"
@@ -274,7 +275,7 @@ export default function PricingConfig() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Effective From *</Label>
+                    <Label>Giltigt från *</Label>
                     <Input
                       type="date"
                       value={effectiveFrom}
@@ -282,7 +283,7 @@ export default function PricingConfig() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Effective To</Label>
+                    <Label>Giltigt till</Label>
                     <Input
                       type="date"
                       value={effectiveTo}
@@ -293,11 +294,11 @@ export default function PricingConfig() {
 
                 <div className="flex justify-end gap-2 pt-4">
                   <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                    Cancel
+                    Avbryt
                   </Button>
                   <Button onClick={handleSave} disabled={saving}>
                     {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {editingId ? 'Update' : 'Create'}
+                    {editingId ? 'Uppdatera' : 'Skapa'}
                   </Button>
                 </div>
               </div>
@@ -311,7 +312,7 @@ export default function PricingConfig() {
           <CardContent className="flex items-center gap-3 pt-6">
             <AlertCircle className="h-5 w-5 text-warning" />
             <p className="text-sm text-muted-foreground">
-              Only administrators can modify pricing configurations. Contact your admin for changes.
+              Endast administratörer kan ändra priskonfigurationer. Kontakta din administratör för ändringar.
             </p>
           </CardContent>
         </Card>
@@ -321,10 +322,10 @@ export default function PricingConfig() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5 text-primary" />
-            Pricing Table
+            Pristabell
           </CardTitle>
           <CardDescription>
-            All pricing configurations with their effective date ranges
+            Alla priskonfigurationer med deras giltighetsperioder
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -332,19 +333,19 @@ export default function PricingConfig() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>Component</TableHead>
-                  <TableHead>Price/Unit</TableHead>
-                  <TableHead>Effective From</TableHead>
-                  <TableHead>Effective To</TableHead>
-                  <TableHead>Updated</TableHead>
-                  {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                  <TableHead>Komponent</TableHead>
+                  <TableHead>Pris/enhet</TableHead>
+                  <TableHead>Giltigt från</TableHead>
+                  <TableHead>Giltigt till</TableHead>
+                  <TableHead>Uppdaterad</TableHead>
+                  {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pricing.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={isAdmin ? 6 : 5} className="text-center text-muted-foreground py-8">
-                      No pricing configurations found
+                      Inga priskonfigurationer hittades
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -359,7 +360,7 @@ export default function PricingConfig() {
                             <span className="font-medium">{typeLabel}</span>
                             {isActive && (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">
-                                Active
+                                Aktiv
                               </span>
                             )}
                           </div>
@@ -370,21 +371,21 @@ export default function PricingConfig() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                            {format(new Date(config.effective_from), 'MMM d, yyyy')}
+                            {format(new Date(config.effective_from), 'd MMM yyyy', { locale: sv })}
                           </div>
                         </TableCell>
                         <TableCell>
                           {config.effective_to ? (
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-muted-foreground" />
-                              {format(new Date(config.effective_to), 'MMM d, yyyy')}
+                              {format(new Date(config.effective_to), 'd MMM yyyy', { locale: sv })}
                             </div>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {format(new Date(config.updated_at), 'MMM d, yyyy')}
+                          {format(new Date(config.updated_at), 'd MMM yyyy', { locale: sv })}
                         </TableCell>
                         {isAdmin && (
                           <TableCell className="text-right">
@@ -393,6 +394,7 @@ export default function PricingConfig() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => openEditDialog(config)}
+                                title="Redigera"
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -401,6 +403,7 @@ export default function PricingConfig() {
                                 size="icon"
                                 onClick={() => handleDelete(config.id)}
                                 className="text-destructive hover:text-destructive"
+                                title="Ta bort"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
