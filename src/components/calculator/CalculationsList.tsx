@@ -180,6 +180,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     <TableHead>Namn</TableHead>
                     <TableHead>CI-identitet</TableHead>
                     <TableHead>Tjänstetyp</TableHead>
+                    <TableHead>Kalkylår</TableHead>
                     <TableHead>Total kostnad</TableHead>
                     <TableHead>Skapad</TableHead>
                     <TableHead>Senast ändrad</TableHead>
@@ -191,6 +192,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   const createdByName = calc.created_by_name;
                   const updatedByName = calc.updated_by_name;
                   const updatedAt = calc.updated_at;
+                  const calculationYear = (calc as any).calculation_year;
                   
                   return (
                     <TableRow 
@@ -208,6 +210,9 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                         <span className="text-xs px-2 py-1 rounded bg-muted">
                           {calc.service_type || '-'}
                         </span>
+                      </TableCell>
+                      <TableCell className="font-mono">
+                        {calculationYear || '-'}
                       </TableCell>
                       <TableCell className="font-mono font-medium text-primary">
                         {formatCurrency(Number(calc.total_cost))}

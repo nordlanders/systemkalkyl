@@ -41,6 +41,7 @@ export interface Calculation {
   name: string | null;
   ci_identity: string;
   service_type: string;
+  calculation_year: number;
   cpu_count: number;
   storage_gb: number;
   server_count: number;

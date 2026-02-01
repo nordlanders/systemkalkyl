@@ -54,9 +54,11 @@ interface CostCalculatorProps {
 }
 
 export default function CostCalculator({ editCalculation, onBack, onSaved }: CostCalculatorProps) {
+  const currentYear = new Date().getFullYear();
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
+  const [calculationYear, setCalculationYear] = useState<number>((editCalculation as any)?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [rows, setRows] = useState<CalculationRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -225,6 +227,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
+        calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
         // Keep legacy fields for backwards compatibility
@@ -460,6 +463,29 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 />
                 <p className="text-sm text-muted-foreground">
                   Systemets unika identifierare i Configuration Management Database
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="calculationYear">
+                  Kalkylår <span className="text-destructive">*</span>
+                </Label>
+                <Select 
+                  value={calculationYear.toString()} 
+                  onValueChange={(val) => setCalculationYear(parseInt(val, 10))}
+                >
+                  <SelectTrigger id="calculationYear" className="w-full">
+                    <SelectValue placeholder="Välj kalkylår" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[currentYear - 1, currentYear, currentYear + 1, currentYear + 2].map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Vilket år kalkylen avser
                 </p>
               </div>
               <div className="space-y-3">
