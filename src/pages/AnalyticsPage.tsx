@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar } from 'lucide-react';
+import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -13,6 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -51,6 +59,7 @@ interface Calculation {
   total_cost: number;
   ci_identity: string;
   calculation_year: number;
+  municipality: string;
 }
 
 interface AggregatedData {
@@ -59,6 +68,15 @@ interface AggregatedData {
   totalCost: number;
   count: number;
 }
+
+const MUNICIPALITIES = [
+  'Sundsvalls kommun',
+  'Ånge kommun',
+  'Timrå kommun',
+  'Nordanstigs kommun',
+  'Hudiksvalls kommun',
+  'Ljusdals kommun',
+];
 
 const CHART_COLORS = [
   'hsl(var(--primary))',
@@ -76,19 +94,44 @@ export default function AnalyticsPage() {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
+  const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>(MUNICIPALITIES);
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
   const [byServiceType, setByServiceType] = useState<AggregatedData[]>([]);
   const [byPriceType, setByPriceType] = useState<AggregatedData[]>([]);
+
+  const toggleMunicipality = (municipality: string) => {
+    setSelectedMunicipalities(prev => 
+      prev.includes(municipality)
+        ? prev.filter(m => m !== municipality)
+        : [...prev, municipality]
+    );
+  };
+
+  const selectAllMunicipalities = () => {
+    setSelectedMunicipalities(MUNICIPALITIES);
+  };
+
+  const clearMunicipalities = () => {
+    setSelectedMunicipalities([]);
+  };
+
   useEffect(() => {
     if (user) {
       loadData();
     }
-  }, [user, selectedYear]);
+  }, [user, selectedYear, selectedMunicipalities]);
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
+  }, [user, selectedYear, selectedMunicipalities]);
 
   async function loadData() {
     try {
+      setLoading(true);
+      
       // Load all calculations to get available years
       const { data: allCalcsData, error: allCalcsError } = await supabase
         .from('calculations')
@@ -102,11 +145,25 @@ export default function AnalyticsPage() {
         setAvailableYears(years);
       }
 
-      // Load calculations filtered by selected year
-      const { data: calcsData, error: calcsError } = await supabase
+      // Load calculations filtered by selected year and municipalities
+      let query = supabase
         .from('calculations')
-        .select('id, name, service_type, total_cost, ci_identity, calculation_year')
+        .select('id, name, service_type, total_cost, ci_identity, calculation_year, municipality')
         .eq('calculation_year', parseInt(selectedYear));
+
+      if (selectedMunicipalities.length > 0 && selectedMunicipalities.length < MUNICIPALITIES.length) {
+        query = query.in('municipality', selectedMunicipalities);
+      } else if (selectedMunicipalities.length === 0) {
+        // No municipalities selected, return empty
+        setCalculations([]);
+        setItems([]);
+        setByServiceType([]);
+        setByPriceType([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: calcsData, error: calcsError } = await query;
 
       if (calcsError) throw calcsError;
 
@@ -212,20 +269,77 @@ export default function AnalyticsPage() {
               Sammanställning och pivottabeller för alla kalkyler
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Välj år" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableYears.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Kommuner
+                  {selectedMunicipalities.length < MUNICIPALITIES.length && (
+                    <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                      {selectedMunicipalities.length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Välj kommuner</h4>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={selectAllMunicipalities}
+                      >
+                        Alla
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={clearMunicipalities}
+                      >
+                        Rensa
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {MUNICIPALITIES.map((municipality) => (
+                      <div key={municipality} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={municipality}
+                          checked={selectedMunicipalities.includes(municipality)}
+                          onCheckedChange={() => toggleMunicipality(municipality)}
+                        />
+                        <Label 
+                          htmlFor={municipality} 
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {municipality}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Välj år" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
