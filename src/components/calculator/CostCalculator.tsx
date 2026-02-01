@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
@@ -18,7 +19,10 @@ import {
   ArrowRight,
   FileText,
   Plus,
-  Trash2
+  Trash2,
+  Pencil,
+  Check,
+  MessageSquare
 } from 'lucide-react';
 
 const SERVICE_TYPES = [
@@ -35,6 +39,7 @@ interface CalculationRow {
   quantity: number;
   unitPrice: number;
   unit: string;
+  comment: string;
 }
 
 interface CostCalculatorProps {
@@ -52,6 +57,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<1 | 2>(editCalculation ? 2 : 1);
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -112,6 +118,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
             quantity: Number(item.quantity),
             unitPrice: Number(item.unit_price),
             unit: pricingConfig?.unit || '',
+            comment: (item as any).comment || '',
           };
         });
         setRows(loadedRows);
@@ -129,8 +136,10 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
       quantity: 1,
       unitPrice: 0,
       unit: '',
+      comment: '',
     };
     setRows([...rows, newRow]);
+    setEditingRowId(newRow.id);
   }
 
   function removeRow(id: string) {
@@ -159,6 +168,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     setRows(rows.map(row => {
       if (row.id === rowId) {
         return { ...row, quantity: Math.max(0, quantity) };
+      }
+      return row;
+    }));
+  }
+
+  function updateRowComment(rowId: string, comment: string) {
+    setRows(rows.map(row => {
+      if (row.id === rowId) {
+        return { ...row, comment };
       }
       return row;
     }));
@@ -275,6 +293,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         quantity: row.quantity,
         unit_price: row.unitPrice,
         total_price: calculateRowTotal(row),
+        comment: row.comment || null,
       }));
 
       const { error: itemsError } = await supabase
@@ -446,73 +465,158 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {rows.map((row, index) => (
-                      <div key={row.id} className="flex items-start gap-3 p-4 border rounded-lg bg-muted/30">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-muted-foreground">
-                              Rad {index + 1}
-                            </span>
-                          </div>
-                          <div className="grid sm:grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <Label className="text-xs">Pristyp</Label>
-                              <Select 
-                                value={row.pricingConfigId} 
-                                onValueChange={(value) => updateRowPricing(row.id, value)}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Välj pristyp..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {Object.entries(pricingByCategory).map(([category, items]) => (
-                                    <div key={category}>
-                                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted">
-                                        {category}
-                                      </div>
-                                      {items.map((p) => (
-                                        <SelectItem key={p.id} value={p.id}>
-                                          {p.price_type}
-                                        </SelectItem>
-                                      ))}
-                                    </div>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs">Antal {row.unit && `(${row.unit})`}</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={row.quantity}
-                                onChange={(e) => updateRowQuantity(row.id, parseFloat(e.target.value) || 0)}
-                                className="font-mono"
-                              />
-                            </div>
-                          </div>
-                          {row.pricingConfigId && (
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">
-                                {formatCurrency(row.unitPrice)} × {row.quantity} {row.unit}
+                    {rows.map((row, index) => {
+                      const isRowEditing = !isEditing || editingRowId === row.id;
+                      const isLocked = isEditing && editingRowId !== row.id;
+                      
+                      return (
+                        <div 
+                          key={row.id} 
+                          className={`flex items-start gap-3 p-4 border rounded-lg transition-colors ${
+                            isLocked 
+                              ? 'bg-muted/50 opacity-75 cursor-pointer hover:opacity-100' 
+                              : 'bg-muted/30'
+                          }`}
+                          onClick={() => isLocked && setEditingRowId(row.id)}
+                        >
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-medium text-muted-foreground">
+                                Rad {index + 1}
                               </span>
-                              <span className="font-mono font-medium text-primary">
-                                {formatCurrency(calculateRowTotal(row))}
-                              </span>
+                              {isEditing && (
+                                <div className="flex items-center gap-1">
+                                  {isLocked ? (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingRowId(row.id);
+                                      }}
+                                      className="gap-1 text-xs h-7"
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                      Redigera
+                                    </Button>
+                                  ) : (
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingRowId(null);
+                                      }}
+                                      className="gap-1 text-xs h-7 text-primary"
+                                    >
+                                      <Check className="h-3 w-3" />
+                                      Klar
+                                    </Button>
+                                  )}
+                                </div>
+                              )}
                             </div>
+                            
+                            {isLocked ? (
+                              // Locked view - show summary
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium">{row.priceType || 'Ingen pristyp vald'}</span>
+                                  <span className="font-mono text-sm">{row.quantity} {row.unit}</span>
+                                </div>
+                                {row.pricingConfigId && (
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">
+                                      {formatCurrency(row.unitPrice)} × {row.quantity} {row.unit}
+                                    </span>
+                                    <span className="font-mono font-medium text-primary">
+                                      {formatCurrency(calculateRowTotal(row))}
+                                    </span>
+                                  </div>
+                                )}
+                                {row.comment && (
+                                  <div className="flex items-start gap-2 text-xs text-muted-foreground bg-background/50 p-2 rounded">
+                                    <MessageSquare className="h-3 w-3 mt-0.5 shrink-0" />
+                                    <span className="line-clamp-2">{row.comment}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              // Editable view
+                              <>
+                                <div className="grid sm:grid-cols-2 gap-3">
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Pristyp</Label>
+                                    <Select 
+                                      value={row.pricingConfigId} 
+                                      onValueChange={(value) => updateRowPricing(row.id, value)}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Välj pristyp..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {Object.entries(pricingByCategory).map(([category, items]) => (
+                                          <div key={category}>
+                                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted">
+                                              {category}
+                                            </div>
+                                            {items.map((p) => (
+                                              <SelectItem key={p.id} value={p.id}>
+                                                {p.price_type}
+                                              </SelectItem>
+                                            ))}
+                                          </div>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">Antal {row.unit && `(${row.unit})`}</Label>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      step="0.01"
+                                      value={row.quantity}
+                                      onChange={(e) => updateRowQuantity(row.id, parseFloat(e.target.value) || 0)}
+                                      className="font-mono"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">Kommentar</Label>
+                                  <Textarea
+                                    placeholder="Lägg till en kommentar för denna rad..."
+                                    value={row.comment}
+                                    onChange={(e) => updateRowComment(row.id, e.target.value)}
+                                    className="min-h-[60px] text-sm"
+                                  />
+                                </div>
+                                {row.pricingConfigId && (
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-muted-foreground">
+                                      {formatCurrency(row.unitPrice)} × {row.quantity} {row.unit}
+                                    </span>
+                                    <span className="font-mono font-medium text-primary">
+                                      {formatCurrency(calculateRowTotal(row))}
+                                    </span>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                          {!isLocked && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeRow(row.id)}
+                              className="text-destructive hover:text-destructive shrink-0"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeRow(row.id)}
-                          className="text-destructive hover:text-destructive shrink-0"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
                 

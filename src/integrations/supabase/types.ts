@@ -50,6 +50,7 @@ export type Database = {
       calculation_items: {
         Row: {
           calculation_id: string
+          comment: string | null
           created_at: string
           id: string
           price_type: string
@@ -60,6 +61,7 @@ export type Database = {
         }
         Insert: {
           calculation_id: string
+          comment?: string | null
           created_at?: string
           id?: string
           price_type: string
@@ -70,6 +72,7 @@ export type Database = {
         }
         Update: {
           calculation_id?: string
+          comment?: string | null
           created_at?: string
           id?: string
           price_type?: string
