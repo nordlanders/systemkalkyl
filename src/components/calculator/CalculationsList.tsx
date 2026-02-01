@@ -16,7 +16,10 @@ import {
   FileText,
   User,
   Calendar,
-  Filter
+  Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
@@ -44,6 +47,8 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | 'all'>(currentYear);
+  const [sortColumn, setSortColumn] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { user, isAdmin, canWrite } = useAuth();
   const { toast } = useToast();
@@ -52,9 +57,66 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const availableYears = [...new Set(calculations.map(c => (c as any).calculation_year as number))].filter(Boolean).sort((a, b) => b - a);
 
   // Filter calculations by selected year
-  const filteredCalculations = selectedYear === 'all' 
+  const filteredByYear = selectedYear === 'all' 
     ? calculations 
     : calculations.filter(c => (c as any).calculation_year === selectedYear);
+
+  // Sort calculations
+  const filteredCalculations = [...filteredByYear].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortColumn) {
+      case 'name':
+        aValue = (a.name || '').toLowerCase();
+        bValue = (b.name || '').toLowerCase();
+        break;
+      case 'service_type':
+        aValue = (a.service_type || '').toLowerCase();
+        bValue = (b.service_type || '').toLowerCase();
+        break;
+      case 'calculation_year':
+        aValue = (a as any).calculation_year || 0;
+        bValue = (b as any).calculation_year || 0;
+        break;
+      case 'total_cost':
+        aValue = Number(a.total_cost) || 0;
+        bValue = Number(b.total_cost) || 0;
+        break;
+      case 'created_at':
+        aValue = new Date(a.created_at).getTime();
+        bValue = new Date(b.created_at).getTime();
+        break;
+      case 'updated_at':
+        aValue = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+        bValue = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  }
+
+  function SortIcon({ column }: { column: string }) {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-4 w-4 ml-1" /> 
+      : <ArrowDown className="h-4 w-4 ml-1" />;
+  }
 
   useEffect(() => {
     loadCalculations();
@@ -222,12 +284,60 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead>Namn</TableHead>
-                    <TableHead>Tjänstetyp</TableHead>
-                    <TableHead>Kalkylår</TableHead>
-                    <TableHead>Total kostnad</TableHead>
-                    <TableHead>Skapad</TableHead>
-                    <TableHead>Senast ändrad</TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted select-none"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center">
+                        Namn
+                        <SortIcon column="name" />
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted select-none"
+                      onClick={() => handleSort('service_type')}
+                    >
+                      <div className="flex items-center">
+                        Tjänstetyp
+                        <SortIcon column="service_type" />
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted select-none"
+                      onClick={() => handleSort('calculation_year')}
+                    >
+                      <div className="flex items-center">
+                        Kalkylår
+                        <SortIcon column="calculation_year" />
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted select-none"
+                      onClick={() => handleSort('total_cost')}
+                    >
+                      <div className="flex items-center">
+                        Total kostnad
+                        <SortIcon column="total_cost" />
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted select-none"
+                      onClick={() => handleSort('created_at')}
+                    >
+                      <div className="flex items-center">
+                        Skapad
+                        <SortIcon column="created_at" />
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted select-none"
+                      onClick={() => handleSort('updated_at')}
+                    >
+                      <div className="flex items-center">
+                        Senast ändrad
+                        <SortIcon column="updated_at" />
+                      </div>
+                    </TableHead>
                     {canWrite && <TableHead className="text-right">Åtgärder</TableHead>}
                   </TableRow>
                 </TableHeader>
