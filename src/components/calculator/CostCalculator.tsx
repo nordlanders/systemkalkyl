@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { getCurrentPricing, logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
@@ -21,6 +22,13 @@ import {
   ArrowRight,
   FileText
 } from 'lucide-react';
+
+const SERVICE_TYPES = [
+  { value: 'Anpassad drift', label: 'Anpassad drift' },
+  { value: 'Anpassad förvaltning', label: 'Anpassad förvaltning' },
+  { value: 'Bastjänst Digital infrastruktur', label: 'Bastjänst Digital infrastruktur' },
+  { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
+];
 
 interface CostBreakdown {
   cpu: number;
@@ -43,6 +51,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [operationHours, setOperationHours] = useState(editCalculation?.operation_hours ?? 2000);
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
+  const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? 'Bastjänst IT infrastruktur');
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [costs, setCosts] = useState<CostBreakdown>({ cpu: 0, storage: 0, server: 0, operations: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -117,6 +126,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
       const calculationData = {
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
         ci_identity: ciIdentity.trim(),
+        service_type: serviceType,
         cpu_count: cpuCount,
         storage_gb: storageGb,
         server_count: serverCount,
@@ -272,6 +282,21 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
               <p className="text-sm text-muted-foreground">
                 Systemets unika identifierare i Configuration Management Database
               </p>
+            </div>
+            <div className="space-y-3">
+              <Label>
+                Tjänstetyp <span className="text-destructive">*</span>
+              </Label>
+              <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2">
+                {SERVICE_TYPES.map((type) => (
+                  <div key={type.value} className="flex items-center space-x-3">
+                    <RadioGroupItem value={type.value} id={type.value} />
+                    <Label htmlFor={type.value} className="font-normal cursor-pointer">
+                      {type.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
             </div>
             <div className="pt-4">
               <Button 

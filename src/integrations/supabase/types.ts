@@ -59,6 +59,7 @@ export type Database = {
           operation_hours: number
           server_cost: number
           server_count: number
+          service_type: string
           storage_cost: number
           storage_gb: number
           total_cost: number
@@ -75,6 +76,7 @@ export type Database = {
           operation_hours?: number
           server_cost?: number
           server_count?: number
+          service_type?: string
           storage_cost?: number
           storage_gb?: number
           total_cost?: number
@@ -91,6 +93,7 @@ export type Database = {
           operation_hours?: number
           server_cost?: number
           server_count?: number
+          service_type?: string
           storage_cost?: number
           storage_gb?: number
           total_cost?: number

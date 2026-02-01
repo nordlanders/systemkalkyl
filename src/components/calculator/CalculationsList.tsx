@@ -176,17 +176,14 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   <TableRow className="bg-muted/50">
                     <TableHead>Namn</TableHead>
                     <TableHead>CI-identitet</TableHead>
-                    <TableHead>CPU:er</TableHead>
-                    <TableHead>Lagring</TableHead>
-                    <TableHead>Servrar</TableHead>
-                    <TableHead>Timmar</TableHead>
+                    <TableHead>Tjänstetyp</TableHead>
                     <TableHead>Total kostnad</TableHead>
                     <TableHead>Skapad</TableHead>
                     {canWrite && <TableHead className="text-right">Åtgärder</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {calculations.map((calc) => (
+                {calculations.map((calc) => (
                     <TableRow 
                       key={calc.id} 
                       className={canWrite ? "cursor-pointer hover:bg-muted/50" : ""}
@@ -198,10 +195,11 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                       <TableCell className="font-mono text-muted-foreground">
                         {calc.ci_identity || '-'}
                       </TableCell>
-                      <TableCell className="font-mono">{calc.cpu_count}</TableCell>
-                      <TableCell className="font-mono">{calc.storage_gb} GB</TableCell>
-                      <TableCell className="font-mono">{calc.server_count}</TableCell>
-                      <TableCell className="font-mono">{calc.operation_hours.toLocaleString('sv-SE')}</TableCell>
+                      <TableCell>
+                        <span className="text-xs px-2 py-1 rounded bg-muted">
+                          {calc.service_type || '-'}
+                        </span>
+                      </TableCell>
                       <TableCell className="font-mono font-medium text-primary">
                         {formatCurrency(Number(calc.total_cost))}
                       </TableCell>
