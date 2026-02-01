@@ -79,14 +79,14 @@ const MUNICIPALITIES = [
 ];
 
 const CHART_COLORS = [
-  'hsl(var(--primary))',
-  'hsl(215, 70%, 50%)',
-  'hsl(160, 60%, 45%)',
-  'hsl(45, 85%, 55%)',
-  'hsl(280, 60%, 55%)',
-  'hsl(350, 70%, 55%)',
-  'hsl(190, 70%, 50%)',
-  'hsl(100, 50%, 45%)',
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-1) / 0.7)',
+  'hsl(var(--chart-2) / 0.7)',
+  'hsl(var(--chart-3) / 0.7)',
+  'hsl(var(--chart-1) / 0.5)',
+  'hsl(var(--chart-2) / 0.5)',
 ];
 
 export default function AnalyticsPage() {

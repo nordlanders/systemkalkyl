@@ -46,6 +46,11 @@
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
+    /* Chart colors for analytics */
+    --chart-1: 152 100% 23%;
+    --chart-2: 283 59% 30%;
+    --chart-3: 326 100% 33%;
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(222 60% 25%), hsl(222 60% 35%));
     --gradient-accent: linear-gradient(135deg, hsl(199 89% 48%), hsl(199 89% 58%));
