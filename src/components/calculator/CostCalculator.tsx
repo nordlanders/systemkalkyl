@@ -59,7 +59,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [step, setStep] = useState<1 | 2>(editCalculation ? 2 : 1);
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   
-  const { user } = useAuth();
+  const { user, fullName } = useAuth();
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
@@ -214,11 +214,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     setSaving(true);
     try {
       const totalCost = calculateTotalCost();
+      const userName = fullName || user?.email || 'Okänd';
       const calculationData = {
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
         total_cost: totalCost,
+        updated_by_name: userName,
         // Keep legacy fields for backwards compatibility
         cpu_count: 0,
         storage_gb: 0,
@@ -266,6 +268,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           .from('calculations')
           .insert({
             user_id: user.id,
+            created_by_name: userName,
             ...calculationData,
           })
           .select()

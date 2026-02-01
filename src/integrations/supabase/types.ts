@@ -104,6 +104,7 @@ export type Database = {
           cpu_cost: number
           cpu_count: number
           created_at: string
+          created_by_name: string | null
           id: string
           name: string | null
           operation_cost: number
@@ -114,6 +115,8 @@ export type Database = {
           storage_cost: number
           storage_gb: number
           total_cost: number
+          updated_at: string | null
+          updated_by_name: string | null
           user_id: string
         }
         Insert: {
@@ -121,6 +124,7 @@ export type Database = {
           cpu_cost?: number
           cpu_count?: number
           created_at?: string
+          created_by_name?: string | null
           id?: string
           name?: string | null
           operation_cost?: number
@@ -131,6 +135,8 @@ export type Database = {
           storage_cost?: number
           storage_gb?: number
           total_cost?: number
+          updated_at?: string | null
+          updated_by_name?: string | null
           user_id: string
         }
         Update: {
@@ -138,6 +144,7 @@ export type Database = {
           cpu_cost?: number
           cpu_count?: number
           created_at?: string
+          created_by_name?: string | null
           id?: string
           name?: string | null
           operation_cost?: number
@@ -148,6 +155,8 @@ export type Database = {
           storage_cost?: number
           storage_gb?: number
           total_cost?: number
+          updated_at?: string | null
+          updated_by_name?: string | null
           user_id?: string
         }
         Relationships: []
