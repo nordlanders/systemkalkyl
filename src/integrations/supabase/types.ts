@@ -100,33 +100,45 @@ export type Database = {
       }
       pricing_config: {
         Row: {
-          component_type: string
+          category: string | null
+          comment: string | null
+          cost_owner: string | null
           created_at: string
           created_by: string | null
           effective_from: string
           effective_to: string | null
           id: string
           price_per_unit: number
+          price_type: string
+          unit: string | null
           updated_at: string
         }
         Insert: {
-          component_type: string
+          category?: string | null
+          comment?: string | null
+          cost_owner?: string | null
           created_at?: string
           created_by?: string | null
           effective_from: string
           effective_to?: string | null
           id?: string
           price_per_unit: number
+          price_type: string
+          unit?: string | null
           updated_at?: string
         }
         Update: {
-          component_type?: string
+          category?: string | null
+          comment?: string | null
+          cost_owner?: string | null
           created_at?: string
           created_by?: string | null
           effective_from?: string
           effective_to?: string | null
           id?: string
           price_per_unit?: number
+          price_type?: string
+          unit?: string | null
           updated_at?: string
         }
         Relationships: []
