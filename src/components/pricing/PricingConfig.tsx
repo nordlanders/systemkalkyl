@@ -18,7 +18,7 @@ import {
   Trash2, 
   Loader2,
   Calendar,
-  DollarSign,
+  Coins,
   AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -283,7 +283,7 @@ export default function PricingConfig() {
                   <div className="space-y-2">
                     <Label>Pris per enhet (SEK) *</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Coins className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="number"
                         step="0.01"
