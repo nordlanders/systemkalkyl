@@ -49,7 +49,7 @@ export type Database = {
       }
       calculations: {
         Row: {
-          ci_identity: string | null
+          ci_identity: string
           cpu_cost: number
           cpu_count: number
           created_at: string
@@ -65,7 +65,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          ci_identity?: string | null
+          ci_identity: string
           cpu_cost?: number
           cpu_count?: number
           created_at?: string
@@ -81,7 +81,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          ci_identity?: string | null
+          ci_identity?: string
           cpu_cost?: number
           cpu_count?: number
           created_at?: string

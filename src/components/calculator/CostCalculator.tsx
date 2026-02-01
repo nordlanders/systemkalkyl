@@ -98,11 +98,21 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   async function saveCalculation() {
     if (!user) return;
 
+    // Validate required fields
+    if (!ciIdentity.trim()) {
+      toast({
+        title: 'CI-identitet krävs',
+        description: 'Du måste ange en CI-identitet för systemet i CMDB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const calculationData = {
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
-        ci_identity: ciIdentity || null,
+        ci_identity: ciIdentity.trim(),
         cpu_count: cpuCount,
         storage_gb: storageGb,
         server_count: serverCount,
@@ -371,12 +381,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="ciIdentity">CI-identitet (CMDB)</Label>
+                    <Label htmlFor="ciIdentity">
+                      CI-identitet (CMDB) <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       id="ciIdentity"
                       placeholder="T.ex. CI-12345"
                       value={ciIdentity}
                       onChange={(e) => setCiIdentity(e.target.value)}
+                      required
                     />
                   </div>
                 </div>
