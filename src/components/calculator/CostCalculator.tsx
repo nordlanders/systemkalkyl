@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
@@ -571,28 +572,48 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                             
                             {isLocked ? (
                               // Locked view - show summary
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium">{row.priceType || 'Ingen pristyp vald'}</span>
-                                  <span className="font-mono text-sm">{row.quantity} {row.unit}</span>
-                                </div>
-                                {row.pricingConfigId && (
-                                  <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted-foreground">
-                                      {formatCurrency(row.unitPrice)} × {row.quantity} {row.unit}
-                                    </span>
-                                    <span className="font-mono font-medium text-primary">
-                                      {formatCurrency(calculateRowTotal(row))}
-                                    </span>
+                              (() => {
+                                const pricingConfig = pricing.find(p => p.id === row.pricingConfigId);
+                                const pricingComment = pricingConfig?.comment;
+                                
+                                return (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      {pricingComment ? (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span className="text-sm font-medium cursor-help underline decoration-dotted underline-offset-2">
+                                              {row.priceType || 'Ingen pristyp vald'}
+                                            </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent className="max-w-xs">
+                                            <p>{pricingComment}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      ) : (
+                                        <span className="text-sm font-medium">{row.priceType || 'Ingen pristyp vald'}</span>
+                                      )}
+                                      <span className="font-mono text-sm">{row.quantity} {row.unit}</span>
+                                    </div>
+                                    {row.pricingConfigId && (
+                                      <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">
+                                          {formatCurrency(row.unitPrice)} × {row.quantity} {row.unit}
+                                        </span>
+                                        <span className="font-mono font-medium text-primary">
+                                          {formatCurrency(calculateRowTotal(row))}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {row.comment && (
+                                      <div className="flex items-start gap-2 text-xs text-muted-foreground bg-background/50 p-2 rounded">
+                                        <MessageSquare className="h-3 w-3 mt-0.5 shrink-0" />
+                                        <span className="line-clamp-2">{row.comment}</span>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                                {row.comment && (
-                                  <div className="flex items-start gap-2 text-xs text-muted-foreground bg-background/50 p-2 rounded">
-                                    <MessageSquare className="h-3 w-3 mt-0.5 shrink-0" />
-                                    <span className="line-clamp-2">{row.comment}</span>
-                                  </div>
-                                )}
-                              </div>
+                                );
+                              })()
                             ) : (
                               // Editable view
                               <>
