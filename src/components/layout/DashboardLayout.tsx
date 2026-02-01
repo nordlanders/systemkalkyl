@@ -10,7 +10,8 @@ import {
   History, 
   LogOut,
   Menu,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,7 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { href: '/', icon: Calculator, label: 'Kalkylator' },
+  { href: '/analytics', icon: BarChart3, label: 'Analys' },
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/users', icon: Users, label: 'Användare' },
   { href: '/history', icon: History, label: 'Historik' },
