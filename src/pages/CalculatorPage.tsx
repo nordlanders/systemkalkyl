@@ -7,7 +7,7 @@ import CalculationsList from '@/components/calculator/CalculationsList';
 import { Loader2 } from 'lucide-react';
 import { type Calculation } from '@/lib/supabase';
 
-const Index = () => {
+export default function CalculatorPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [view, setView] = useState<'list' | 'calculator'>('list');
@@ -64,6 +64,4 @@ const Index = () => {
       )}
     </DashboardLayout>
   );
-};
-
-export default Index;
+}
