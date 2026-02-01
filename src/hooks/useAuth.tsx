@@ -11,6 +11,7 @@ interface AuthContextType {
   permissionLevel: PermissionLevel;
   canWrite: boolean;
   loading: boolean;
+  fullName: string | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -23,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [permissionLevel, setPermissionLevel] = useState<PermissionLevel>('read_only');
+  const [fullName, setFullName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const canWrite = permissionLevel === 'read_write';
@@ -39,10 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => {
             checkAdminRole(session.user.id);
             checkPermissionLevel(session.user.id);
+            fetchFullName(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
           setPermissionLevel('read_only');
+          setFullName(null);
         }
       }
     );
@@ -55,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         checkAdminRole(session.user.id);
         checkPermissionLevel(session.user.id);
+        fetchFullName(session.user.id);
       }
       setLoading(false);
     });
@@ -83,6 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPermissionLevel(data?.permission_level ?? 'read_only');
   }
 
+  async function fetchFullName(userId: string) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    setFullName(data?.full_name ?? null);
+  }
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
@@ -108,10 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setIsAdmin(false);
     setPermissionLevel('read_only');
+    setFullName(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, permissionLevel, canWrite, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, permissionLevel, canWrite, loading, fullName, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

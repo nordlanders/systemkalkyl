@@ -12,8 +12,11 @@ import {
   Pencil, 
   Trash2, 
   Loader2,
-  FileText
+  FileText,
+  User,
+  Calendar
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import {
@@ -179,11 +182,17 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     <TableHead>Tjänstetyp</TableHead>
                     <TableHead>Total kostnad</TableHead>
                     <TableHead>Skapad</TableHead>
+                    <TableHead>Senast ändrad</TableHead>
                     {canWrite && <TableHead className="text-right">Åtgärder</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                {calculations.map((calc) => (
+                {calculations.map((calc) => {
+                  const createdByName = (calc as any).created_by_name;
+                  const updatedByName = (calc as any).updated_by_name;
+                  const updatedAt = (calc as any).updated_at;
+                  
+                  return (
                     <TableRow 
                       key={calc.id} 
                       className={canWrite ? "cursor-pointer hover:bg-muted/50" : ""}
@@ -204,7 +213,46 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                         {formatCurrency(Number(calc.total_cost))}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(calc.created_at), 'd MMM yyyy', { locale: sv })}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex flex-col">
+                              <span>{format(new Date(calc.created_at), 'd MMM yyyy', { locale: sv })}</span>
+                              {createdByName && (
+                                <span className="text-xs flex items-center gap-1">
+                                  <User className="h-3 w-3" />
+                                  {createdByName}
+                                </span>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Skapad {format(new Date(calc.created_at), 'd MMMM yyyy HH:mm', { locale: sv })}</p>
+                            {createdByName && <p>Av: {createdByName}</p>}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {updatedAt ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex flex-col">
+                                <span>{format(new Date(updatedAt), 'd MMM yyyy', { locale: sv })}</span>
+                                {updatedByName && (
+                                  <span className="text-xs flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    {updatedByName}
+                                  </span>
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Ändrad {format(new Date(updatedAt), 'd MMMM yyyy HH:mm', { locale: sv })}</p>
+                              {updatedByName && <p>Av: {updatedByName}</p>}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <span className="text-xs">-</span>
+                        )}
                       </TableCell>
                       {canWrite && (
                         <TableCell className="text-right">
@@ -230,7 +278,8 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                         </TableCell>
                       )}
                     </TableRow>
-                  ))}
+                  );
+                })}
                 </TableBody>
               </Table>
             </div>
