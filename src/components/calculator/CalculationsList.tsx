@@ -26,7 +26,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import jsPDF from 'jspdf';
-import angeKommunLogo from '@/assets/ange-kommun-logo.png';
 import sundsvallsKommunLogo from '@/assets/sundsvalls-kommun-logo.png';
 import {
   AlertDialog,
@@ -244,20 +243,14 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     let yPos = 15;
     const calculationYear = (calc as any).calculation_year;
 
-    // Add logos at the top
+    // Add logo at the top
     try {
-      const [angeBase64, sundsvallsBase64] = await Promise.all([
-        loadImageAsBase64(angeKommunLogo),
-        loadImageAsBase64(sundsvallsKommunLogo)
-      ]);
+      const sundsvallsBase64 = await loadImageAsBase64(sundsvallsKommunLogo);
       
-      // Ånge kommun logo on the left (smaller height to fit well)
-      doc.addImage(angeBase64, 'PNG', 14, yPos, 35, 14);
-      
-      // Sundsvalls kommun logo on the right
-      doc.addImage(sundsvallsBase64, 'PNG', pageWidth - 55, yPos, 40, 16);
+      // Sundsvalls kommun logo on the left
+      doc.addImage(sundsvallsBase64, 'PNG', 14, yPos, 40, 16);
     } catch (e) {
-      console.error('Could not load logos:', e);
+      console.error('Could not load logo:', e);
     }
     
     yPos += 25;
