@@ -53,6 +53,17 @@ export interface Calculation {
   created_at: string;
 }
 
+export interface CalculationItem {
+  id: string;
+  calculation_id: string;
+  pricing_config_id: string | null;
+  price_type: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  created_at: string;
+}
+
 export interface AuditLog {
   id: string;
   user_id: string | null;

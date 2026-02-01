@@ -47,6 +47,54 @@ export type Database = {
         }
         Relationships: []
       }
+      calculation_items: {
+        Row: {
+          calculation_id: string
+          created_at: string
+          id: string
+          price_type: string
+          pricing_config_id: string | null
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          calculation_id: string
+          created_at?: string
+          id?: string
+          price_type: string
+          pricing_config_id?: string | null
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Update: {
+          calculation_id?: string
+          created_at?: string
+          id?: string
+          price_type?: string
+          pricing_config_id?: string | null
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calculation_items_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_items_pricing_config_id_fkey"
+            columns: ["pricing_config_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calculations: {
         Row: {
           ci_identity: string
