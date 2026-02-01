@@ -14,6 +14,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 interface CalculationItem {
   price_type: string;
@@ -37,6 +51,17 @@ interface AggregatedData {
   totalCost: number;
   count: number;
 }
+
+const CHART_COLORS = [
+  'hsl(var(--primary))',
+  'hsl(215, 70%, 50%)',
+  'hsl(160, 60%, 45%)',
+  'hsl(45, 85%, 55%)',
+  'hsl(280, 60%, 55%)',
+  'hsl(350, 70%, 55%)',
+  'hsl(190, 70%, 50%)',
+  'hsl(100, 50%, 45%)',
+];
 
 export default function AnalyticsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -229,41 +254,85 @@ export default function AnalyticsPage() {
                         Inga data att visa
                       </p>
                     ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Tjänstetyp</TableHead>
-                            <TableHead className="text-right">Antal kalkyler</TableHead>
-                            <TableHead className="text-right">Total kostnad</TableHead>
-                            <TableHead className="text-right">Andel</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {byServiceType.map((row) => (
-                            <TableRow key={row.name}>
-                              <TableCell className="font-medium">{row.name}</TableCell>
-                              <TableCell className="text-right">{row.count}</TableCell>
-                              <TableCell className="text-right font-mono">
-                                {formatCurrency(row.totalCost)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {totalCost > 0 
-                                  ? `${((row.totalCost / totalCost) * 100).toFixed(1)}%`
-                                  : '0%'
-                                }
-                              </TableCell>
+                    <div className="grid lg:grid-cols-2 gap-6">
+                        {/* Pie Chart */}
+                        <div className="h-[300px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <RechartsPieChart>
+                              <Pie
+                                data={byServiceType.map((item, index) => ({
+                                  ...item,
+                                  fill: CHART_COLORS[index % CHART_COLORS.length],
+                                }))}
+                                dataKey="totalCost"
+                                nameKey="name"
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={100}
+                                label={({ name, percent }) => `${name.substring(0, 15)}${name.length > 15 ? '...' : ''} (${(percent * 100).toFixed(0)}%)`}
+                                labelLine={false}
+                              >
+                                {byServiceType.map((_, index) => (
+                                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip 
+                                formatter={(value: number) => formatCurrency(value)}
+                                contentStyle={{ 
+                                  backgroundColor: 'hsl(var(--card))', 
+                                  border: '1px solid hsl(var(--border))',
+                                  borderRadius: '8px'
+                                }}
+                              />
+                            </RechartsPieChart>
+                          </ResponsiveContainer>
+                        </div>
+
+                        {/* Table */}
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Tjänstetyp</TableHead>
+                              <TableHead className="text-right">Antal</TableHead>
+                              <TableHead className="text-right">Kostnad</TableHead>
+                              <TableHead className="text-right">Andel</TableHead>
                             </TableRow>
-                          ))}
-                          <TableRow className="bg-muted/50 font-semibold">
-                            <TableCell>Totalt</TableCell>
-                            <TableCell className="text-right">{totalCalculations}</TableCell>
-                            <TableCell className="text-right font-mono">
-                              {formatCurrency(totalCost)}
-                            </TableCell>
-                            <TableCell className="text-right">100%</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {byServiceType.map((row, index) => (
+                              <TableRow key={row.name}>
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <div 
+                                      className="w-3 h-3 rounded-full shrink-0" 
+                                      style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                                    />
+                                    <span className="truncate max-w-[150px]" title={row.name}>{row.name}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right">{row.count}</TableCell>
+                                <TableCell className="text-right font-mono">
+                                  {formatCurrency(row.totalCost)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  {totalCost > 0 
+                                    ? `${((row.totalCost / totalCost) * 100).toFixed(1)}%`
+                                    : '0%'
+                                  }
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow className="bg-muted/50 font-semibold">
+                              <TableCell>Totalt</TableCell>
+                              <TableCell className="text-right">{totalCalculations}</TableCell>
+                              <TableCell className="text-right font-mono">
+                                {formatCurrency(totalCost)}
+                              </TableCell>
+                              <TableCell className="text-right">100%</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -283,53 +352,103 @@ export default function AnalyticsPage() {
                         Inga data att visa
                       </p>
                     ) : (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Pristyp</TableHead>
-                            <TableHead className="text-right">Totalt antal</TableHead>
-                            <TableHead className="text-right">Antal rader</TableHead>
-                            <TableHead className="text-right">Total kostnad</TableHead>
-                            <TableHead className="text-right">Andel</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {byPriceType.map((row) => {
-                            const itemsTotalCost = items.reduce((sum, i) => sum + Number(i.total_price), 0);
-                            return (
-                              <TableRow key={row.name}>
-                                <TableCell className="font-medium max-w-[200px] truncate" title={row.name}>
-                                  {row.name}
-                                </TableCell>
-                                <TableCell className="text-right font-mono">
-                                  {formatNumber(row.totalQuantity)}
-                                </TableCell>
-                                <TableCell className="text-right">{row.count}</TableCell>
-                                <TableCell className="text-right font-mono">
-                                  {formatCurrency(row.totalCost)}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {itemsTotalCost > 0 
-                                    ? `${((row.totalCost / itemsTotalCost) * 100).toFixed(1)}%`
-                                    : '0%'
-                                  }
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                          <TableRow className="bg-muted/50 font-semibold">
-                            <TableCell>Totalt</TableCell>
-                            <TableCell className="text-right font-mono">
-                              {formatNumber(byPriceType.reduce((sum, r) => sum + r.totalQuantity, 0))}
-                            </TableCell>
-                            <TableCell className="text-right">{totalItems}</TableCell>
-                            <TableCell className="text-right font-mono">
-                              {formatCurrency(byPriceType.reduce((sum, r) => sum + r.totalCost, 0))}
-                            </TableCell>
-                            <TableCell className="text-right">100%</TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
+                    <div className="space-y-6">
+                        {/* Bar Chart */}
+                        <div className="h-[300px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart 
+                              data={byPriceType.slice(0, 10).map((item, index) => ({
+                                ...item,
+                                shortName: item.name.length > 20 ? item.name.substring(0, 20) + '...' : item.name,
+                              }))}
+                              layout="vertical"
+                              margin={{ left: 20, right: 20 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis 
+                                type="number" 
+                                tickFormatter={(value) => formatCurrency(value)}
+                                stroke="hsl(var(--muted-foreground))"
+                                fontSize={12}
+                              />
+                              <YAxis 
+                                type="category" 
+                                dataKey="shortName" 
+                                width={150}
+                                stroke="hsl(var(--muted-foreground))"
+                                fontSize={11}
+                              />
+                              <Tooltip 
+                                formatter={(value: number) => formatCurrency(value)}
+                                labelFormatter={(label) => {
+                                  const item = byPriceType.find(p => p.name.startsWith(label.replace('...', '')));
+                                  return item?.name || label;
+                                }}
+                                contentStyle={{ 
+                                  backgroundColor: 'hsl(var(--card))', 
+                                  border: '1px solid hsl(var(--border))',
+                                  borderRadius: '8px'
+                                }}
+                              />
+                              <Bar dataKey="totalCost" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                        {byPriceType.length > 10 && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            Visar topp 10 av {byPriceType.length} pristyper
+                          </p>
+                        )}
+
+                        {/* Table */}
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Pristyp</TableHead>
+                              <TableHead className="text-right">Antal</TableHead>
+                              <TableHead className="text-right">Rader</TableHead>
+                              <TableHead className="text-right">Kostnad</TableHead>
+                              <TableHead className="text-right">Andel</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {byPriceType.map((row) => {
+                              const itemsTotalCost = items.reduce((sum, i) => sum + Number(i.total_price), 0);
+                              return (
+                                <TableRow key={row.name}>
+                                  <TableCell className="font-medium max-w-[200px] truncate" title={row.name}>
+                                    {row.name}
+                                  </TableCell>
+                                  <TableCell className="text-right font-mono">
+                                    {formatNumber(row.totalQuantity)}
+                                  </TableCell>
+                                  <TableCell className="text-right">{row.count}</TableCell>
+                                  <TableCell className="text-right font-mono">
+                                    {formatCurrency(row.totalCost)}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    {itemsTotalCost > 0 
+                                      ? `${((row.totalCost / itemsTotalCost) * 100).toFixed(1)}%`
+                                      : '0%'
+                                    }
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                            <TableRow className="bg-muted/50 font-semibold">
+                              <TableCell>Totalt</TableCell>
+                              <TableCell className="text-right font-mono">
+                                {formatNumber(byPriceType.reduce((sum, r) => sum + r.totalQuantity, 0))}
+                              </TableCell>
+                              <TableCell className="text-right">{totalItems}</TableCell>
+                              <TableCell className="text-right font-mono">
+                                {formatCurrency(byPriceType.reduce((sum, r) => sum + r.totalCost, 0))}
+                              </TableCell>
+                              <TableCell className="text-right">100%</TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
