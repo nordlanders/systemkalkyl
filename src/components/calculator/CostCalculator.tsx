@@ -1,0 +1,408 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { getCurrentPricing, logAudit, type PricingConfig } from '@/lib/supabase';
+import { useAuth } from '@/hooks/useAuth';
+import { 
+  Cpu, 
+  HardDrive, 
+  Server, 
+  Clock, 
+  Calculator,
+  Save,
+  Loader2,
+  DollarSign
+} from 'lucide-react';
+
+interface CostBreakdown {
+  cpu: number;
+  storage: number;
+  server: number;
+  operations: number;
+  total: number;
+}
+
+export default function CostCalculator() {
+  const [cpuCount, setCpuCount] = useState(4);
+  const [storageGb, setStorageGb] = useState(100);
+  const [serverCount, setServerCount] = useState(2);
+  const [operationHours, setOperationHours] = useState(2000);
+  const [calculationName, setCalculationName] = useState('');
+  const [pricing, setPricing] = useState<PricingConfig[]>([]);
+  const [costs, setCosts] = useState<CostBreakdown>({ cpu: 0, storage: 0, server: 0, operations: 0, total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadPricing();
+  }, []);
+
+  useEffect(() => {
+    calculateCosts();
+  }, [cpuCount, storageGb, serverCount, operationHours, pricing]);
+
+  async function loadPricing() {
+    try {
+      const data = await getCurrentPricing();
+      setPricing(data);
+    } catch (error) {
+      console.error('Error loading pricing:', error);
+      toast({
+        title: 'Error loading pricing',
+        description: 'Could not load current pricing configuration.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function calculateCosts() {
+    const getPriceForType = (type: string) => {
+      const config = pricing.find(p => p.component_type === type);
+      return config ? Number(config.price_per_unit) : 0;
+    };
+
+    const cpuCost = cpuCount * getPriceForType('cpu');
+    const storageCost = storageGb * getPriceForType('storage_gb');
+    const serverCost = serverCount * getPriceForType('server');
+    const operationCost = operationHours * getPriceForType('operation_hour');
+
+    setCosts({
+      cpu: cpuCost,
+      storage: storageCost,
+      server: serverCost,
+      operations: operationCost,
+      total: cpuCost + storageCost + serverCost + operationCost,
+    });
+  }
+
+  async function saveCalculation() {
+    if (!user) return;
+
+    setSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from('calculations')
+        .insert({
+          user_id: user.id,
+          name: calculationName || `Calculation ${new Date().toLocaleDateString()}`,
+          cpu_count: cpuCount,
+          storage_gb: storageGb,
+          server_count: serverCount,
+          operation_hours: operationHours,
+          cpu_cost: costs.cpu,
+          storage_cost: costs.storage,
+          server_cost: costs.server,
+          operation_cost: costs.operations,
+          total_cost: costs.total,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await logAudit('create', 'calculations', data.id, undefined, {
+        name: data.name,
+        total_cost: data.total_cost,
+      });
+
+      toast({
+        title: 'Calculation saved',
+        description: 'Your calculation has been saved to history.',
+      });
+
+      setCalculationName('');
+    } catch (error) {
+      console.error('Error saving calculation:', error);
+      toast({
+        title: 'Error saving',
+        description: 'Could not save the calculation.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2,
+    }).format(value);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 fade-in">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Infrastructure Cost Calculator</h1>
+        <p className="text-muted-foreground mt-1">Estimate your annual IT infrastructure costs</p>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Input Section */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-primary" />
+                Configuration
+              </CardTitle>
+              <CardDescription>
+                Adjust the sliders to match your infrastructure requirements
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              {/* CPU Count */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Cpu className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <Label className="text-base font-medium">CPU Cores</Label>
+                      <p className="text-sm text-muted-foreground">Number of processor cores</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={cpuCount}
+                      onChange={(e) => setCpuCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-20 text-center font-mono"
+                      min={1}
+                      max={128}
+                    />
+                  </div>
+                </div>
+                <Slider
+                  value={[cpuCount]}
+                  onValueChange={(v) => setCpuCount(v[0])}
+                  max={128}
+                  min={1}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+
+              {/* Storage */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-accent/10">
+                      <HardDrive className="h-5 w-5 text-accent" />
+                    </div>
+                    <div>
+                      <Label className="text-base font-medium">Storage (GB)</Label>
+                      <p className="text-sm text-muted-foreground">Total storage capacity</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={storageGb}
+                      onChange={(e) => setStorageGb(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-24 text-center font-mono"
+                      min={1}
+                      max={10000}
+                    />
+                  </div>
+                </div>
+                <Slider
+                  value={[storageGb]}
+                  onValueChange={(v) => setStorageGb(v[0])}
+                  max={10000}
+                  min={1}
+                  step={10}
+                  className="py-2"
+                />
+              </div>
+
+              {/* Servers */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-success/10">
+                      <Server className="h-5 w-5 text-success" />
+                    </div>
+                    <div>
+                      <Label className="text-base font-medium">Servers</Label>
+                      <p className="text-sm text-muted-foreground">Number of server instances</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={serverCount}
+                      onChange={(e) => setServerCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-20 text-center font-mono"
+                      min={1}
+                      max={100}
+                    />
+                  </div>
+                </div>
+                <Slider
+                  value={[serverCount]}
+                  onValueChange={(v) => setServerCount(v[0])}
+                  max={100}
+                  min={1}
+                  step={1}
+                  className="py-2"
+                />
+              </div>
+
+              {/* Operation Hours */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-warning/10">
+                      <Clock className="h-5 w-5 text-warning" />
+                    </div>
+                    <div>
+                      <Label className="text-base font-medium">Operation Hours/Year</Label>
+                      <p className="text-sm text-muted-foreground">Annual operating time</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={operationHours}
+                      onChange={(e) => setOperationHours(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-24 text-center font-mono"
+                      min={1}
+                      max={8760}
+                    />
+                  </div>
+                </div>
+                <Slider
+                  value={[operationHours]}
+                  onValueChange={(v) => setOperationHours(v[0])}
+                  max={8760}
+                  min={1}
+                  step={100}
+                  className="py-2"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Max 8,760 hours = 24/7 operation for one year
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Save Section */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Input
+                  placeholder="Name your calculation (optional)"
+                  value={calculationName}
+                  onChange={(e) => setCalculationName(e.target.value)}
+                  className="flex-1"
+                />
+                <Button onClick={saveCalculation} disabled={saving} className="gap-2">
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Save Calculation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Cost Summary */}
+        <div className="space-y-6">
+          <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-primary" />
+                Annual Cost Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <Cpu className="h-4 w-4" /> CPU
+                  </span>
+                  <span className="font-mono font-medium">{formatCurrency(costs.cpu)}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <HardDrive className="h-4 w-4" /> Storage
+                  </span>
+                  <span className="font-mono font-medium">{formatCurrency(costs.storage)}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <Server className="h-4 w-4" /> Servers
+                  </span>
+                  <span className="font-mono font-medium">{formatCurrency(costs.server)}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-border/50">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <Clock className="h-4 w-4" /> Operations
+                  </span>
+                  <span className="font-mono font-medium">{formatCurrency(costs.operations)}</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t-2 border-primary/20">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total Annual Cost</span>
+                  <span className="text-2xl font-bold font-mono text-primary">
+                    {formatCurrency(costs.total)}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Monthly: {formatCurrency(costs.total / 12)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Current Pricing Info */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Current Pricing Rates
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-2">
+              {pricing.map((p) => (
+                <div key={p.id} className="flex justify-between">
+                  <span className="capitalize text-muted-foreground">
+                    {p.component_type.replace('_', ' ')}
+                  </span>
+                  <span className="font-mono">
+                    {formatCurrency(Number(p.price_per_unit))}/unit
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
