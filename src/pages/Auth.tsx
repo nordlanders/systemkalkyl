@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Calculator, Loader2, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
+import loginBackground from '@/assets/login-background.jpg';
 
 const authSchema = z.object({
   email: z.string().email('Ange en giltig e-postadress'),
@@ -109,8 +110,17 @@ export default function Auth() {
   // Forgot Password View
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md fade-in">
+      <div 
+        className="min-h-screen flex items-center justify-center p-4 relative"
+        style={{
+          backgroundImage: `url(${loginBackground})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/60" />
+        <div className="w-full max-w-md fade-in relative z-10">
           <div className="flex items-center justify-center gap-3 mb-8">
             <div className="p-3 rounded-xl bg-primary">
               <Calculator className="h-8 w-8 text-primary-foreground" />
@@ -186,8 +196,17 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md fade-in">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: `url(${loginBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/60" />
+      <div className="w-full max-w-md fade-in relative z-10">
         <div className="flex items-center justify-center gap-3 mb-8">
           <div className="p-3 rounded-xl bg-primary">
             <Calculator className="h-8 w-8 text-primary-foreground" />
