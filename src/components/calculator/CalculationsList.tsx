@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type Calculation } from '@/lib/supabase';
@@ -14,7 +15,8 @@ import {
   Loader2,
   FileText,
   User,
-  Calendar
+  Calendar,
+  Filter
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
@@ -36,13 +38,23 @@ interface CalculationsListProps {
 }
 
 export default function CalculationsList({ onEdit, onCreateNew }: CalculationsListProps) {
+  const currentYear = new Date().getFullYear();
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>(currentYear);
 
   const { user, isAdmin, canWrite } = useAuth();
   const { toast } = useToast();
+
+  // Get unique years from calculations for the filter
+  const availableYears = [...new Set(calculations.map(c => (c as any).calculation_year as number))].filter(Boolean).sort((a, b) => b - a);
+
+  // Filter calculations by selected year
+  const filteredCalculations = selectedYear === 'all' 
+    ? calculations 
+    : calculations.filter(c => (c as any).calculation_year === selectedYear);
 
   useEffect(() => {
     loadCalculations();
@@ -147,13 +159,36 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-primary" />
-            Sparade kalkyler
-          </CardTitle>
-          <CardDescription>
-            Klicka på en kalkyl för att redigera den
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-primary" />
+                Sparade kalkyler
+              </CardTitle>
+              <CardDescription>
+                Klicka på en kalkyl för att redigera den
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select 
+                value={selectedYear.toString()} 
+                onValueChange={(val) => setSelectedYear(val === 'all' ? 'all' : parseInt(val, 10))}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Välj år" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla år</SelectItem>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {calculations.length === 0 ? (
@@ -172,13 +207,22 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                 </Button>
               )}
             </div>
+          ) : filteredCalculations.length === 0 ? (
+            <div className="text-center py-12">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">
+                Inga kalkyler för {selectedYear}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Välj ett annat år eller skapa en ny kalkyl.
+              </p>
+            </div>
           ) : (
             <div className="rounded-lg border overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead>Namn</TableHead>
-                    <TableHead>CI-identitet</TableHead>
                     <TableHead>Tjänstetyp</TableHead>
                     <TableHead>Kalkylår</TableHead>
                     <TableHead>Total kostnad</TableHead>
@@ -188,7 +232,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                {calculations.map((calc) => {
+                {filteredCalculations.map((calc) => {
                   const createdByName = calc.created_by_name;
                   const updatedByName = calc.updated_by_name;
                   const updatedAt = calc.updated_at;
@@ -202,9 +246,6 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     >
                       <TableCell className="font-medium">
                         {calc.name || 'Namnlös'}
-                      </TableCell>
-                      <TableCell className="font-mono text-muted-foreground">
-                        {calc.ci_identity || '-'}
                       </TableCell>
                       <TableCell>
                         <span className="text-xs px-2 py-1 rounded bg-muted">
