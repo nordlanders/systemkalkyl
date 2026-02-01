@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig as PricingConfigType } from '@/lib/supabase';
@@ -23,11 +24,22 @@ import {
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
-const componentTypes = [
-  { value: 'cpu', label: 'CPU-kärna' },
-  { value: 'storage_gb', label: 'Lagring (per GB)' },
-  { value: 'server', label: 'Server' },
-  { value: 'operation_hour', label: 'Drifttimme' },
+const categories = [
+  { value: 'Drift', label: 'Drift' },
+  { value: 'Licenser', label: 'Licenser' },
+  { value: 'Förvaltning', label: 'Förvaltning' },
+  { value: 'Personalkostnad', label: 'Personalkostnad' },
+  { value: 'Avtal', label: 'Avtal' },
+  { value: 'Avskrivning', label: 'Avskrivning' },
+  { value: 'Annat', label: 'Annat' },
+];
+
+const costOwners = [
+  { value: 'Produktion', label: 'Produktion' },
+  { value: 'Digital Utveckling', label: 'Digital Utveckling' },
+  { value: 'Strategi och styrning', label: 'Strategi och styrning' },
+  { value: 'Avskrivning', label: 'Avskrivning' },
+  { value: 'Annat', label: 'Annat' },
 ];
 
 export default function PricingConfig() {
@@ -38,8 +50,12 @@ export default function PricingConfig() {
   const [saving, setSaving] = useState(false);
 
   // Form state
-  const [componentType, setComponentType] = useState('cpu');
+  const [priceType, setPriceType] = useState('');
   const [pricePerUnit, setPricePerUnit] = useState('');
+  const [unit, setUnit] = useState('');
+  const [category, setCategory] = useState('Drift');
+  const [comment, setComment] = useState('');
+  const [costOwner, setCostOwner] = useState('Produktion');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
 
@@ -55,8 +71,8 @@ export default function PricingConfig() {
       const { data, error } = await supabase
         .from('pricing_config')
         .select('*')
-        .order('component_type')
-        .order('effective_from', { ascending: false });
+        .order('category')
+        .order('price_type');
 
       if (error) throw error;
       setPricing(data as PricingConfigType[]);
@@ -73,8 +89,12 @@ export default function PricingConfig() {
   }
 
   function resetForm() {
-    setComponentType('cpu');
+    setPriceType('');
     setPricePerUnit('');
+    setUnit('');
+    setCategory('Drift');
+    setComment('');
+    setCostOwner('Produktion');
     setEffectiveFrom('');
     setEffectiveTo('');
     setEditingId(null);
@@ -82,8 +102,12 @@ export default function PricingConfig() {
 
   function openEditDialog(config: PricingConfigType) {
     setEditingId(config.id);
-    setComponentType(config.component_type);
+    setPriceType(config.price_type);
     setPricePerUnit(config.price_per_unit.toString());
+    setUnit(config.unit || '');
+    setCategory(config.category || 'Drift');
+    setComment(config.comment || '');
+    setCostOwner(config.cost_owner || 'Produktion');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
     setDialogOpen(true);
@@ -99,7 +123,7 @@ export default function PricingConfig() {
       return;
     }
 
-    if (!pricePerUnit || !effectiveFrom) {
+    if (!priceType || !pricePerUnit || !effectiveFrom) {
       toast({
         title: 'Valideringsfel',
         description: 'Fyll i alla obligatoriska fält.',
@@ -111,8 +135,12 @@ export default function PricingConfig() {
     setSaving(true);
     try {
       const priceData = {
-        component_type: componentType,
+        price_type: priceType,
         price_per_unit: parseFloat(pricePerUnit),
+        unit: unit || null,
+        category: category || null,
+        comment: comment || null,
+        cost_owner: costOwner || null,
         effective_from: effectiveFrom,
         effective_to: effectiveTo || null,
         created_by: user.id,
@@ -145,7 +173,7 @@ export default function PricingConfig() {
         if (error) throw error;
 
         await logAudit('create', 'pricing_config', data.id, undefined, {
-          component_type: data.component_type,
+          price_type: data.price_type,
           price_per_unit: data.price_per_unit,
         });
 
@@ -180,7 +208,7 @@ export default function PricingConfig() {
       if (error) throw error;
 
       await logAudit('delete', 'pricing_config', id, {
-        component_type: oldConfig?.component_type,
+        price_type: oldConfig?.price_type,
         price_per_unit: oldConfig?.price_per_unit,
       });
 
@@ -200,7 +228,7 @@ export default function PricingConfig() {
     return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
       currency: 'SEK',
-      minimumFractionDigits: 4,
+      minimumFractionDigits: 2,
     }).format(value);
   };
 
@@ -218,7 +246,7 @@ export default function PricingConfig() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Priskonfiguration</h1>
           <p className="text-muted-foreground mt-1">
-            Hantera komponentpriser med giltighetsdatum
+            Hantera priser med kategori, enhet och kostnadsägare
           </p>
         </div>
 
@@ -233,7 +261,7 @@ export default function PricingConfig() {
                 Lägg till pris
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Redigera pris' : 'Lägg till nytt pris'}</DialogTitle>
                 <DialogDescription>
@@ -241,36 +269,82 @@ export default function PricingConfig() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4 pt-4">
+              <div className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-2">
-                  <Label>Komponenttyp</Label>
-                  <Select value={componentType} onValueChange={setComponentType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {componentTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Pristyp *</Label>
+                  <Input
+                    placeholder="T.ex. Virtuell server (CPU delen)"
+                    value={priceType}
+                    onChange={(e) => setPriceType(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Pris per enhet (SEK) *</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0,00"
+                        value={pricePerUnit}
+                        onChange={(e) => setPricePerUnit(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Enhet</Label>
+                    <Input
+                      placeholder="T.ex. vcpu, GB, kr/år"
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Kategori</Label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kostnadsägare</Label>
+                    <Select value={costOwner} onValueChange={setCostOwner}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {costOwners.map((owner) => (
+                          <SelectItem key={owner.value} value={owner.value}>
+                            {owner.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Pris per enhet (SEK)</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="number"
-                      step="0.0001"
-                      placeholder="0,00"
-                      value={pricePerUnit}
-                      onChange={(e) => setPricePerUnit(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
+                  <Label>Kommentar</Label>
+                  <Textarea
+                    placeholder="Beskrivning eller instruktioner för denna pristyp"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={3}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -325,7 +399,7 @@ export default function PricingConfig() {
             Pristabell
           </CardTitle>
           <CardDescription>
-            Alla priskonfigurationer med deras giltighetsperioder
+            Alla priskonfigurationer ({pricing.length} st)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -333,33 +407,35 @@ export default function PricingConfig() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>Komponent</TableHead>
-                  <TableHead>Pris/enhet</TableHead>
+                  <TableHead>Pristyp</TableHead>
+                  <TableHead>Pris</TableHead>
+                  <TableHead>Enhet</TableHead>
+                  <TableHead>Kategori</TableHead>
+                  <TableHead>Kostnadsägare</TableHead>
                   <TableHead>Giltigt från</TableHead>
-                  <TableHead>Giltigt till</TableHead>
-                  <TableHead>Uppdaterad</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {pricing.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 6 : 5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground py-8">
                       Inga priskonfigurationer hittades
                     </TableCell>
                   </TableRow>
                 ) : (
                   pricing.map((config) => {
-                    const typeLabel = componentTypes.find(t => t.value === config.component_type)?.label || config.component_type;
                     const isActive = !config.effective_to || new Date(config.effective_to) >= new Date();
                     
                     return (
                       <TableRow key={config.id}>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{typeLabel}</span>
+                            <span className="font-medium max-w-[200px] truncate" title={config.price_type}>
+                              {config.price_type}
+                            </span>
                             {isActive && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success shrink-0">
                                 Aktiv
                               </span>
                             )}
@@ -369,23 +445,21 @@ export default function PricingConfig() {
                           {formatCurrency(Number(config.price_per_unit))}
                         </TableCell>
                         <TableCell>
+                          {config.unit || '—'}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs px-2 py-1 rounded bg-muted">
+                            {config.category || '—'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {config.cost_owner || '—'}
+                        </TableCell>
+                        <TableCell>
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             {format(new Date(config.effective_from), 'd MMM yyyy', { locale: sv })}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {config.effective_to ? (
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              {format(new Date(config.effective_to), 'd MMM yyyy', { locale: sv })}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {format(new Date(config.updated_at), 'd MMM yyyy', { locale: sv })}
                         </TableCell>
                         {isAdmin && (
                           <TableCell className="text-right">
