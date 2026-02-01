@@ -593,12 +593,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                       ) : (
                                         <span className="text-sm font-medium">{row.priceType || 'Ingen pristyp vald'}</span>
                                       )}
-                                      <span className="font-mono text-sm">{row.quantity} {row.unit}</span>
+                                      <span className="font-mono text-sm">{row.quantity} {row.unit?.toLowerCase() === 'kr/timme' ? 'timmar' : row.unit}</span>
                                     </div>
                                     {row.pricingConfigId && (
                                       <div className="flex items-center justify-between text-sm">
                                         <span className="text-muted-foreground">
-                                          {formatCurrency(row.unitPrice)} × {row.quantity} {row.unit}
+                                          {formatCurrency(row.unitPrice)}/timme × {row.quantity} {row.unit?.toLowerCase() === 'kr/timme' ? 'timmar' : row.unit}
                                         </span>
                                         <span className="font-mono font-medium text-primary">
                                           {formatCurrency(calculateRowTotal(row))}
@@ -670,7 +670,10 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                 {row.pricingConfigId && (
                                   <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">
-                                      {formatCurrency(row.unitPrice)} × {row.quantity} {row.unit}
+                                      {row.unit?.toLowerCase() === 'kr/timme' 
+                                        ? `${formatCurrency(row.unitPrice)}/timme × ${row.quantity} timmar`
+                                        : `${formatCurrency(row.unitPrice)} × ${row.quantity} ${row.unit}`
+                                      }
                                     </span>
                                     <span className="font-mono font-medium text-primary">
                                       {formatCurrency(calculateRowTotal(row))}
