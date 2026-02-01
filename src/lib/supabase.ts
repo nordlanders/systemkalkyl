@@ -22,8 +22,12 @@ export interface UserRole {
 
 export interface PricingConfig {
   id: string;
-  component_type: string;
+  price_type: string;
   price_per_unit: number;
+  unit: string | null;
+  category: string | null;
+  comment: string | null;
+  cost_owner: string | null;
   effective_from: string;
   effective_to: string | null;
   created_by: string | null;
@@ -72,11 +76,11 @@ export async function getCurrentPricing(): Promise<PricingConfig[]> {
 
   if (error) throw error;
   
-  // Get the most recent price for each component type
+  // Get the most recent price for each price type
   const latestPrices: Record<string, PricingConfig> = {};
   (data as PricingConfig[]).forEach((price) => {
-    if (!latestPrices[price.component_type]) {
-      latestPrices[price.component_type] = price;
+    if (!latestPrices[price.price_type]) {
+      latestPrices[price.price_type] = price;
     }
   });
   

@@ -81,7 +81,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
 
   function calculateCosts() {
     const getPriceForType = (type: string) => {
-      const config = pricing.find(p => p.component_type === type);
+      const config = pricing.find(p => p.price_type === type);
       return config ? Number(config.price_per_unit) : 0;
     };
 
@@ -519,16 +519,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-2">
-              {pricing.map((p) => (
+              {pricing.slice(0, 5).map((p) => (
                 <div key={p.id} className="flex justify-between">
-                  <span className="capitalize text-muted-foreground">
-                    {p.component_type === 'cpu' && 'CPU'}
-                    {p.component_type === 'storage_gb' && 'Lagring (GB)'}
-                    {p.component_type === 'server' && 'Server'}
-                    {p.component_type === 'operation_hour' && 'Drifttimme'}
+                  <span className="text-muted-foreground truncate max-w-[150px]" title={p.price_type}>
+                    {p.price_type}
                   </span>
                   <span className="font-mono">
-                    {formatCurrency(Number(p.price_per_unit))}/enhet
+                    {formatCurrency(Number(p.price_per_unit))}/{p.unit || 'enhet'}
                   </span>
                 </div>
               ))}
