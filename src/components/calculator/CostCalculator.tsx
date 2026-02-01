@@ -593,17 +593,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                       ) : (
                                         <span className="text-sm font-medium">{row.priceType || 'Ingen pristyp vald'}</span>
                                       )}
-                                      <span className="font-mono text-sm">{row.quantity} {row.unit?.toLowerCase() === 'kr/timme' ? 'timmar' : row.unit?.toLowerCase() === 'kr/år' ? 'st' : row.unit}</span>
+                                      <span className="font-mono text-sm">{row.quantity} {row.unit?.toLowerCase() === 'kr/timme' ? 'timmar' : row.unit}</span>
                                     </div>
                                     {row.pricingConfigId && (
                                       <div className="flex items-center justify-between text-sm">
                                         <span className="text-muted-foreground">
-                                          {row.unit?.toLowerCase() === 'kr/timme' 
-                                            ? `${formatCurrency(row.unitPrice)}/timme × ${row.quantity} timmar`
-                                            : row.unit?.toLowerCase() === 'kr/år'
-                                            ? `${formatCurrency(row.unitPrice)}/år × ${row.quantity} st`
-                                            : `${formatCurrency(row.unitPrice)} × ${row.quantity} ${row.unit}`
-                                          }
+                                          {formatCurrency(row.unitPrice)}/timme × {row.quantity} {row.unit?.toLowerCase() === 'kr/timme' ? 'timmar' : row.unit}
                                         </span>
                                         <span className="font-mono font-medium text-primary">
                                           {formatCurrency(calculateRowTotal(row))}
@@ -650,11 +645,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                   </div>
                                   <div className="space-y-1">
                                     <Label className="text-xs">
-                                      {row.unit?.toLowerCase() === 'kr/timme' 
-                                        ? 'Antal timmar' 
-                                        : row.unit?.toLowerCase() === 'kr/år'
-                                        ? 'Antal (st)'
-                                        : `Antal${row.unit ? ` (${row.unit})` : ''}`}
+                                      {row.unit?.toLowerCase() === 'kr/timme' ? 'Antal timmar' : `Antal${row.unit ? ` (${row.unit})` : ''}`}
                                     </Label>
                                     <Input
                                       type="number"
@@ -681,8 +672,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                     <span className="text-muted-foreground">
                                       {row.unit?.toLowerCase() === 'kr/timme' 
                                         ? `${formatCurrency(row.unitPrice)}/timme × ${row.quantity} timmar`
-                                        : row.unit?.toLowerCase() === 'kr/år'
-                                        ? `${formatCurrency(row.unitPrice)}/år × ${row.quantity} st`
                                         : `${formatCurrency(row.unitPrice)} × ${row.quantity} ${row.unit}`
                                       }
                                     </span>
