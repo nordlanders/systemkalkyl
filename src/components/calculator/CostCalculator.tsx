@@ -25,10 +25,12 @@ import {
   Check,
   MessageSquare,
   User,
-  Calendar
+  Calendar,
+  Download
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import jsPDF from 'jspdf';
 
 const SERVICE_TYPES = [
   { value: 'Anpassad drift', label: 'Anpassad drift' },
@@ -334,6 +336,120 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
       minimumFractionDigits: 2,
     }).format(value);
   };
+
+  const formatCurrencyForPdf = (value: number) => {
+    return new Intl.NumberFormat('sv-SE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value) + ' kr';
+  };
+
+  function generatePdf() {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 20;
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Kostnadskalkyl', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Basic info section
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Grundlaggande information', 14, yPos);
+    yPos += 8;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Namn: ${calculationName || 'Ej angivet'}`, 14, yPos);
+    yPos += 6;
+    doc.text(`CI-identitet: ${ciIdentity}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Tjanstetyp: ${serviceType}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Kalkyl ar: ${calculationYear}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`, 14, yPos);
+    yPos += 15;
+
+    // Price rows header
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Prisrader', 14, yPos);
+    yPos += 10;
+
+    // Table header
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Pristyp', 14, yPos);
+    doc.text('Antal', 100, yPos);
+    doc.text('Enhetspris', 130, yPos);
+    doc.text('Summa', 170, yPos);
+    yPos += 2;
+    doc.line(14, yPos, pageWidth - 14, yPos);
+    yPos += 6;
+
+    // Table rows
+    doc.setFont('helvetica', 'normal');
+    const validRows = rows.filter(r => r.pricingConfigId);
+    
+    validRows.forEach((row) => {
+      // Check if we need a new page
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      const displayUnit = row.unit?.toLowerCase() === 'kr/timme' ? 'timmar' : row.unit;
+      
+      doc.text(row.priceType.substring(0, 40), 14, yPos);
+      doc.text(`${row.quantity} ${displayUnit || ''}`, 100, yPos);
+      doc.text(formatCurrencyForPdf(row.unitPrice), 130, yPos);
+      doc.text(formatCurrencyForPdf(calculateRowTotal(row)), 170, yPos);
+      yPos += 7;
+
+      // Add comment if exists
+      if (row.comment) {
+        doc.setFontSize(8);
+        doc.setTextColor(100);
+        doc.text(`  Kommentar: ${row.comment.substring(0, 60)}`, 14, yPos);
+        doc.setTextColor(0);
+        doc.setFontSize(9);
+        yPos += 6;
+      }
+    });
+
+    yPos += 5;
+    doc.line(14, yPos, pageWidth - 14, yPos);
+    yPos += 10;
+
+    // Total
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total kostnad:', 14, yPos);
+    doc.text(formatCurrencyForPdf(calculateTotalCost()), 170, yPos);
+    yPos += 6;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('per manad', 170, yPos);
+
+    // Footer
+    yPos = doc.internal.pageSize.getHeight() - 20;
+    doc.setFontSize(8);
+    doc.setTextColor(128);
+    doc.text(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`, 14, yPos);
+
+    // Download
+    const fileName = `kalkyl-${ciIdentity || 'utan-ci'}-${calculationYear}.pdf`;
+    doc.save(fileName);
+
+    toast({
+      title: 'PDF skapad',
+      description: `Filen ${fileName} har laddats ner.`,
+    });
+  }
 
   // Group pricing by category for easier selection
   const pricingByCategory = pricing.reduce((acc, p) => {
@@ -991,9 +1107,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">
-                  Granska informationen ovan. Klicka på bekräfta för att {isEditing ? 'uppdatera' : 'spara'} kalkylen.
-                </p>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" onClick={generatePdf} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Ladda ner PDF
+                  </Button>
+                </div>
                 <div className="flex gap-3">
                   <Button variant="outline" onClick={() => setStep(2)} className="gap-2">
                     <ArrowLeft className="h-4 w-4" />
