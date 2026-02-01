@@ -51,7 +51,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [operationHours, setOperationHours] = useState(editCalculation?.operation_hours ?? 2000);
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
-  const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? 'Bastjänst IT infrastruktur');
+  const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [costs, setCosts] = useState<CostBreakdown>({ cpu: 0, storage: 0, server: 0, operations: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
-  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '';
+  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '';
 
   useEffect(() => {
     loadPricing();
