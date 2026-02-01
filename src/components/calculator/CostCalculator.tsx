@@ -60,7 +60,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [rows, setRows] = useState<CalculationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState<1 | 2>(editCalculation ? 2 : 1);
+  const [step, setStep] = useState<1 | 2 | 3>(editCalculation ? 2 : 1);
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   
   const { user, fullName } = useAuth();
@@ -68,6 +68,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   
   const isEditing = !!editCalculation;
   const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '';
+  const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
     loadPricing();
@@ -355,9 +356,17 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   return (
     <div className="space-y-8 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <Button variant="ghost" onClick={step === 1 ? onBack : () => setStep(1)} className="gap-2 w-fit">
+        <Button 
+          variant="ghost" 
+          onClick={() => {
+            if (step === 1) onBack();
+            else if (step === 2) setStep(1);
+            else setStep(2);
+          }} 
+          className="gap-2 w-fit"
+        >
           <ArrowLeft className="h-4 w-4" />
-          {step === 1 ? 'Tillbaka till lista' : 'Tillbaka till steg 1'}
+          {step === 1 ? 'Tillbaka till lista' : step === 2 ? 'Tillbaka till steg 1' : 'Tillbaka till steg 2'}
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">
@@ -366,17 +375,44 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           <p className="text-muted-foreground mt-1">
             {step === 1 
               ? 'Steg 1: Ange namn, CI-identitet och tjänstetyp' 
-              : 'Steg 2: Välj pristyper och ange antal'}
+              : step === 2 
+                ? 'Steg 2: Välj pristyper och ange antal'
+                : 'Steg 3: Granska och bekräfta'}
           </p>
         </div>
         {/* Step indicator */}
         <div className="flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 1 ? 'bg-primary text-primary-foreground' : 'bg-primary/20 text-primary'}`}>
+          <div 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium cursor-pointer transition-colors ${step === 1 ? 'bg-primary text-primary-foreground' : 'bg-primary/20 text-primary hover:bg-primary/30'}`}
+            onClick={() => setStep(1)}
+          >
             1
           </div>
           <div className="w-8 h-0.5 bg-border" />
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+          <div 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              step === 2 
+                ? 'bg-primary text-primary-foreground' 
+                : step > 2 || canProceedToStep2
+                  ? 'bg-primary/20 text-primary cursor-pointer hover:bg-primary/30' 
+                  : 'bg-muted text-muted-foreground'
+            }`}
+            onClick={() => canProceedToStep2 && setStep(2)}
+          >
             2
+          </div>
+          <div className="w-8 h-0.5 bg-border" />
+          <div 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              step === 3 
+                ? 'bg-primary text-primary-foreground' 
+                : canProceedToStep3 
+                  ? 'bg-primary/20 text-primary cursor-pointer hover:bg-primary/30' 
+                  : 'bg-muted text-muted-foreground'
+            }`}
+            onClick={() => canProceedToStep3 && setStep(3)}
+          >
+            3
           </div>
         </div>
       </div>
@@ -495,7 +531,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
             </Card>
           )}
         </div>
-      ) : (
+      ) : step === 2 ? (
         /* Step 2: Price type rows */
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Rows Section */}
@@ -685,7 +721,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
               </CardContent>
             </Card>
 
-            {/* Save Section */}
+            {/* Navigate to Step 3 */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -694,16 +730,16 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                       <strong>{calculationName}</strong> • CI: {ciIdentity} • {serviceType}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {rows.length} prisrad{rows.length !== 1 ? 'er' : ''}
+                      {rows.length} prisrad{rows.length !== 1 ? 'er' : ''} • Total: {formatCurrency(calculateTotalCost())}
                     </p>
                   </div>
-                  <Button onClick={saveCalculation} disabled={saving || rows.length === 0} className="gap-2">
-                    {saving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4" />
-                    )}
-                    {isEditing ? 'Uppdatera kalkyl' : 'Spara kalkyl'}
+                  <Button 
+                    onClick={() => setStep(3)} 
+                    disabled={!canProceedToStep3} 
+                    className="gap-2"
+                  >
+                    Granska och bekräfta
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>
@@ -769,6 +805,161 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
               </CardContent>
             </Card>
           </div>
+        </div>
+      ) : (
+        /* Step 3: Summary and Confirmation */
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Grundläggande information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Namn</p>
+                  <p className="font-medium">{calculationName}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">CI-identitet</p>
+                  <p className="font-mono">{ciIdentity}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Tjänstetyp</p>
+                  <p className="text-sm">{serviceType}</p>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t">
+                <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="gap-2">
+                  <Pencil className="h-3 w-3" />
+                  Ändra grundläggande information
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-primary" />
+                Prisrader ({rows.filter(r => r.pricingConfigId).length} st)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {rows.filter(r => r.pricingConfigId).map((row, index) => (
+                  <div key={row.id} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
+                    <div className="flex-1">
+                      <p className="font-medium">{row.priceType}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {row.quantity} {row.unit} × {formatCurrency(row.unitPrice)}
+                      </p>
+                      {row.comment && (
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <MessageSquare className="h-3 w-3" />
+                          {row.comment}
+                        </p>
+                      )}
+                    </div>
+                    <span className="font-mono font-medium text-primary">
+                      {formatCurrency(calculateRowTotal(row))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t">
+                <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="gap-2">
+                  <Pencil className="h-3 w-3" />
+                  Ändra prisrader
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Metadata for existing calculations */}
+          {isEditing && createdAt && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Historik
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Skapad</p>
+                    <p className="font-medium">
+                      {format(new Date(createdAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
+                    </p>
+                    {createdByName && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {createdByName}
+                      </p>
+                    )}
+                  </div>
+                  {updatedAt && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Senast ändrad</p>
+                      <p className="font-medium">
+                        {format(new Date(updatedAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
+                      </p>
+                      {updatedByName && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {updatedByName}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Coins className="h-5 w-5 text-primary" />
+                Total kostnad
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-4">
+                <span className="text-4xl font-bold font-mono text-primary">
+                  {formatCurrency(calculateTotalCost())}
+                </span>
+                <p className="text-muted-foreground mt-2">per månad</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p className="text-sm text-muted-foreground">
+                  Granska informationen ovan. Klicka på bekräfta för att {isEditing ? 'uppdatera' : 'spara'} kalkylen.
+                </p>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setStep(2)} className="gap-2">
+                    <ArrowLeft className="h-4 w-4" />
+                    Tillbaka
+                  </Button>
+                  <Button onClick={saveCalculation} disabled={saving} className="gap-2">
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
+                    {isEditing ? 'Bekräfta och uppdatera' : 'Bekräfta och spara'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
