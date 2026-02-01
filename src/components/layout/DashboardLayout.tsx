@@ -20,11 +20,11 @@ interface DashboardLayoutProps {
 }
 
 const navItems = [
-  { href: '/', icon: Calculator, label: 'Kalkylator' },
-  { href: '/analytics', icon: BarChart3, label: 'Analys' },
-  { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
-  { href: '/users', icon: Users, label: 'Användare' },
-  { href: '/history', icon: History, label: 'Historik' },
+  { href: '/', icon: Calculator, label: 'Kalkylator', adminOnly: false },
+  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
+  { href: '/pricing', icon: Settings, label: 'Priskonfiguration', adminOnly: false },
+  { href: '/users', icon: Users, label: 'Användare', adminOnly: false },
+  { href: '/history', icon: History, label: 'Historik', adminOnly: false },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -54,23 +54,25 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link key={item.href} to={item.href}>
-                  <Button
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className={cn(
-                      'gap-2',
-                      isActive && 'bg-primary/10 text-primary hover:bg-primary/15'
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Button>
-                </Link>
-              );
-            })}
+            {navItems
+              .filter((item) => !item.adminOnly || isAdmin)
+              .map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link key={item.href} to={item.href}>
+                    <Button
+                      variant={isActive ? 'secondary' : 'ghost'}
+                      className={cn(
+                        'gap-2',
+                        isActive && 'bg-primary/10 text-primary hover:bg-primary/15'
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-4">
@@ -94,27 +96,29 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-16 z-40 bg-background/95 backdrop-blur">
           <nav className="flex flex-col p-4 gap-2">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button
-                    variant={isActive ? 'secondary' : 'ghost'}
-                    className={cn(
-                      'w-full justify-start gap-3',
-                      isActive && 'bg-primary/10 text-primary'
-                    )}
+            {navItems
+              .filter((item) => !item.adminOnly || isAdmin)
+              .map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </Button>
-                </Link>
-              );
-            })}
+                    <Button
+                      variant={isActive ? 'secondary' : 'ghost'}
+                      className={cn(
+                        'w-full justify-start gap-3',
+                        isActive && 'bg-primary/10 text-primary'
+                      )}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
           </nav>
         </div>
       )}

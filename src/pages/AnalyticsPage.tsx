@@ -64,7 +64,7 @@ const CHART_COLORS = [
 ];
 
 export default function AnalyticsPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
@@ -167,6 +167,10 @@ export default function AnalyticsPage() {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   return (
