@@ -121,13 +121,13 @@ export default function Auth() {
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60" />
         <div className="w-full max-w-md fade-in relative z-10">
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="p-3 rounded-xl bg-primary">
-              <Calculator className="h-8 w-8 text-primary-foreground" />
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="p-4 rounded-xl bg-primary">
+              <Calculator className="h-10 w-10 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">IT-Kostnadskalkylator</h1>
-              <p className="text-sm text-muted-foreground">Infrastrukturprissättning på ett enkelt sätt</p>
+              <h1 className="text-3xl font-bold text-white">IT-Kostnadskalkylator</h1>
+              <p className="text-base text-white/80">Infrastrukturprissättning på ett enkelt sätt</p>
             </div>
           </div>
 
@@ -207,13 +207,13 @@ export default function Auth() {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/60" />
       <div className="w-full max-w-md fade-in relative z-10">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="p-3 rounded-xl bg-primary">
-            <Calculator className="h-8 w-8 text-primary-foreground" />
+        <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="p-4 rounded-xl bg-primary">
+            <Calculator className="h-10 w-10 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">IT-Kostnadskalkylator</h1>
-            <p className="text-sm text-muted-foreground">Infrastrukturprissättning på ett enkelt sätt</p>
+            <h1 className="text-3xl font-bold text-white">IT-Kostnadskalkylator</h1>
+            <p className="text-base text-white/80">Infrastrukturprissättning på ett enkelt sätt</p>
           </div>
         </div>
 
