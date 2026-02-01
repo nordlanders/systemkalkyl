@@ -78,6 +78,10 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
         aValue = (a.service_type || '').toLowerCase();
         bValue = (b.service_type || '').toLowerCase();
         break;
+      case 'municipality':
+        aValue = ((a as any).municipality || '').toLowerCase();
+        bValue = ((b as any).municipality || '').toLowerCase();
+        break;
       case 'calculation_year':
         aValue = (a as any).calculation_year || 0;
         bValue = (b as any).calculation_year || 0;
@@ -457,6 +461,15 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     </TableHead>
                     <TableHead 
                       className="cursor-pointer hover:bg-muted select-none"
+                      onClick={() => handleSort('municipality')}
+                    >
+                      <div className="flex items-center">
+                        Kund
+                        <SortIcon column="municipality" />
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:bg-muted select-none"
                       onClick={() => handleSort('service_type')}
                     >
                       <div className="flex items-center">
@@ -464,7 +477,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                         <SortIcon column="service_type" />
                       </div>
                     </TableHead>
-                    <TableHead 
+                    <TableHead
                       className="cursor-pointer hover:bg-muted select-none"
                       onClick={() => handleSort('calculation_year')}
                     >
@@ -509,6 +522,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   const updatedByName = calc.updated_by_name;
                   const updatedAt = calc.updated_at;
                   const calculationYear = (calc as any).calculation_year;
+                  const municipality = (calc as any).municipality;
                   
                   return (
                     <TableRow 
@@ -518,6 +532,11 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     >
                       <TableCell className="font-medium">
                         {calc.name || 'Namnlös'}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">
+                          {municipality || '-'}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <span className="text-xs px-2 py-1 rounded bg-muted">
