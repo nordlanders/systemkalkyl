@@ -19,7 +19,7 @@ import { z } from 'zod';
 const passwordSchema = z.object({
   newPassword: z
     .string()
-    .min(8, 'Lösenordet måste vara minst 8 tecken')
+    .min(12, 'Lösenordet måste vara minst 12 tecken')
     .max(72, 'Lösenordet får inte vara längre än 72 tecken'),
   confirmPassword: z.string(),
 }).refine((data) => data.newPassword === data.confirmPassword, {
@@ -110,7 +110,7 @@ export default function ChangePasswordDialog() {
           <DialogHeader>
             <DialogTitle>Byt lösenord</DialogTitle>
             <DialogDescription>
-              Ange ditt nya lösenord nedan. Lösenordet måste vara minst 8 tecken.
+              Ange ditt nya lösenord nedan. Lösenordet måste vara minst 12 tecken.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -121,7 +121,7 @@ export default function ChangePasswordDialog() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Minst 8 tecken"
+                placeholder="Minst 12 tecken"
                 disabled={loading}
               />
               {errors.newPassword && (
