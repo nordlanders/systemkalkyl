@@ -1,7 +1,8 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import ChangePasswordDialog from '@/components/auth/ChangePasswordDialog';
 import { 
   Calculator, 
   Settings, 
@@ -11,7 +12,6 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             })}
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-sm font-medium">{user?.email}</span>
               {isAdmin && (
@@ -80,6 +80,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </span>
               )}
             </div>
+            <ChangePasswordDialog />
             <Button variant="ghost" size="icon" onClick={signOut} title="Logga ut">
               <LogOut className="h-4 w-4" />
             </Button>
