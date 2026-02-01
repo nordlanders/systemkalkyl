@@ -314,7 +314,7 @@ export type Database = {
       has_write_permission: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "superadmin"
       permission_level: "read_only" | "read_write"
     }
     CompositeTypes: {
@@ -443,7 +443,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "superadmin"],
       permission_level: ["read_only", "read_write"],
     },
   },

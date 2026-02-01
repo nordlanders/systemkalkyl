@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Pencil,
   Eye,
-  Edit3
+  Edit3,
+  Crown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -29,7 +30,7 @@ interface UserWithRole {
   created_at: string;
   last_login_at: string | null;
   permission_level: 'read_only' | 'read_write';
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'superadmin';
 }
 
 export default function UsersManagement() {
@@ -237,8 +238,11 @@ export default function UsersManagement() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>
-                          {u.role === 'admin' ? (
+                        <Badge variant={u.role === 'superadmin' ? 'default' : u.role === 'admin' ? 'default' : 'secondary'} 
+                          className={u.role === 'superadmin' ? 'bg-amber-600 hover:bg-amber-700' : ''}>
+                          {u.role === 'superadmin' ? (
+                            <><Crown className="h-3 w-3 mr-1" /> Superadmin</>
+                          ) : u.role === 'admin' ? (
                             <><ShieldCheck className="h-3 w-3 mr-1" /> Admin</>
                           ) : (
                             <><Shield className="h-3 w-3 mr-1" /> Användare</>
