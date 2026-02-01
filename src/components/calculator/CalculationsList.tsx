@@ -26,6 +26,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import jsPDF from 'jspdf';
+import angeKommunLogo from '@/assets/ange-kommun-logo.png';
+import sundsvallsKommunLogo from '@/assets/sundsvalls-kommun-logo.png';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -219,10 +221,46 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
       return;
     }
 
+    // Helper function to load image as base64
+    const loadImageAsBase64 = (src: string): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = reject;
+        img.src = src;
+      });
+    };
+
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
-    let yPos = 20;
+    let yPos = 15;
     const calculationYear = (calc as any).calculation_year;
+
+    // Add logos at the top
+    try {
+      const [angeBase64, sundsvallsBase64] = await Promise.all([
+        loadImageAsBase64(angeKommunLogo),
+        loadImageAsBase64(sundsvallsKommunLogo)
+      ]);
+      
+      // Ånge kommun logo on the left (smaller height to fit well)
+      doc.addImage(angeBase64, 'PNG', 14, yPos, 35, 14);
+      
+      // Sundsvalls kommun logo on the right
+      doc.addImage(sundsvallsBase64, 'PNG', pageWidth - 55, yPos, 40, 16);
+    } catch (e) {
+      console.error('Could not load logos:', e);
+    }
+    
+    yPos += 25;
 
     // Title
     doc.setFontSize(20);
