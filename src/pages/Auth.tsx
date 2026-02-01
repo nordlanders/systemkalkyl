@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Calculator, Loader2, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
@@ -14,19 +13,17 @@ import { z } from 'zod';
 const authSchema = z.object({
   email: z.string().email('Ange en giltig e-postadress'),
   password: z.string().min(6, 'Lösenordet måste vara minst 6 tecken'),
-  fullName: z.string().optional(),
 });
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -36,9 +33,9 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
-  const validateForm = (includeFullName = false) => {
+  const validateForm = () => {
     try {
-      authSchema.parse({ email, password, fullName: includeFullName ? fullName : undefined });
+      authSchema.parse({ email, password });
       setErrors({});
       return true;
     } catch (err) {
@@ -77,36 +74,6 @@ export default function Auth() {
         description: 'Du har loggat in.',
       });
       navigate('/');
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm(true)) return;
-    
-    setLoading(true);
-    const { error } = await signUp(email, password, fullName);
-    setLoading(false);
-
-    if (error) {
-      if (error.message.includes('already registered')) {
-        toast({
-          title: 'Kontot finns redan',
-          description: 'Ett konto med denna e-post finns redan. Logga in istället.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Registrering misslyckades',
-          description: error.message,
-          variant: 'destructive',
-        });
-      }
-    } else {
-      toast({
-        title: 'Kontrollera din e-post',
-        description: 'Vi har skickat en bekräftelselänk. Kontrollera din inkorg för att verifiera ditt konto.',
-      });
     }
   };
 
@@ -233,101 +200,49 @@ export default function Auth() {
 
         <Card className="shadow-lg">
           <CardHeader className="text-center">
-            <CardTitle>Välkommen</CardTitle>
-            <CardDescription>Logga in på ditt konto eller skapa ett nytt</CardDescription>
+            <CardTitle>Logga in</CardTitle>
+            <CardDescription>Ange dina inloggningsuppgifter för att fortsätta</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Logga in</TabsTrigger>
-                <TabsTrigger value="signup">Registrera</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">E-post</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="du@exempel.se"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="signin-password">Lösenord</Label>
-                      <button
-                        type="button"
-                        onClick={() => setShowForgotPassword(true)}
-                        className="text-sm text-primary hover:underline"
-                      >
-                        Glömt lösenord?
-                      </button>
-                    </div>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Logga in
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Fullständigt namn</Label>
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Anna Andersson"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">E-post</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="du@exempel.se"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Lösenord</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Skapa konto
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email">E-post</Label>
+                <Input
+                  id="signin-email"
+                  type="email"
+                  placeholder="du@exempel.se"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="signin-password">Lösenord</Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Glömt lösenord?
+                  </button>
+                </div>
+                <Input
+                  id="signin-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Logga in
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>
