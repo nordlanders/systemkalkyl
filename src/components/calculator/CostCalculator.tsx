@@ -644,7 +644,9 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                     </Select>
                                   </div>
                                   <div className="space-y-1">
-                                    <Label className="text-xs">Antal {row.unit && `(${row.unit})`}</Label>
+                                    <Label className="text-xs">
+                                      {row.unit?.toLowerCase() === 'kr/timme' ? 'Antal timmar' : `Antal${row.unit ? ` (${row.unit})` : ''}`}
+                                    </Label>
                                     <Input
                                       type="number"
                                       min="0"
@@ -652,6 +654,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                       value={row.quantity}
                                       onChange={(e) => updateRowQuantity(row.id, parseFloat(e.target.value) || 0)}
                                       className="font-mono"
+                                      placeholder={row.unit?.toLowerCase() === 'kr/timme' ? 'Ange antal timmar' : undefined}
                                     />
                                   </div>
                                 </div>
