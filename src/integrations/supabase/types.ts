@@ -107,6 +107,7 @@ export type Database = {
           created_at: string
           created_by_name: string | null
           id: string
+          municipality: string
           name: string | null
           operation_cost: number
           operation_hours: number
@@ -128,6 +129,7 @@ export type Database = {
           created_at?: string
           created_by_name?: string | null
           id?: string
+          municipality?: string
           name?: string | null
           operation_cost?: number
           operation_hours?: number
@@ -149,6 +151,7 @@ export type Database = {
           created_at?: string
           created_by_name?: string | null
           id?: string
+          municipality?: string
           name?: string | null
           operation_cost?: number
           operation_hours?: number
