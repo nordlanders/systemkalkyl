@@ -381,113 +381,120 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         </div>
       </div>
 
-      {/* Metadata for existing calculations */}
-      {isEditing && createdAt && (
-        <Card className="bg-muted/30">
-          <CardContent className="py-4">
-            <div className="flex flex-wrap gap-6 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>Skapad:</span>
-                <span className="font-medium text-foreground">
-                  {format(new Date(createdAt), 'd MMMM yyyy HH:mm', { locale: sv })}
-                </span>
-                {createdByName && (
-                  <span className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    {createdByName}
-                  </span>
-                )}
-              </div>
-              {updatedAt && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Pencil className="h-4 w-4" />
-                  <span>Senast ändrad:</span>
-                  <span className="font-medium text-foreground">
-                    {format(new Date(updatedAt), 'd MMMM yyyy HH:mm', { locale: sv })}
-                  </span>
-                  {updatedByName && (
-                    <span className="flex items-center gap-1">
-                      <User className="h-3 w-3" />
-                      {updatedByName}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {step === 1 ? (
         /* Step 1: Name, CI Identity and Service Type */
-        <Card className="max-w-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Grundläggande information
-            </CardTitle>
-            <CardDescription>
-              Ange namn, CI-identitet och tjänstetyp för kalkylen
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="calcName">
-                Namn på kalkyl <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="calcName"
-                placeholder="T.ex. Produktionsmiljö Q1"
-                value={calculationName}
-                onChange={(e) => setCalculationName(e.target.value)}
-                autoFocus
-              />
-              <p className="text-sm text-muted-foreground">
-                Ett beskrivande namn som hjälper dig identifiera kalkylen
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ciIdentity">
-                CI-identitet (CMDB) <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="ciIdentity"
-                placeholder="T.ex. CI-12345"
-                value={ciIdentity}
-                onChange={(e) => setCiIdentity(e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground">
-                Systemets unika identifierare i Configuration Management Database
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Label>
-                Tjänstetyp <span className="text-destructive">*</span>
-              </Label>
-              <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2">
-                {SERVICE_TYPES.map((type) => (
-                  <div key={type.value} className="flex items-center space-x-3">
-                    <RadioGroupItem value={type.value} id={type.value} />
-                    <Label htmlFor={type.value} className="font-normal cursor-pointer">
-                      {type.label}
-                    </Label>
+        <div className="space-y-6 max-w-2xl">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Grundläggande information
+              </CardTitle>
+              <CardDescription>
+                Ange namn, CI-identitet och tjänstetyp för kalkylen
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="calcName">
+                  Namn på kalkyl <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="calcName"
+                  placeholder="T.ex. Produktionsmiljö Q1"
+                  value={calculationName}
+                  onChange={(e) => setCalculationName(e.target.value)}
+                  autoFocus
+                />
+                <p className="text-sm text-muted-foreground">
+                  Ett beskrivande namn som hjälper dig identifiera kalkylen
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ciIdentity">
+                  CI-identitet (CMDB) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="ciIdentity"
+                  placeholder="T.ex. CI-12345"
+                  value={ciIdentity}
+                  onChange={(e) => setCiIdentity(e.target.value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Systemets unika identifierare i Configuration Management Database
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Label>
+                  Tjänstetyp <span className="text-destructive">*</span>
+                </Label>
+                <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2">
+                  {SERVICE_TYPES.map((type) => (
+                    <div key={type.value} className="flex items-center space-x-3">
+                      <RadioGroupItem value={type.value} id={type.value} />
+                      <Label htmlFor={type.value} className="font-normal cursor-pointer">
+                        {type.label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+              <div className="pt-4">
+                <Button 
+                  onClick={() => setStep(2)} 
+                  disabled={!canProceedToStep2}
+                  className="gap-2"
+                >
+                  Fortsätt till konfiguration
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Metadata card for existing calculations */}
+          {isEditing && createdAt && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Historik
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Skapad</p>
+                    <p className="font-medium">
+                      {format(new Date(createdAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
+                    </p>
+                    {createdByName && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {createdByName}
+                      </p>
+                    )}
                   </div>
-                ))}
-              </RadioGroup>
-            </div>
-            <div className="pt-4">
-              <Button 
-                onClick={() => setStep(2)} 
-                disabled={!canProceedToStep2}
-                className="gap-2"
-              >
-                Fortsätt till konfiguration
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                  {updatedAt && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Senast ändrad</p>
+                      <p className="font-medium">
+                        {format(new Date(updatedAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
+                      </p>
+                      {updatedByName && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {updatedByName}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       ) : (
         /* Step 2: Price type rows */
         <div className="grid lg:grid-cols-3 gap-6">
