@@ -488,48 +488,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
               </div>
             </CardContent>
           </Card>
-
-          {/* Metadata card for existing calculations */}
-          {isEditing && createdAt && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  Historik
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Skapad</p>
-                    <p className="font-medium">
-                      {format(new Date(createdAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
-                    </p>
-                    {createdByName && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {createdByName}
-                      </p>
-                    )}
-                  </div>
-                  {updatedAt && (
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Senast ändrad</p>
-                      <p className="font-medium">
-                        {format(new Date(updatedAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
-                      </p>
-                      {updatedByName && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {updatedByName}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       ) : step === 2 ? (
         /* Step 2: Price type rows */
@@ -804,6 +762,46 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 </div>
               </CardContent>
             </Card>
+
+            {/* History card for existing calculations */}
+            {isEditing && createdAt && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Historik
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-3">
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground">Skapad</p>
+                    <p className="font-medium">
+                      {format(new Date(createdAt), 'd MMM yyyy, HH:mm', { locale: sv })}
+                    </p>
+                    {createdByName && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {createdByName}
+                      </p>
+                    )}
+                  </div>
+                  {updatedAt && (
+                    <div className="space-y-1 pt-2 border-t">
+                      <p className="text-muted-foreground">Senast ändrad</p>
+                      <p className="font-medium">
+                        {format(new Date(updatedAt), 'd MMM yyyy, HH:mm', { locale: sv })}
+                      </p>
+                      {updatedByName && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {updatedByName}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       ) : (
