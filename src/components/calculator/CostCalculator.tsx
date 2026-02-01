@@ -134,9 +134,9 @@ export default function CostCalculator() {
   }
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'SEK',
       minimumFractionDigits: 2,
     }).format(value);
   };
