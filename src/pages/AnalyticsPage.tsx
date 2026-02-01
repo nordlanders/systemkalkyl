@@ -4,8 +4,15 @@ import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BarChart3, PieChart, TrendingUp, Layers } from 'lucide-react';
+import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -43,6 +50,7 @@ interface Calculation {
   service_type: string;
   total_cost: number;
   ci_identity: string;
+  calculation_year: number;
 }
 
 interface AggregatedData {
@@ -65,36 +73,57 @@ const CHART_COLORS = [
 
 export default function AnalyticsPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
+  const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
   const [byServiceType, setByServiceType] = useState<AggregatedData[]>([]);
   const [byPriceType, setByPriceType] = useState<AggregatedData[]>([]);
-
   useEffect(() => {
     if (user) {
       loadData();
     }
-  }, [user]);
+  }, [user, selectedYear]);
 
   async function loadData() {
     try {
-      // Load all calculations
+      // Load all calculations to get available years
+      const { data: allCalcsData, error: allCalcsError } = await supabase
+        .from('calculations')
+        .select('calculation_year');
+
+      if (allCalcsError) throw allCalcsError;
+
+      // Extract unique years and sort descending
+      const years = [...new Set((allCalcsData || []).map(c => c.calculation_year))].sort((a, b) => b - a);
+      if (years.length > 0) {
+        setAvailableYears(years);
+      }
+
+      // Load calculations filtered by selected year
       const { data: calcsData, error: calcsError } = await supabase
         .from('calculations')
-        .select('id, name, service_type, total_cost, ci_identity');
+        .select('id, name, service_type, total_cost, ci_identity, calculation_year')
+        .eq('calculation_year', parseInt(selectedYear));
 
       if (calcsError) throw calcsError;
 
-      // Load all calculation items
-      const { data: itemsData, error: itemsError } = await supabase
-        .from('calculation_items')
-        .select('price_type, quantity, unit_price, total_price, calculation_id');
-
-      if (itemsError) throw itemsError;
-
       const calcs = calcsData || [];
-      const allItems = itemsData || [];
+      const calcIds = calcs.map(c => c.id);
+
+      // Load calculation items for filtered calculations
+      let allItems: CalculationItem[] = [];
+      if (calcIds.length > 0) {
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('calculation_items')
+          .select('price_type, quantity, unit_price, total_price, calculation_id')
+          .in('calculation_id', calcIds);
+
+        if (itemsError) throw itemsError;
+        allItems = itemsData || [];
+      }
 
       setCalculations(calcs);
       setItems(allItems);
@@ -176,11 +205,28 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8 fade-in">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Analysöversikt</h1>
-          <p className="text-muted-foreground mt-1">
-            Sammanställning och pivottabeller för alla kalkyler
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Analysöversikt</h1>
+            <p className="text-muted-foreground mt-1">
+              Sammanställning och pivottabeller för alla kalkyler
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Välj år" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {loading ? (
