@@ -38,7 +38,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, canWrite } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -134,10 +134,12 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
             Hantera dina sparade kostnadskalkyler
           </p>
         </div>
-        <Button onClick={onCreateNew} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Skapa ny kalkyl
-        </Button>
+        {canWrite && (
+          <Button onClick={onCreateNew} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Skapa ny kalkyl
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -158,12 +160,14 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                 Inga kalkyler ännu
               </h3>
               <p className="text-muted-foreground mb-4">
-                Skapa din första kalkyl för att komma igång.
+                {canWrite ? 'Skapa din första kalkyl för att komma igång.' : 'Det finns inga kalkyler att visa.'}
               </p>
-              <Button onClick={onCreateNew} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Skapa ny kalkyl
-              </Button>
+              {canWrite && (
+                <Button onClick={onCreateNew} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Skapa ny kalkyl
+                </Button>
+              )}
             </div>
           ) : (
             <div className="rounded-lg border overflow-hidden">
@@ -177,15 +181,15 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     <TableHead>Timmar</TableHead>
                     <TableHead>Total kostnad</TableHead>
                     <TableHead>Skapad</TableHead>
-                    <TableHead className="text-right">Åtgärder</TableHead>
+                    {canWrite && <TableHead className="text-right">Åtgärder</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {calculations.map((calc) => (
                     <TableRow 
                       key={calc.id} 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => onEdit(calc)}
+                      className={canWrite ? "cursor-pointer hover:bg-muted/50" : ""}
+                      onClick={() => canWrite && onEdit(calc)}
                     >
                       <TableCell className="font-medium">
                         {calc.name || 'Namnlös'}
@@ -200,27 +204,29 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                       <TableCell className="text-muted-foreground">
                         {format(new Date(calc.created_at), 'd MMM yyyy', { locale: sv })}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onEdit(calc)}
-                            title="Redigera"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteId(calc.id)}
-                            title="Ta bort"
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                      {canWrite && (
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => onEdit(calc)}
+                              title="Redigera"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeleteId(calc.id)}
+                              title="Ta bort"
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

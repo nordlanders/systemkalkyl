@@ -191,6 +191,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_write_permission: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"

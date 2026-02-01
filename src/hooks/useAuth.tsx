@@ -2,10 +2,14 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+type PermissionLevel = 'read_only' | 'read_write';
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  permissionLevel: PermissionLevel;
+  canWrite: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
@@ -18,7 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [permissionLevel, setPermissionLevel] = useState<PermissionLevel>('read_only');
   const [loading, setLoading] = useState(true);
+
+  const canWrite = permissionLevel === 'read_write';
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -27,13 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Defer role check with setTimeout to prevent deadlock
+        // Defer role and permission check with setTimeout to prevent deadlock
         if (session?.user) {
           setTimeout(() => {
             checkAdminRole(session.user.id);
+            checkPermissionLevel(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setPermissionLevel('read_only');
         }
       }
     );
@@ -45,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         checkAdminRole(session.user.id);
+        checkPermissionLevel(session.user.id);
       }
       setLoading(false);
     });
@@ -61,6 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .maybeSingle();
     
     setIsAdmin(!!data);
+  }
+
+  async function checkPermissionLevel(userId: string) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('permission_level')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    setPermissionLevel(data?.permission_level ?? 'read_only');
   }
 
   const signIn = async (email: string, password: string) => {
@@ -87,10 +107,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setIsAdmin(false);
+    setPermissionLevel('read_only');
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, permissionLevel, canWrite, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
