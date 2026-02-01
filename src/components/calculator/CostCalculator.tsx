@@ -40,6 +40,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [serverCount, setServerCount] = useState(editCalculation?.server_count ?? 2);
   const [operationHours, setOperationHours] = useState(editCalculation?.operation_hours ?? 2000);
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
+  const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [costs, setCosts] = useState<CostBreakdown>({ cpu: 0, storage: 0, server: 0, operations: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -101,6 +102,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     try {
       const calculationData = {
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
+        ci_identity: ciIdentity || null,
         cpu_count: cpuCount,
         storage_gb: storageGb,
         server_count: serverCount,
@@ -357,14 +359,28 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           {/* Save Section */}
           <Card>
             <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Input
-                  placeholder="Namnge din beräkning (valfritt)"
-                  value={calculationName}
-                  onChange={(e) => setCalculationName(e.target.value)}
-                  className="flex-1"
-                />
-                <Button onClick={saveCalculation} disabled={saving} className="gap-2">
+              <div className="flex flex-col gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="calcName">Namn på kalkyl</Label>
+                    <Input
+                      id="calcName"
+                      placeholder="T.ex. Produktionsmiljö Q1"
+                      value={calculationName}
+                      onChange={(e) => setCalculationName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ciIdentity">CI-identitet (CMDB)</Label>
+                    <Input
+                      id="ciIdentity"
+                      placeholder="T.ex. CI-12345"
+                      value={ciIdentity}
+                      onChange={(e) => setCiIdentity(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <Button onClick={saveCalculation} disabled={saving} className="gap-2 w-fit">
                   {saving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

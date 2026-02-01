@@ -175,6 +175,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                 <TableHeader>
                   <TableRow className="bg-muted/50">
                     <TableHead>Namn</TableHead>
+                    <TableHead>CI-identitet</TableHead>
                     <TableHead>CPU:er</TableHead>
                     <TableHead>Lagring</TableHead>
                     <TableHead>Servrar</TableHead>
@@ -193,6 +194,9 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     >
                       <TableCell className="font-medium">
                         {calc.name || 'Namnlös'}
+                      </TableCell>
+                      <TableCell className="font-mono text-muted-foreground">
+                        {calc.ci_identity || '-'}
                       </TableCell>
                       <TableCell className="font-mono">{calc.cpu_count}</TableCell>
                       <TableCell className="font-mono">{calc.storage_gb} GB</TableCell>
