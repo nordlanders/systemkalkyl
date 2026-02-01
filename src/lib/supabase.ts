@@ -51,6 +51,9 @@ export interface Calculation {
   operation_cost: number;
   total_cost: number;
   created_at: string;
+  created_by_name: string | null;
+  updated_at: string | null;
+  updated_by_name: string | null;
 }
 
 export interface CalculationItem {

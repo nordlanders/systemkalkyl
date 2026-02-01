@@ -22,8 +22,12 @@ import {
   Trash2,
   Pencil,
   Check,
-  MessageSquare
+  MessageSquare,
+  User,
+  Calendar
 } from 'lucide-react';
+import { format } from 'date-fns';
+import { sv } from 'date-fns/locale';
 
 const SERVICE_TYPES = [
   { value: 'Anpassad drift', label: 'Anpassad drift' },
@@ -342,6 +346,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     );
   }
 
+  // Extract metadata from editCalculation
+  const createdByName = editCalculation?.created_by_name;
+  const createdAt = editCalculation?.created_at;
+  const updatedByName = editCalculation?.updated_by_name;
+  const updatedAt = editCalculation?.updated_at;
+
   return (
     <div className="space-y-8 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -370,6 +380,44 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           </div>
         </div>
       </div>
+
+      {/* Metadata for existing calculations */}
+      {isEditing && createdAt && (
+        <Card className="bg-muted/30">
+          <CardContent className="py-4">
+            <div className="flex flex-wrap gap-6 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>Skapad:</span>
+                <span className="font-medium text-foreground">
+                  {format(new Date(createdAt), 'd MMMM yyyy HH:mm', { locale: sv })}
+                </span>
+                {createdByName && (
+                  <span className="flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    {createdByName}
+                  </span>
+                )}
+              </div>
+              {updatedAt && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Pencil className="h-4 w-4" />
+                  <span>Senast ändrad:</span>
+                  <span className="font-medium text-foreground">
+                    {format(new Date(updatedAt), 'd MMMM yyyy HH:mm', { locale: sv })}
+                  </span>
+                  {updatedByName && (
+                    <span className="flex items-center gap-1">
+                      <User className="h-3 w-3" />
+                      {updatedByName}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {step === 1 ? (
         /* Step 1: Name, CI Identity and Service Type */
