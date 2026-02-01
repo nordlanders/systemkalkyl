@@ -51,6 +51,9 @@
     --chart-2: 283 59% 30%;
     --chart-3: 326 100% 33%;
     --chart-4: 206 100% 29%;
+    --chart-5: 0 0% 0%;
+    --chart-6: 0 0% 29%;
+    --chart-7: 0 0% 93%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(222 60% 25%), hsl(222 60% 35%));
