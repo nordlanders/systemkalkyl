@@ -2,10 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import CostCalculator from '@/components/calculator/CostCalculator';
+import PricingConfig from '@/components/pricing/PricingConfig';
 import { Loader2 } from 'lucide-react';
 
-const Index = () => {
+export default function Pricing() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -29,9 +29,7 @@ const Index = () => {
 
   return (
     <DashboardLayout>
-      <CostCalculator />
+      <PricingConfig />
     </DashboardLayout>
   );
-};
-
-export default Index;
+}

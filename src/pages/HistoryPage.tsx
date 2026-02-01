@@ -2,10 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import CostCalculator from '@/components/calculator/CostCalculator';
+import AuditHistory from '@/components/history/AuditHistory';
 import { Loader2 } from 'lucide-react';
 
-const Index = () => {
+export default function HistoryPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -29,9 +29,7 @@ const Index = () => {
 
   return (
     <DashboardLayout>
-      <CostCalculator />
+      <AuditHistory />
     </DashboardLayout>
   );
-};
-
-export default Index;
+}
