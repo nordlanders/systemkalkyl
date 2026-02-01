@@ -27,6 +27,7 @@ interface UserWithRole {
   email: string;
   full_name: string | null;
   created_at: string;
+  last_login_at: string | null;
   permission_level: 'read_only' | 'read_write';
   role: 'admin' | 'user';
 }
@@ -214,6 +215,7 @@ export default function UsersManagement() {
                   <TableHead>Användare</TableHead>
                   <TableHead>Roll</TableHead>
                   <TableHead>Behörighet</TableHead>
+                  <TableHead>Senast inloggad</TableHead>
                   <TableHead>Registrerad</TableHead>
                   <TableHead className="text-right">Åtgärder</TableHead>
                 </TableRow>
@@ -221,7 +223,7 @@ export default function UsersManagement() {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Inga användare hittades
                     </TableCell>
                   </TableRow>
@@ -251,6 +253,12 @@ export default function UsersManagement() {
                             <><Eye className="h-3 w-3" /> Endast läsa</>
                           )}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {u.last_login_at 
+                          ? format(new Date(u.last_login_at), 'd MMM yyyy HH:mm', { locale: sv })
+                          : <span className="text-muted-foreground/50">Aldrig</span>
+                        }
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(u.created_at), 'd MMM yyyy', { locale: sv })}
