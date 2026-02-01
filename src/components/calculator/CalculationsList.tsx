@@ -19,11 +19,13 @@ import {
   Filter,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Download
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import jsPDF from 'jspdf';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -194,6 +196,135 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     }).format(value);
   };
 
+  const formatCurrencyForPdf = (value: number) => {
+    return new Intl.NumberFormat('sv-SE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value) + ' kr';
+  };
+
+  async function generatePdf(calc: Calculation) {
+    // Load calculation items for this calculation
+    const { data: items, error } = await supabase
+      .from('calculation_items')
+      .select('*')
+      .eq('calculation_id', calc.id);
+
+    if (error) {
+      toast({
+        title: 'Fel vid laddning',
+        description: 'Kunde inte ladda kalkylrader för PDF.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 20;
+    const calculationYear = (calc as any).calculation_year;
+
+    // Title
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Kostnadskalkyl', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Basic info section
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Grundlaggande information', 14, yPos);
+    yPos += 8;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Namn: ${calc.name || 'Ej angivet'}`, 14, yPos);
+    yPos += 6;
+    doc.text(`CI-identitet: ${calc.ci_identity}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Tjanstetyp: ${calc.service_type}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Kalkyl ar: ${calculationYear || '-'}`, 14, yPos);
+    yPos += 6;
+    doc.text(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`, 14, yPos);
+    yPos += 15;
+
+    // Price rows header
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Prisrader', 14, yPos);
+    yPos += 10;
+
+    // Table header
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Pristyp', 14, yPos);
+    doc.text('Antal', 100, yPos);
+    doc.text('Enhetspris', 130, yPos);
+    doc.text('Summa', 170, yPos);
+    yPos += 2;
+    doc.line(14, yPos, pageWidth - 14, yPos);
+    yPos += 6;
+
+    // Table rows
+    doc.setFont('helvetica', 'normal');
+    
+    if (items && items.length > 0) {
+      items.forEach((item: any) => {
+        // Check if we need a new page
+        if (yPos > 270) {
+          doc.addPage();
+          yPos = 20;
+        }
+
+        doc.text((item.price_type || '').substring(0, 40), 14, yPos);
+        doc.text(`${item.quantity}`, 100, yPos);
+        doc.text(formatCurrencyForPdf(Number(item.unit_price)), 130, yPos);
+        doc.text(formatCurrencyForPdf(Number(item.total_price)), 170, yPos);
+        yPos += 7;
+
+        // Add comment if exists
+        if (item.comment) {
+          doc.setFontSize(8);
+          doc.setTextColor(100);
+          doc.text(`  Kommentar: ${item.comment.substring(0, 60)}`, 14, yPos);
+          doc.setTextColor(0);
+          doc.setFontSize(9);
+          yPos += 6;
+        }
+      });
+    }
+
+    yPos += 5;
+    doc.line(14, yPos, pageWidth - 14, yPos);
+    yPos += 10;
+
+    // Total
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total kostnad:', 14, yPos);
+    doc.text(formatCurrencyForPdf(Number(calc.total_cost)), 170, yPos);
+    yPos += 6;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('per manad', 170, yPos);
+
+    // Footer
+    yPos = doc.internal.pageSize.getHeight() - 20;
+    doc.setFontSize(8);
+    doc.setTextColor(128);
+    doc.text(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`, 14, yPos);
+
+    // Download
+    const fileName = `kalkyl-${calc.ci_identity || 'utan-ci'}-${calculationYear || 'utan-ar'}.pdf`;
+    doc.save(fileName);
+
+    toast({
+      title: 'PDF skapad',
+      description: `Filen ${fileName} har laddats ner.`,
+    });
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -338,7 +469,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                         <SortIcon column="updated_at" />
                       </div>
                     </TableHead>
-                    {canWrite && <TableHead className="text-right">Åtgärder</TableHead>}
+                    <TableHead className="text-right">Åtgärder</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -410,29 +541,39 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                           <span className="text-xs">-</span>
                         )}
                       </TableCell>
-                      {canWrite && (
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                      <TableCell className="text-right">
+                          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => onEdit(calc)}
-                              title="Redigera"
+                              onClick={() => generatePdf(calc)}
+                              title="Ladda ner PDF"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Download className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setDeleteId(calc.id)}
-                              title="Ta bort"
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canWrite && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => onEdit(calc)}
+                                  title="Redigera"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setDeleteId(calc.id)}
+                                  title="Ta bort"
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
-                      )}
                     </TableRow>
                   );
                 })}

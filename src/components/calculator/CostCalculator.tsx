@@ -1107,12 +1107,9 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <Button variant="outline" onClick={generatePdf} className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Ladda ner PDF
-                  </Button>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Granska informationen ovan. Klicka på bekräfta för att {isEditing ? 'uppdatera' : 'spara'} kalkylen.
+                </p>
                 <div className="flex gap-3">
                   <Button variant="outline" onClick={() => setStep(2)} className="gap-2">
                     <ArrowLeft className="h-4 w-4" />
