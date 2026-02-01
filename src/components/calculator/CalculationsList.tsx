@@ -188,9 +188,9 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                 </TableHeader>
                 <TableBody>
                 {calculations.map((calc) => {
-                  const createdByName = (calc as any).created_by_name;
-                  const updatedByName = (calc as any).updated_by_name;
-                  const updatedAt = (calc as any).updated_at;
+                  const createdByName = calc.created_by_name;
+                  const updatedByName = calc.updated_by_name;
+                  const updatedAt = calc.updated_at;
                   
                   return (
                     <TableRow 
