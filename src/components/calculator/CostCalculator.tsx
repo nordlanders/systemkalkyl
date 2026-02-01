@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { getCurrentPricing, logAudit, type PricingConfig } from '@/lib/supabase';
+import { getCurrentPricing, logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Cpu, 
@@ -16,7 +16,8 @@ import {
   Calculator,
   Save,
   Loader2,
-  DollarSign
+  DollarSign,
+  ArrowLeft
 } from 'lucide-react';
 
 interface CostBreakdown {
@@ -27,12 +28,18 @@ interface CostBreakdown {
   total: number;
 }
 
-export default function CostCalculator() {
-  const [cpuCount, setCpuCount] = useState(4);
-  const [storageGb, setStorageGb] = useState(100);
-  const [serverCount, setServerCount] = useState(2);
-  const [operationHours, setOperationHours] = useState(2000);
-  const [calculationName, setCalculationName] = useState('');
+interface CostCalculatorProps {
+  editCalculation?: Calculation | null;
+  onBack: () => void;
+  onSaved: () => void;
+}
+
+export default function CostCalculator({ editCalculation, onBack, onSaved }: CostCalculatorProps) {
+  const [cpuCount, setCpuCount] = useState(editCalculation?.cpu_count ?? 4);
+  const [storageGb, setStorageGb] = useState(editCalculation?.storage_gb ?? 100);
+  const [serverCount, setServerCount] = useState(editCalculation?.server_count ?? 2);
+  const [operationHours, setOperationHours] = useState(editCalculation?.operation_hours ?? 2000);
+  const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [costs, setCosts] = useState<CostBreakdown>({ cpu: 0, storage: 0, server: 0, operations: 0, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -40,6 +47,8 @@ export default function CostCalculator() {
   
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  const isEditing = !!editCalculation;
 
   useEffect(() => {
     loadPricing();
@@ -90,42 +99,70 @@ export default function CostCalculator() {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase
-        .from('calculations')
-        .insert({
-          user_id: user.id,
-          name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
-          cpu_count: cpuCount,
-          storage_gb: storageGb,
-          server_count: serverCount,
-          operation_hours: operationHours,
-          cpu_cost: costs.cpu,
-          storage_cost: costs.storage,
-          server_cost: costs.server,
-          operation_cost: costs.operations,
-          total_cost: costs.total,
-        })
-        .select()
-        .single();
+      const calculationData = {
+        name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
+        cpu_count: cpuCount,
+        storage_gb: storageGb,
+        server_count: serverCount,
+        operation_hours: operationHours,
+        cpu_cost: costs.cpu,
+        storage_cost: costs.storage,
+        server_cost: costs.server,
+        operation_cost: costs.operations,
+        total_cost: costs.total,
+      };
 
-      if (error) throw error;
+      if (isEditing && editCalculation) {
+        // Update existing calculation
+        const { error } = await supabase
+          .from('calculations')
+          .update(calculationData)
+          .eq('id', editCalculation.id);
 
-      await logAudit('create', 'calculations', data.id, undefined, {
-        name: data.name,
-        total_cost: data.total_cost,
-      });
+        if (error) throw error;
 
-      toast({
-        title: 'Beräkning sparad',
-        description: 'Din beräkning har sparats i historiken.',
-      });
+        await logAudit('update', 'calculations', editCalculation.id, {
+          name: editCalculation.name,
+          total_cost: editCalculation.total_cost,
+        }, {
+          name: calculationData.name,
+          total_cost: calculationData.total_cost,
+        });
 
-      setCalculationName('');
+        toast({
+          title: 'Kalkyl uppdaterad',
+          description: 'Dina ändringar har sparats.',
+        });
+      } else {
+        // Create new calculation
+        const { data, error } = await supabase
+          .from('calculations')
+          .insert({
+            user_id: user.id,
+            ...calculationData,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        await logAudit('create', 'calculations', data.id, undefined, {
+          name: data.name,
+          total_cost: data.total_cost,
+        });
+
+        toast({
+          title: 'Kalkyl sparad',
+          description: 'Din nya kalkyl har skapats.',
+        });
+      }
+
+      onSaved();
     } catch (error) {
       console.error('Error saving calculation:', error);
       toast({
         title: 'Fel vid sparande',
-        description: 'Kunde inte spara beräkningen.',
+        description: 'Kunde inte spara kalkylen.',
         variant: 'destructive',
       });
     } finally {
@@ -151,9 +188,19 @@ export default function CostCalculator() {
 
   return (
     <div className="space-y-8 fade-in">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Infrastruktur Kostnadskalkylator</h1>
-        <p className="text-muted-foreground mt-1">Beräkna din årliga IT-infrastrukturkostnad</p>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button variant="ghost" onClick={onBack} className="gap-2 w-fit">
+          <ArrowLeft className="h-4 w-4" />
+          Tillbaka till lista
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-foreground">
+            {isEditing ? 'Redigera kalkyl' : 'Ny kalkyl'}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {isEditing ? 'Uppdatera din befintliga kalkyl' : 'Beräkna din årliga IT-infrastrukturkostnad'}
+          </p>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -323,7 +370,7 @@ export default function CostCalculator() {
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
-                  Spara beräkning
+                  {isEditing ? 'Uppdatera kalkyl' : 'Spara kalkyl'}
                 </Button>
               </div>
             </CardContent>

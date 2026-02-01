@@ -1,13 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import CostCalculator from '@/components/calculator/CostCalculator';
+import CalculationsList from '@/components/calculator/CalculationsList';
 import { Loader2 } from 'lucide-react';
+import { type Calculation } from '@/lib/supabase';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [view, setView] = useState<'list' | 'calculator'>('list');
+  const [editingCalculation, setEditingCalculation] = useState<Calculation | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -27,9 +31,37 @@ const Index = () => {
     return null;
   }
 
+  const handleEdit = (calculation: Calculation) => {
+    setEditingCalculation(calculation);
+    setView('calculator');
+  };
+
+  const handleCreateNew = () => {
+    setEditingCalculation(null);
+    setView('calculator');
+  };
+
+  const handleBack = () => {
+    setEditingCalculation(null);
+    setView('list');
+  };
+
+  const handleSaved = () => {
+    setEditingCalculation(null);
+    setView('list');
+  };
+
   return (
     <DashboardLayout>
-      <CostCalculator />
+      {view === 'list' ? (
+        <CalculationsList onEdit={handleEdit} onCreateNew={handleCreateNew} />
+      ) : (
+        <CostCalculator 
+          editCalculation={editingCalculation} 
+          onBack={handleBack}
+          onSaved={handleSaved}
+        />
+      )}
     </DashboardLayout>
   );
 };
