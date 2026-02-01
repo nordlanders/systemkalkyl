@@ -134,6 +134,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          permission_level: Database["public"]["Enums"]["permission_level"]
           updated_at: string
           user_id: string
         }
@@ -142,6 +143,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          permission_level?: Database["public"]["Enums"]["permission_level"]
           updated_at?: string
           user_id: string
         }
@@ -150,6 +152,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          permission_level?: Database["public"]["Enums"]["permission_level"]
           updated_at?: string
           user_id?: string
         }
@@ -191,6 +194,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      permission_level: "read_only" | "read_write"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -319,6 +323,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      permission_level: ["read_only", "read_write"],
     },
   },
 } as const

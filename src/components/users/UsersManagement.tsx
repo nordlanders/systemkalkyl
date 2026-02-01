@@ -5,26 +5,37 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { logAudit, type Profile } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Users, 
   Shield, 
   ShieldCheck,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Pencil,
+  Eye,
+  Edit3
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
+import CreateUserDialog from './CreateUserDialog';
+import EditUserDialog from './EditUserDialog';
 
-interface UserWithRole extends Profile {
+interface UserWithRole {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name: string | null;
+  created_at: string;
+  permission_level: 'read_only' | 'read_write';
   role: 'admin' | 'user';
 }
 
 export default function UsersManagement() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
@@ -52,15 +63,16 @@ export default function UsersManagement() {
 
       if (rolesError) throw rolesError;
 
-      const usersWithRoles = (profiles as Profile[]).map((profile) => {
-        const userRole = roles.find((r: { user_id: string; role: string }) => r.user_id === profile.user_id);
+      const usersWithRoles = (profiles || []).map((profile) => {
+        const userRole = roles?.find((r) => r.user_id === profile.user_id);
         return {
           ...profile,
+          permission_level: profile.permission_level || 'read_write',
           role: (userRole?.role as 'admin' | 'user') || 'user',
         };
       });
 
-      setUsers(usersWithRoles);
+      setUsers(usersWithRoles as UserWithRole[]);
     } catch (error) {
       console.error('Error loading users:', error);
       toast({
@@ -73,47 +85,9 @@ export default function UsersManagement() {
     }
   }
 
-  async function toggleAdminRole(userId: string, currentRole: 'admin' | 'user') {
-    if (!isAdmin) return;
-
-    setUpdating(userId);
-    try {
-      const newRole = currentRole === 'admin' ? 'user' : 'admin';
-
-      // First delete existing role
-      await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
-
-      // Then insert new role
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role: newRole });
-
-      if (error) throw error;
-
-      await logAudit('update', 'user_roles', userId, 
-        { role: currentRole },
-        { role: newRole }
-      );
-
-      toast({
-        title: 'Roll uppdaterad',
-        description: `Användarens roll ändrad till ${newRole === 'admin' ? 'administratör' : 'användare'}.`,
-      });
-
-      loadUsers();
-    } catch (error) {
-      console.error('Error updating role:', error);
-      toast({
-        title: 'Fel vid uppdatering av roll',
-        description: 'Kunde inte uppdatera användarens roll.',
-        variant: 'destructive',
-      });
-    } finally {
-      setUpdating(null);
-    }
+  function handleEditUser(u: UserWithRole) {
+    setEditingUser(u);
+    setEditDialogOpen(true);
   }
 
   if (loading) {
@@ -146,15 +120,18 @@ export default function UsersManagement() {
 
   return (
     <div className="space-y-8 fade-in">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Användarhantering</h1>
-        <p className="text-muted-foreground mt-1">
-          Hantera systemanvändare och deras roller
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Användarhantering</h1>
+          <p className="text-muted-foreground mt-1">
+            Hantera systemanvändare och deras roller
+          </p>
+        </div>
+        <CreateUserDialog onUserCreated={loadUsers} />
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -163,7 +140,7 @@ export default function UsersManagement() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{users.length}</p>
-                <p className="text-sm text-muted-foreground">Totalt antal användare</p>
+                <p className="text-sm text-muted-foreground">Totalt</p>
               </div>
             </div>
           </CardContent>
@@ -189,13 +166,29 @@ export default function UsersManagement() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-muted">
-                <Shield className="h-6 w-6 text-muted-foreground" />
+                <Edit3 className="h-6 w-6 text-muted-foreground" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {users.filter(u => u.role === 'user').length}
+                  {users.filter(u => u.permission_level === 'read_write').length}
                 </p>
-                <p className="text-sm text-muted-foreground">Standardanvändare</p>
+                <p className="text-sm text-muted-foreground">Läsa & skriva</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-muted">
+                <Eye className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {users.filter(u => u.permission_level === 'read_only').length}
+                </p>
+                <p className="text-sm text-muted-foreground">Endast läsa</p>
               </div>
             </div>
           </CardContent>
@@ -210,7 +203,7 @@ export default function UsersManagement() {
             Alla användare
           </CardTitle>
           <CardDescription>
-            Visa och hantera användarroller. Klicka för att växla administratörsbehörighet.
+            Visa och hantera användare, roller och behörigheter.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -220,6 +213,7 @@ export default function UsersManagement() {
                 <TableRow className="bg-muted/50">
                   <TableHead>Användare</TableHead>
                   <TableHead>Roll</TableHead>
+                  <TableHead>Behörighet</TableHead>
                   <TableHead>Registrerad</TableHead>
                   <TableHead className="text-right">Åtgärder</TableHead>
                 </TableRow>
@@ -227,7 +221,7 @@ export default function UsersManagement() {
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       Inga användare hittades
                     </TableCell>
                   </TableRow>
@@ -249,6 +243,15 @@ export default function UsersManagement() {
                           )}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="gap-1">
+                          {u.permission_level === 'read_write' ? (
+                            <><Edit3 className="h-3 w-3" /> Läsa & skriva</>
+                          ) : (
+                            <><Eye className="h-3 w-3" /> Endast läsa</>
+                          )}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(u.created_at), 'd MMM yyyy', { locale: sv })}
                       </TableCell>
@@ -256,16 +259,11 @@ export default function UsersManagement() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => toggleAdminRole(u.user_id, u.role)}
-                          disabled={updating === u.user_id || u.user_id === user?.id}
+                          onClick={() => handleEditUser(u)}
+                          className="gap-2"
                         >
-                          {updating === u.user_id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : u.role === 'admin' ? (
-                            'Ta bort admin'
-                          ) : (
-                            'Gör till admin'
-                          )}
+                          <Pencil className="h-4 w-4" />
+                          Redigera
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -276,6 +274,14 @@ export default function UsersManagement() {
           </div>
         </CardContent>
       </Card>
+
+      <EditUserDialog
+        user={editingUser}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onUserUpdated={loadUsers}
+        currentUserId={user?.id || ''}
+      />
     </div>
   );
 }
