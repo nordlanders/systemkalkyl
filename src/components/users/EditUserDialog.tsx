@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -31,18 +31,18 @@ export default function EditUserDialog({
   currentUserId 
 }: EditUserDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'user' | 'admin' | 'superadmin'>(user?.role || 'user');
-  const [permissionLevel, setPermissionLevel] = useState<'read_only' | 'read_write'>(
-    user?.permission_level || 'read_write'
-  );
+  const [role, setRole] = useState<'user' | 'admin' | 'superadmin'>('user');
+  const [permissionLevel, setPermissionLevel] = useState<'read_only' | 'read_write'>('read_write');
 
   const { toast } = useToast();
 
-  // Update local state when user prop changes
-  if (user && (role !== user.role || permissionLevel !== user.permission_level)) {
-    if (role !== user.role) setRole(user.role);
-    if (permissionLevel !== user.permission_level) setPermissionLevel(user.permission_level);
-  }
+  // Update local state when user prop changes or dialog opens
+  useEffect(() => {
+    if (user && open) {
+      setRole(user.role);
+      setPermissionLevel(user.permission_level);
+    }
+  }, [user, open]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
