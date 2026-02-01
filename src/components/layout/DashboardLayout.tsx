@@ -42,12 +42,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
-            <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="p-2 rounded-lg bg-primary">
                 <Calculator className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="font-semibold text-lg hidden sm:block">IT-Kostnadskalkylator</span>
-            </div>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
