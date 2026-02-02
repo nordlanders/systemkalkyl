@@ -148,6 +148,25 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     }
   }
 
+  function populateDefaultRows() {
+    // Filter pricing that has the selected serviceType in their service_types array
+    const defaultPricing = pricing.filter(p => 
+      p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType)
+    );
+    
+    const newRows: CalculationRow[] = defaultPricing.map(p => ({
+      id: crypto.randomUUID(),
+      pricingConfigId: p.id,
+      priceType: p.price_type,
+      quantity: 1,
+      unitPrice: Number(p.price_per_unit),
+      unit: p.unit || '',
+      comment: '',
+    }));
+    
+    setRows(newRows);
+  }
+
   function addRow() {
     const newRow: CalculationRow = {
       id: crypto.randomUUID(),
@@ -462,15 +481,25 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     });
   }
 
-  // Group pricing by category for easier selection, filtered by selected service type
-  const filteredPricing = pricing.filter(p => {
-    // If no service_types or empty array, show in all
-    if (!p.service_types || p.service_types.length === 0) return true;
-    // Otherwise, check if selected serviceType is in the allowed list
-    return p.service_types.includes(serviceType);
-  });
+  // Separate pricing into default (has serviceType in service_types) and others (no service_types)
+  const defaultPricing = pricing.filter(p => 
+    p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType)
+  );
+  
+  const otherPricing = pricing.filter(p => 
+    !p.service_types || p.service_types.length === 0
+  );
 
-  const pricingByCategory = filteredPricing.reduce((acc, p) => {
+  // Group default pricing by category
+  const defaultPricingByCategory = defaultPricing.reduce((acc, p) => {
+    const category = p.category || 'Övrigt';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(p);
+    return acc;
+  }, {} as Record<string, PricingConfig[]>);
+
+  // Group other pricing by category
+  const otherPricingByCategory = otherPricing.reduce((acc, p) => {
     const category = p.category || 'Övrigt';
     if (!acc[category]) acc[category] = [];
     acc[category].push(p);
@@ -661,7 +690,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
               </div>
               <div className="pt-4">
                 <Button 
-                  onClick={() => setStep(2)} 
+                  onClick={() => {
+                    if (!isEditing && rows.length === 0) {
+                      populateDefaultRows();
+                    }
+                    setStep(2);
+                  }} 
                   disabled={!canProceedToStep2}
                   className="gap-2"
                 >
@@ -810,18 +844,44 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                         <SelectValue placeholder="Välj pristyp..." />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        {Object.entries(pricingByCategory).map(([category, items]) => (
-                                          <div key={category}>
-                                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted">
-                                              {category}
+                                        {Object.keys(defaultPricingByCategory).length > 0 && (
+                                          <>
+                                            <div className="px-2 py-1.5 text-xs font-bold text-primary bg-primary/10">
+                                              Default för {serviceType}
                                             </div>
-                                            {items.map((p) => (
-                                              <SelectItem key={p.id} value={p.id}>
-                                                {p.price_type}
-                                              </SelectItem>
+                                            {Object.entries(defaultPricingByCategory).map(([category, items]) => (
+                                              <div key={`default-${category}`}>
+                                                <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">
+                                                  {category}
+                                                </div>
+                                                {items.map((p) => (
+                                                  <SelectItem key={p.id} value={p.id}>
+                                                    {p.price_type}
+                                                  </SelectItem>
+                                                ))}
+                                              </div>
                                             ))}
-                                          </div>
-                                        ))}
+                                          </>
+                                        )}
+                                        {Object.keys(otherPricingByCategory).length > 0 && (
+                                          <>
+                                            <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground bg-muted/50 mt-2">
+                                              Övriga pristyper
+                                            </div>
+                                            {Object.entries(otherPricingByCategory).map(([category, items]) => (
+                                              <div key={`other-${category}`}>
+                                                <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">
+                                                  {category}
+                                                </div>
+                                                {items.map((p) => (
+                                                  <SelectItem key={p.id} value={p.id}>
+                                                    {p.price_type}
+                                                  </SelectItem>
+                                                ))}
+                                              </div>
+                                            ))}
+                                          </>
+                                        )}
                                       </SelectContent>
                                     </Select>
                                   </div>
