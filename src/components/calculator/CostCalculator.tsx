@@ -273,7 +273,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
         municipality: municipality,
-        owning_organization: owningOrganization,
+        owning_organization: owningOrganization || null,
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
