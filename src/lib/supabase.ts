@@ -36,12 +36,16 @@ export interface PricingConfig {
   service_types: string[] | null;
 }
 
+export type CalculationStatus = 'draft' | 'pending_approval' | 'approved';
+
 export interface Calculation {
   id: string;
   user_id: string;
   name: string | null;
   ci_identity: string;
   service_type: string;
+  municipality: string;
+  owning_organization: string | null;
   calculation_year: number;
   cpu_count: number;
   storage_gb: number;
@@ -52,10 +56,33 @@ export interface Calculation {
   server_cost: number;
   operation_cost: number;
   total_cost: number;
+  status: CalculationStatus;
+  version: number;
   created_at: string;
   created_by_name: string | null;
   updated_at: string | null;
   updated_by_name: string | null;
+  approved_by: string | null;
+  approved_by_name: string | null;
+  approved_at: string | null;
+}
+
+export interface CalculationVersion {
+  id: string;
+  calculation_id: string;
+  version: number;
+  name: string | null;
+  ci_identity: string;
+  service_type: string;
+  municipality: string;
+  owning_organization: string | null;
+  calculation_year: number;
+  total_cost: number;
+  status: CalculationStatus;
+  items: unknown;
+  created_at: string;
+  created_by: string | null;
+  created_by_name: string | null;
 }
 
 export interface CalculationItem {

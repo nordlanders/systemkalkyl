@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { userId, role, permissionLevel } = await req.json();
+    const { userId, role, permissionLevel, canApprove, approvalOrganizations } = await req.json();
 
     if (!userId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     // Get old values for audit
     const { data: oldProfile } = await supabaseAdmin
       .from("profiles")
-      .select("permission_level")
+      .select("permission_level, can_approve, approval_organizations")
       .eq("user_id", userId)
       .single();
 
@@ -79,11 +79,22 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .maybeSingle();
 
-    // Update permission level
-    if (permissionLevel) {
+    // Update profile settings
+    const profileUpdates: Record<string, unknown> = {};
+    if (permissionLevel !== undefined) {
+      profileUpdates.permission_level = permissionLevel;
+    }
+    if (canApprove !== undefined) {
+      profileUpdates.can_approve = canApprove;
+    }
+    if (approvalOrganizations !== undefined) {
+      profileUpdates.approval_organizations = approvalOrganizations;
+    }
+
+    if (Object.keys(profileUpdates).length > 0) {
       await supabaseAdmin
         .from("profiles")
-        .update({ permission_level: permissionLevel })
+        .update(profileUpdates)
         .eq("user_id", userId);
     }
 
@@ -105,8 +116,13 @@ Deno.serve(async (req) => {
       action: "update",
       table_name: "user_settings",
       record_id: userId,
-      old_values: { role: oldRole?.role, permissionLevel: oldProfile?.permission_level },
-      new_values: { role, permissionLevel },
+      old_values: { 
+        role: oldRole?.role, 
+        permissionLevel: oldProfile?.permission_level,
+        canApprove: oldProfile?.can_approve,
+        approvalOrganizations: oldProfile?.approval_organizations,
+      },
+      new_values: { role, permissionLevel, canApprove, approvalOrganizations },
     });
 
     return new Response(JSON.stringify({ success: true }), {

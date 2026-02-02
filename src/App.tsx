@@ -13,6 +13,7 @@ import HistoryPage from "./pages/HistoryPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import SamlConfigGuide from "./pages/SamlConfigGuide";
 import UserManualPage from "./pages/UserManualPage";
+import ApprovalsPage from "./pages/ApprovalsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/saml-config" element={<SamlConfigGuide />} />
             <Route path="/manual" element={<UserManualPage />} />
+            <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
