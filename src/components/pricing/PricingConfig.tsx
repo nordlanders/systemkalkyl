@@ -123,11 +123,7 @@ export default function PricingConfig() {
     setCostOwner(config.cost_owner || 'Produktion');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
-    setSelectedServiceTypes(
-      config.service_types && config.service_types.length > 0 
-        ? config.service_types 
-        : SERVICE_TYPES.map(st => st.value)
-    );
+    setSelectedServiceTypes(config.service_types || []);
     setDialogOpen(true);
   }
 
