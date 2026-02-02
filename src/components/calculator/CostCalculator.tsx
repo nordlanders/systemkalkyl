@@ -150,9 +150,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
 
   function populateDefaultRows() {
     // Filter pricing that has the selected serviceType in their service_types array
-    const defaultPricing = pricing.filter(p => 
-      p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType)
-    );
+    // and is NOT in disallowed_service_types
+    const defaultPricing = pricing.filter(p => {
+      const isDisallowed = (p as any).disallowed_service_types?.includes(serviceType);
+      if (isDisallowed) return false;
+      return p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType);
+    });
     
     const newRows: CalculationRow[] = defaultPricing.map(p => ({
       id: crypto.randomUUID(),
@@ -482,13 +485,18 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   }
 
   // Separate pricing into default (has serviceType in service_types) and others (no service_types)
-  const defaultPricing = pricing.filter(p => 
-    p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType)
-  );
+  // Exclude any pricing where serviceType is in disallowed_service_types
+  const defaultPricing = pricing.filter(p => {
+    const isDisallowed = (p as any).disallowed_service_types?.includes(serviceType);
+    if (isDisallowed) return false;
+    return p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType);
+  });
   
-  const otherPricing = pricing.filter(p => 
-    !p.service_types || p.service_types.length === 0
-  );
+  const otherPricing = pricing.filter(p => {
+    const isDisallowed = (p as any).disallowed_service_types?.includes(serviceType);
+    if (isDisallowed) return false;
+    return !p.service_types || p.service_types.length === 0;
+  });
 
   // Group default pricing by category
   const defaultPricingByCategory = defaultPricing.reduce((acc, p) => {
