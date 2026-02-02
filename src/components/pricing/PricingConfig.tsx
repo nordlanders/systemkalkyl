@@ -465,7 +465,7 @@ export default function PricingConfig() {
                   <TableHead>Pris</TableHead>
                   <TableHead>Enhet</TableHead>
                   <TableHead>Kategori</TableHead>
-                  <TableHead>Tjänstetyper</TableHead>
+                  <TableHead>Ingår default i kalkyler för</TableHead>
                   <TableHead>Giltigt från</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
                 </TableRow>
