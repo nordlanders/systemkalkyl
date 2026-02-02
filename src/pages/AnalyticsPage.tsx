@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users } from 'lucide-react';
+import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users, CheckCircle2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -115,6 +115,7 @@ export default function AnalyticsPage() {
   const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>(MUNICIPALITIES);
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(SERVICE_TYPES);
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(OWNING_ORGANIZATIONS);
+  const [onlyApproved, setOnlyApproved] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
@@ -173,7 +174,7 @@ export default function AnalyticsPage() {
     if (user) {
       loadData();
     }
-  }, [user, selectedYear, selectedMunicipalities, selectedServiceTypes, selectedOrganizations]);
+  }, [user, selectedYear, selectedMunicipalities, selectedServiceTypes, selectedOrganizations, onlyApproved]);
 
   async function loadData() {
     try {
@@ -192,11 +193,16 @@ export default function AnalyticsPage() {
         setAvailableYears(years);
       }
 
-      // Load calculations filtered by selected year, municipalities, service types and organizations
+      // Load calculations filtered by selected year, municipalities, service types, organizations and status
       let query = supabase
         .from('calculations')
-        .select('id, name, service_type, total_cost, ci_identity, calculation_year, municipality, owning_organization')
+        .select('id, name, service_type, total_cost, ci_identity, calculation_year, municipality, owning_organization, status')
         .eq('calculation_year', parseInt(selectedYear));
+
+      // Apply approved filter
+      if (onlyApproved) {
+        query = query.eq('status', 'approved');
+      }
 
       if (selectedMunicipalities.length > 0 && selectedMunicipalities.length < MUNICIPALITIES.length) {
         query = query.in('municipality', selectedMunicipalities);
@@ -506,6 +512,20 @@ export default function AnalyticsPage() {
                 </div>
               </PopoverContent>
             </Popover>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="only-approved"
+                checked={onlyApproved}
+                onCheckedChange={(checked) => setOnlyApproved(checked === true)}
+              />
+              <Label 
+                htmlFor="only-approved" 
+                className="text-sm font-normal cursor-pointer flex items-center gap-1"
+              >
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                Godkänd kalkyl
+              </Label>
+            </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <Select value={selectedYear} onValueChange={setSelectedYear}>
