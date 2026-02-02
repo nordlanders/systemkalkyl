@@ -59,6 +59,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const [selectedYear, setSelectedYear] = useState<number | 'all'>(currentYear);
   const [selectedMunicipality, setSelectedMunicipality] = useState<string>('all');
   const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -76,6 +77,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     const matchesYear = selectedYear === 'all' || (c as any).calculation_year === selectedYear;
     const matchesMunicipality = selectedMunicipality === 'all' || (c as any).municipality === selectedMunicipality;
     const matchesServiceType = selectedServiceType === 'all' || c.service_type === selectedServiceType;
+    const matchesStatus = selectedStatus === 'all' || (c as any).status === selectedStatus;
     
     // Search in name, CI-identity, municipality, and service type
     const searchLower = searchQuery.toLowerCase().trim();
@@ -86,7 +88,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
       (c.service_type || '').toLowerCase().includes(searchLower) ||
       ((c as any).owning_organization || '').toLowerCase().includes(searchLower);
     
-    return matchesYear && matchesMunicipality && matchesServiceType && matchesSearch;
+    return matchesYear && matchesMunicipality && matchesServiceType && matchesStatus && matchesSearch;
   });
 
   // Sort calculations
@@ -154,10 +156,11 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     setSelectedYear(currentYear);
     setSelectedMunicipality('all');
     setSelectedServiceType('all');
+    setSelectedStatus('all');
     setSearchQuery('');
   }
 
-  const hasActiveFilters = selectedYear !== currentYear || selectedMunicipality !== 'all' || selectedServiceType !== 'all' || searchQuery !== '';
+  const hasActiveFilters = selectedYear !== currentYear || selectedMunicipality !== 'all' || selectedServiceType !== 'all' || selectedStatus !== 'all' || searchQuery !== '';
 
   useEffect(() => {
     loadCalculations();
@@ -487,6 +490,21 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                       {mun}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              
+              <Select 
+                value={selectedStatus} 
+                onValueChange={setSelectedStatus}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla statusar</SelectItem>
+                  <SelectItem value="draft">Ej klar</SelectItem>
+                  <SelectItem value="pending_approval">Väntar godkännande</SelectItem>
+                  <SelectItem value="approved">Godkänd</SelectItem>
                 </SelectContent>
               </Select>
               
