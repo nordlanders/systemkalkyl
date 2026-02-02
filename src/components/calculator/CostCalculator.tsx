@@ -462,8 +462,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     });
   }
 
-  // Group pricing by category for easier selection
-  const pricingByCategory = pricing.reduce((acc, p) => {
+  // Group pricing by category for easier selection, filtered by selected service type
+  const filteredPricing = pricing.filter(p => {
+    // If no service_types or empty array, show in all
+    if (!p.service_types || p.service_types.length === 0) return true;
+    // Otherwise, check if selected serviceType is in the allowed list
+    return p.service_types.includes(serviceType);
+  });
+
+  const pricingByCategory = filteredPricing.reduce((acc, p) => {
     const category = p.category || 'Övrigt';
     if (!acc[category]) acc[category] = [];
     acc[category].push(p);
