@@ -236,28 +236,21 @@ export default function HomePage() {
   return (
     <DashboardLayout>
       <div className="space-y-8 fade-in">
-        {/* Welcome Section */}
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Välkommen{fullName ? `, ${fullName}` : ''}!
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            IT-Kostnadskalkylator – räkna fram och underhåll kalkyler på ett enkelt sätt
-          </p>
+        {/* Welcome Section with System Update */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">
+              Välkommen{fullName ? `, ${fullName}` : ''}!
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              IT-Kostnadskalkylator – räkna fram och underhåll kalkyler på ett enkelt sätt
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-md">
+            <Info className="h-4 w-4 text-primary" />
+            <span>Senaste uppdatering: 2 feb 2026</span>
+          </div>
         </div>
-
-        {/* System Update Info */}
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="py-4">
-            <div className="flex items-center gap-3">
-              <Info className="h-5 w-5 text-primary" />
-              <p className="text-sm text-foreground">
-                <span className="font-medium">Senaste systemuppdatering:</span>{' '}
-                <span className="text-muted-foreground">2 februari 2026</span>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Quick Links */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
