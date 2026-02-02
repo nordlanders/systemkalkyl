@@ -512,35 +512,31 @@ export default function AnalyticsPage() {
                 </div>
               </PopoverContent>
             </Popover>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Kalkylstatus" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Alla statusar</SelectItem>
-                  <SelectItem value="draft">Ej klar</SelectItem>
-                  <SelectItem value="pending_approval">Väntar godkännande</SelectItem>
-                  <SelectItem value="approved">Godkänd</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Välj år" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-[180px]">
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Kalkylstatus" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alla statusar</SelectItem>
+                <SelectItem value="draft">Ej klar</SelectItem>
+                <SelectItem value="pending_approval">Väntar godkännande</SelectItem>
+                <SelectItem value="approved">Godkänd</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[140px]">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Välj år" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
