@@ -125,11 +125,11 @@ export default function Auth() {
         <div className="absolute inset-0 bg-black/60" />
         <div className="w-full max-w-md fade-in relative z-10">
           <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="p-4 rounded-xl bg-primary">
-              <Calculator className="h-10 w-10 text-primary-foreground" />
+            <div className="p-5 rounded-xl bg-primary">
+              <Calculator className="h-14 w-14 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">Tjänstekalkyl</h1>
+              <h1 className="text-4xl font-bold text-white">Tjänstekalkyl</h1>
               <p className="text-base text-white/80">Räkna fram och underhåll kalkyl på enkelt sätt</p>
             </div>
           </div>
@@ -211,11 +211,11 @@ export default function Auth() {
       <div className="absolute inset-0 bg-black/60" />
       <div className="w-full max-w-md fade-in relative z-10">
         <div className="flex items-center justify-center gap-4 mb-8">
-          <div className="p-4 rounded-xl bg-primary">
-            <Calculator className="h-10 w-10 text-primary-foreground" />
+          <div className="p-5 rounded-xl bg-primary">
+            <Calculator className="h-14 w-14 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-white">Tjänstekalkyl</h1>
+            <h1 className="text-4xl font-bold text-white">Tjänstekalkyl</h1>
             <p className="text-base text-white/80">Räkna fram och underhåll kalkyl på enkelt sätt</p>
           </div>
         </div>
