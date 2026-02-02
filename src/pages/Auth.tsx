@@ -130,7 +130,7 @@ export default function Auth() {
                 <div className="p-5 rounded-xl bg-primary">
                   <Calculator className="h-14 w-14 text-primary-foreground" />
                 </div>
-                <h1 className="text-4xl font-bold text-white pb-1">Tjänstekalkyl</h1>
+                <h1 className="text-[54px] font-bold text-white pb-1">Tjänstekalkyl</h1>
               </div>
               <p className="text-base text-white/80 mt-2">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
             </div>
@@ -218,7 +218,7 @@ export default function Auth() {
               <div className="p-5 rounded-xl bg-primary">
                 <Calculator className="h-14 w-14 text-primary-foreground" />
               </div>
-              <h1 className="text-4xl font-bold text-white pb-1">Tjänstekalkyl</h1>
+              <h1 className="text-[54px] font-bold text-white pb-1">Tjänstekalkyl</h1>
             </div>
             <p className="text-base text-white/80 mt-2">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
           </div>
