@@ -240,16 +240,7 @@ export default function Auth() {
                 {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="signin-password">Lösenord</Label>
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPassword(true)}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Glömt lösenord?
-                  </button>
-                </div>
+                <Label htmlFor="signin-password">Lösenord</Label>
                 <Input
                   id="signin-password"
                   type="password"
@@ -259,6 +250,13 @@ export default function Auth() {
                   required
                 />
                 {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Glömt lösenord?
+                </button>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
