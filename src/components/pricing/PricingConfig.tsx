@@ -526,9 +526,7 @@ export default function PricingConfig() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
-                              Alla
-                            </span>
+                            <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell>
