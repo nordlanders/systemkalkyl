@@ -207,6 +207,7 @@ export type Database = {
           cost_owner: string | null
           created_at: string
           created_by: string | null
+          disallowed_service_types: string[] | null
           effective_from: string
           effective_to: string | null
           id: string
@@ -222,6 +223,7 @@ export type Database = {
           cost_owner?: string | null
           created_at?: string
           created_by?: string | null
+          disallowed_service_types?: string[] | null
           effective_from: string
           effective_to?: string | null
           id?: string
@@ -237,6 +239,7 @@ export type Database = {
           cost_owner?: string | null
           created_at?: string
           created_by?: string | null
+          disallowed_service_types?: string[] | null
           effective_from?: string
           effective_to?: string | null
           id?: string

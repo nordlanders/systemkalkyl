@@ -70,6 +70,7 @@ export default function PricingConfig() {
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(
     SERVICE_TYPES.map(st => st.value)
   );
+  const [disallowedServiceTypes, setDisallowedServiceTypes] = useState<string[]>([]);
 
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
@@ -110,6 +111,7 @@ export default function PricingConfig() {
     setEffectiveFrom('');
     setEffectiveTo('');
     setSelectedServiceTypes(SERVICE_TYPES.map(st => st.value));
+    setDisallowedServiceTypes([]);
     setEditingId(null);
   }
 
@@ -124,6 +126,7 @@ export default function PricingConfig() {
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
     setSelectedServiceTypes(config.service_types || []);
+    setDisallowedServiceTypes((config as any).disallowed_service_types || []);
     setDialogOpen(true);
   }
 
@@ -159,6 +162,7 @@ export default function PricingConfig() {
         effective_to: effectiveTo || null,
         created_by: user.id,
         service_types: selectedServiceTypes.length > 0 ? selectedServiceTypes : null,
+        disallowed_service_types: disallowedServiceTypes.length > 0 ? disallowedServiceTypes : null,
       };
 
       if (editingId) {
@@ -384,35 +388,68 @@ export default function PricingConfig() {
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Layers className="h-4 w-4 text-muted-foreground" />
-                    Ingår default i kalkyler för
+                    Tjänstetypskonfiguration
                   </Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {SERVICE_TYPES.map((st) => (
-                      <div key={st.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`service-${st.value}`}
-                          checked={selectedServiceTypes.includes(st.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedServiceTypes([...selectedServiceTypes, st.value]);
-                            } else {
-                              setSelectedServiceTypes(
-                                selectedServiceTypes.filter(s => s !== st.value)
-                              );
-                            }
-                          }}
-                        />
-                        <label
-                          htmlFor={`service-${st.value}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {st.label}
-                        </label>
-                      </div>
-                    ))}
+                  <div className="rounded-lg border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left px-3 py-2 font-medium">Tjänstetyp</th>
+                          <th className="text-center px-3 py-2 font-medium w-24">Default</th>
+                          <th className="text-center px-3 py-2 font-medium w-24">Ej tillåten</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {SERVICE_TYPES.map((st) => {
+                          const isDefault = selectedServiceTypes.includes(st.value);
+                          const isDisallowed = disallowedServiceTypes.includes(st.value);
+                          
+                          return (
+                            <tr key={st.value} className="border-t">
+                              <td className="px-3 py-2 font-medium">{st.label}</td>
+                              <td className="text-center px-3 py-2">
+                                <Checkbox
+                                  id={`default-${st.value}`}
+                                  checked={isDefault}
+                                  disabled={isDisallowed}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setSelectedServiceTypes([...selectedServiceTypes, st.value]);
+                                    } else {
+                                      setSelectedServiceTypes(
+                                        selectedServiceTypes.filter(s => s !== st.value)
+                                      );
+                                    }
+                                  }}
+                                />
+                              </td>
+                              <td className="text-center px-3 py-2">
+                                <Checkbox
+                                  id={`disallowed-${st.value}`}
+                                  checked={isDisallowed}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      setDisallowedServiceTypes([...disallowedServiceTypes, st.value]);
+                                      // Remove from default if disallowed
+                                      setSelectedServiceTypes(
+                                        selectedServiceTypes.filter(s => s !== st.value)
+                                      );
+                                    } else {
+                                      setDisallowedServiceTypes(
+                                        disallowedServiceTypes.filter(s => s !== st.value)
+                                      );
+                                    }
+                                  }}
+                                />
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Välj vilka tjänstetyper denna prisrad ska visas i. Om ingen är vald visas den i alla.
+                    <strong>Default:</strong> Läggs till automatiskt i nya kalkyler. <strong>Ej tillåten:</strong> Kan inte användas alls för denna tjänstetyp.
                   </p>
                 </div>
 
