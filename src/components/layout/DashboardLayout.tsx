@@ -31,7 +31,7 @@ interface DashboardLayoutProps {
 
 const mainNavItems = [
   { href: '/', icon: Home, label: 'Start', adminOnly: false },
-  { href: '/calculator', icon: Calculator, label: 'Kalkylator', adminOnly: false },
+  { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false },
   { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
   { href: '/history', icon: History, label: 'Historik', adminOnly: false },
 ];
