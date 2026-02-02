@@ -498,7 +498,7 @@ export default function PricingConfig() {
                   <TableHead>Pris</TableHead>
                   <TableHead>Enhet</TableHead>
                   <TableHead>Kategori</TableHead>
-                  <TableHead>Ingår default i kalkyler för</TableHead>
+                  <TableHead>Default i / Ej möjlig i</TableHead>
                   <TableHead>Giltigt från</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
                 </TableRow>
@@ -540,26 +540,42 @@ export default function PricingConfig() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {config.service_types && config.service_types.length > 0 ? (
-                            <div className="flex flex-wrap gap-1 max-w-[200px]">
-                              {config.service_types.length === SERVICE_TYPES.length ? (
-                                <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
-                                  Alla
-                                </span>
-                              ) : (
-                              config.service_types.map(st => (
-                                  <span 
-                                    key={st} 
-                                    className="text-xs px-2 py-0.5 rounded bg-muted"
-                                  >
-                                    {st}
+                          <div className="flex flex-wrap gap-1 max-w-[280px]">
+                            {config.service_types && config.service_types.length > 0 && (
+                              <>
+                                {config.service_types.length === SERVICE_TYPES.length ? (
+                                  <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                                    Default: Alla
                                   </span>
-                                ))
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
+                                ) : (
+                                  config.service_types.map(st => (
+                                    <span 
+                                      key={`default-${st}`} 
+                                      className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary"
+                                    >
+                                      {st}
+                                    </span>
+                                  ))
+                                )}
+                              </>
+                            )}
+                            {(config as any).disallowed_service_types && (config as any).disallowed_service_types.length > 0 && (
+                              <>
+                                {(config as any).disallowed_service_types.map((st: string) => (
+                                  <span 
+                                    key={`disallowed-${st}`} 
+                                    className="text-xs px-2 py-0.5 rounded bg-destructive/10 text-destructive"
+                                  >
+                                    Ej: {st}
+                                  </span>
+                                ))}
+                              </>
+                            )}
+                            {(!config.service_types || config.service_types.length === 0) && 
+                             (!(config as any).disallowed_service_types || (config as any).disallowed_service_types.length === 0) && (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
