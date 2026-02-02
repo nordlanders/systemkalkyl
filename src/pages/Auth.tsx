@@ -124,13 +124,15 @@ export default function Auth() {
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60" />
         <div className="w-full max-w-md fade-in relative z-10">
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="p-5 rounded-xl bg-primary">
-              <Calculator className="h-14 w-14 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-white">Tjänstekalkyl</h1>
-              <p className="text-base text-white/80">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
+          <div className="flex justify-center mb-8">
+            <div className="flex flex-col">
+              <div className="flex items-end gap-4">
+                <div className="p-5 rounded-xl bg-primary">
+                  <Calculator className="h-14 w-14 text-primary-foreground" />
+                </div>
+                <h1 className="text-4xl font-bold text-white pb-1">Tjänstekalkyl</h1>
+              </div>
+              <p className="text-base text-white/80 mt-2">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
             </div>
           </div>
 
@@ -210,13 +212,15 @@ export default function Auth() {
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/60" />
       <div className="w-full max-w-md fade-in relative z-10">
-        <div className="flex items-center justify-center gap-4 mb-8">
-          <div className="p-5 rounded-xl bg-primary">
-            <Calculator className="h-14 w-14 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-white">Tjänstekalkyl</h1>
-            <p className="text-base text-white/80">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
+        <div className="flex justify-center mb-8">
+          <div className="flex flex-col">
+            <div className="flex items-end gap-4">
+              <div className="p-5 rounded-xl bg-primary">
+                <Calculator className="h-14 w-14 text-primary-foreground" />
+              </div>
+              <h1 className="text-4xl font-bold text-white pb-1">Tjänstekalkyl</h1>
+            </div>
+            <p className="text-base text-white/80 mt-2">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
           </div>
         </div>
 
