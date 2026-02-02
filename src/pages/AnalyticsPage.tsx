@@ -70,6 +70,7 @@ interface AggregatedData {
 }
 
 const MUNICIPALITIES = [
+  'Digitalisering och IT (används normalt för bastjänster)',
   'Sundsvalls kommun',
   'Ånge kommun',
   'Timrå kommun',
@@ -274,7 +275,7 @@ export default function AnalyticsPage() {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <Building2 className="h-4 w-4" />
-                  Kommuner
+                  Kunder
                   {selectedMunicipalities.length < MUNICIPALITIES.length && (
                     <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
                       {selectedMunicipalities.length}
@@ -285,7 +286,7 @@ export default function AnalyticsPage() {
               <PopoverContent className="w-64" align="end">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-sm">Välj kommuner</h4>
+                    <h4 className="font-medium text-sm">Välj kunder</h4>
                     <div className="flex gap-2">
                       <Button 
                         variant="ghost" 
