@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,11 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Loader2, Check, X } from 'lucide-react';
 
 interface CreateUserDialogProps {
   onUserCreated: () => void;
 }
+
+const PASSWORD_MIN_LENGTH = 12;
 
 export default function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
   const [open, setOpen] = useState(false);
@@ -23,8 +25,32 @@ export default function CreateUserDialog({ onUserCreated }: CreateUserDialogProp
 
   const { toast } = useToast();
 
+  const passwordValidation = useMemo(() => {
+    return {
+      minLength: password.length >= PASSWORD_MIN_LENGTH,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+    };
+  }, [password]);
+
+  const isPasswordValid = passwordValidation.minLength && 
+    passwordValidation.hasUppercase && 
+    passwordValidation.hasLowercase && 
+    passwordValidation.hasNumber;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    if (!isPasswordValid) {
+      toast({
+        title: 'Ogiltigt lösenord',
+        description: 'Lösenordet uppfyller inte säkerhetskraven.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -118,11 +144,32 @@ export default function CreateUserDialog({ onUserCreated }: CreateUserDialogProp
               id="password"
               type="password"
               required
-              minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Minst 6 tecken"
+              placeholder="Minst 12 tecken"
+              className={password && !isPasswordValid ? 'border-destructive' : ''}
             />
+            <div className="space-y-1 text-xs">
+              <p className="text-muted-foreground font-medium">Lösenordet måste innehålla:</p>
+              <div className="grid grid-cols-2 gap-1">
+                <div className={`flex items-center gap-1 ${password ? (passwordValidation.minLength ? 'text-success' : 'text-destructive') : 'text-muted-foreground'}`}>
+                  {password ? (passwordValidation.minLength ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />) : <span className="w-3">•</span>}
+                  Minst {PASSWORD_MIN_LENGTH} tecken
+                </div>
+                <div className={`flex items-center gap-1 ${password ? (passwordValidation.hasUppercase ? 'text-success' : 'text-destructive') : 'text-muted-foreground'}`}>
+                  {password ? (passwordValidation.hasUppercase ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />) : <span className="w-3">•</span>}
+                  Stor bokstav (A-Z)
+                </div>
+                <div className={`flex items-center gap-1 ${password ? (passwordValidation.hasLowercase ? 'text-success' : 'text-destructive') : 'text-muted-foreground'}`}>
+                  {password ? (passwordValidation.hasLowercase ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />) : <span className="w-3">•</span>}
+                  Liten bokstav (a-z)
+                </div>
+                <div className={`flex items-center gap-1 ${password ? (passwordValidation.hasNumber ? 'text-success' : 'text-destructive') : 'text-muted-foreground'}`}>
+                  {password ? (passwordValidation.hasNumber ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />) : <span className="w-3">•</span>}
+                  Siffra (0-9)
+                </div>
+              </div>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="role">Roll</Label>
@@ -152,7 +199,7 @@ export default function CreateUserDialog({ onUserCreated }: CreateUserDialogProp
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Avbryt
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !isPasswordValid}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
