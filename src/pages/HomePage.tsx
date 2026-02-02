@@ -31,7 +31,8 @@ import {
   Plus,
   Pencil,
   Trash2,
-  ArrowRight
+  ArrowRight,
+  Info
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -244,6 +245,19 @@ export default function HomePage() {
             IT-Kostnadskalkylator – räkna fram och underhåll kalkyler på ett enkelt sätt
           </p>
         </div>
+
+        {/* System Update Info */}
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              <Info className="h-5 w-5 text-primary" />
+              <p className="text-sm text-foreground">
+                <span className="font-medium">Senaste systemuppdatering:</span>{' '}
+                <span className="text-muted-foreground">2 februari 2026</span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Links */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
