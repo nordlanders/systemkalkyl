@@ -510,13 +510,12 @@ export default function PricingConfig() {
                                   Alla
                                 </span>
                               ) : (
-                                config.service_types.map(st => (
+                              config.service_types.map(st => (
                                   <span 
                                     key={st} 
                                     className="text-xs px-2 py-0.5 rounded bg-muted"
-                                    title={st}
                                   >
-                                    {st.split(' ')[0]}
+                                    {st}
                                   </span>
                                 ))
                               )}
