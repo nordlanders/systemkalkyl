@@ -899,13 +899,23 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                                       {row.unit?.toLowerCase() === 'kr/timme' ? 'Antal timmar' : `Antal${row.unit ? ` (${row.unit})` : ''}`}
                                     </Label>
                                     <Input
-                                      type="number"
-                                      min="0"
-                                      step="0.01"
-                                      value={row.quantity}
-                                      onChange={(e) => updateRowQuantity(row.id, parseFloat(e.target.value) || 0)}
+                                      type="text"
+                                      inputMode="decimal"
+                                      value={row.quantity === 0 ? '' : row.quantity.toString()}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '' || /^[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                          const numVal = val === '' ? 0 : parseFloat(val.replace(',', '.')) || 0;
+                                          updateRowQuantity(row.id, numVal);
+                                        }
+                                      }}
+                                      onBlur={(e) => {
+                                        const val = e.target.value;
+                                        const numVal = val === '' ? 0 : parseFloat(val.replace(',', '.')) || 0;
+                                        updateRowQuantity(row.id, Math.max(0, numVal));
+                                      }}
                                       className="font-mono"
-                                      placeholder={row.unit?.toLowerCase() === 'kr/timme' ? 'Ange antal timmar' : undefined}
+                                      placeholder={row.unit?.toLowerCase() === 'kr/timme' ? 'Ange antal timmar' : '0'}
                                     />
                                   </div>
                                 </div>
