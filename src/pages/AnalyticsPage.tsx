@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter } from 'lucide-react';
+import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -79,6 +79,13 @@ const MUNICIPALITIES = [
   'Ljusdals kommun',
 ];
 
+const SERVICE_TYPES = [
+  'Anpassad drift',
+  'Anpassad förvaltning',
+  'Bastjänst Digital infrastruktur',
+  'Bastjänst IT infrastruktur',
+];
+
 const CHART_COLORS = [
   'hsl(var(--chart-4))',
   'hsl(var(--chart-1))',
@@ -96,6 +103,7 @@ export default function AnalyticsPage() {
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
   const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>(MUNICIPALITIES);
+  const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(SERVICE_TYPES);
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
@@ -118,16 +126,27 @@ export default function AnalyticsPage() {
     setSelectedMunicipalities([]);
   };
 
+  const toggleServiceType = (serviceType: string) => {
+    setSelectedServiceTypes(prev => 
+      prev.includes(serviceType)
+        ? prev.filter(s => s !== serviceType)
+        : [...prev, serviceType]
+    );
+  };
+
+  const selectAllServiceTypes = () => {
+    setSelectedServiceTypes(SERVICE_TYPES);
+  };
+
+  const clearServiceTypes = () => {
+    setSelectedServiceTypes([]);
+  };
+
   useEffect(() => {
     if (user) {
       loadData();
     }
-  }, [user, selectedYear, selectedMunicipalities]);
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-  }, [user, selectedYear, selectedMunicipalities]);
+  }, [user, selectedYear, selectedMunicipalities, selectedServiceTypes]);
 
   async function loadData() {
     try {
@@ -146,7 +165,7 @@ export default function AnalyticsPage() {
         setAvailableYears(years);
       }
 
-      // Load calculations filtered by selected year and municipalities
+      // Load calculations filtered by selected year, municipalities and service types
       let query = supabase
         .from('calculations')
         .select('id, name, service_type, total_cost, ci_identity, calculation_year, municipality')
@@ -156,6 +175,18 @@ export default function AnalyticsPage() {
         query = query.in('municipality', selectedMunicipalities);
       } else if (selectedMunicipalities.length === 0) {
         // No municipalities selected, return empty
+        setCalculations([]);
+        setItems([]);
+        setByServiceType([]);
+        setByPriceType([]);
+        setLoading(false);
+        return;
+      }
+
+      if (selectedServiceTypes.length > 0 && selectedServiceTypes.length < SERVICE_TYPES.length) {
+        query = query.in('service_type', selectedServiceTypes);
+      } else if (selectedServiceTypes.length === 0) {
+        // No service types selected, return empty
         setCalculations([]);
         setItems([]);
         setByServiceType([]);
@@ -319,6 +350,61 @@ export default function AnalyticsPage() {
                           className="text-sm font-normal cursor-pointer"
                         >
                           {municipality}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Settings2 className="h-4 w-4" />
+                  Tjänstetyper
+                  {selectedServiceTypes.length < SERVICE_TYPES.length && (
+                    <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                      {selectedServiceTypes.length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Välj tjänstetyper</h4>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={selectAllServiceTypes}
+                      >
+                        Alla
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={clearServiceTypes}
+                      >
+                        Rensa
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {SERVICE_TYPES.map((serviceType) => (
+                      <div key={serviceType} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`st-${serviceType}`}
+                          checked={selectedServiceTypes.includes(serviceType)}
+                          onCheckedChange={() => toggleServiceType(serviceType)}
+                        />
+                        <Label 
+                          htmlFor={`st-${serviceType}`} 
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {serviceType}
                         </Label>
                       </div>
                     ))}
