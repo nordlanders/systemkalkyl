@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig as PricingConfigType } from '@/lib/supabase';
@@ -19,7 +20,8 @@ import {
   Loader2,
   Calendar,
   Coins,
-  AlertCircle
+  AlertCircle,
+  Layers
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -32,6 +34,13 @@ const categories = [
   { value: 'Avtal', label: 'Avtal' },
   { value: 'Avskrivning', label: 'Avskrivning' },
   { value: 'Annat', label: 'Annat' },
+];
+
+const SERVICE_TYPES = [
+  { value: 'Anpassad drift', label: 'Anpassad drift' },
+  { value: 'Anpassad förvaltning', label: 'Anpassad förvaltning' },
+  { value: 'Bastjänst Digital infrastruktur', label: 'Bastjänst Digital infrastruktur' },
+  { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
 ];
 
 const costOwners = [
@@ -58,6 +67,9 @@ export default function PricingConfig() {
   const [costOwner, setCostOwner] = useState('Produktion');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
+  const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(
+    SERVICE_TYPES.map(st => st.value)
+  );
 
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
@@ -97,6 +109,7 @@ export default function PricingConfig() {
     setCostOwner('Produktion');
     setEffectiveFrom('');
     setEffectiveTo('');
+    setSelectedServiceTypes(SERVICE_TYPES.map(st => st.value));
     setEditingId(null);
   }
 
@@ -110,6 +123,11 @@ export default function PricingConfig() {
     setCostOwner(config.cost_owner || 'Produktion');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
+    setSelectedServiceTypes(
+      config.service_types && config.service_types.length > 0 
+        ? config.service_types 
+        : SERVICE_TYPES.map(st => st.value)
+    );
     setDialogOpen(true);
   }
 
@@ -144,6 +162,7 @@ export default function PricingConfig() {
         effective_from: effectiveFrom,
         effective_to: effectiveTo || null,
         created_by: user.id,
+        service_types: selectedServiceTypes.length > 0 ? selectedServiceTypes : null,
       };
 
       if (editingId) {
@@ -366,6 +385,41 @@ export default function PricingConfig() {
                   </div>
                 </div>
 
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    Visa i tjänstetyper
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {SERVICE_TYPES.map((st) => (
+                      <div key={st.value} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`service-${st.value}`}
+                          checked={selectedServiceTypes.includes(st.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedServiceTypes([...selectedServiceTypes, st.value]);
+                            } else {
+                              setSelectedServiceTypes(
+                                selectedServiceTypes.filter(s => s !== st.value)
+                              );
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`service-${st.value}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {st.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Välj vilka tjänstetyper denna prisrad ska visas i. Om ingen är vald visas den i alla.
+                  </p>
+                </div>
+
                 <div className="flex justify-end gap-2 pt-4">
                   <Button variant="outline" onClick={() => setDialogOpen(false)}>
                     Avbryt
@@ -411,7 +465,7 @@ export default function PricingConfig() {
                   <TableHead>Pris</TableHead>
                   <TableHead>Enhet</TableHead>
                   <TableHead>Kategori</TableHead>
-                  <TableHead>Kostnadsägare</TableHead>
+                  <TableHead>Tjänstetyper</TableHead>
                   <TableHead>Giltigt från</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
                 </TableRow>
@@ -452,8 +506,30 @@ export default function PricingConfig() {
                             {config.category || '—'}
                           </span>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {config.cost_owner || '—'}
+                        <TableCell>
+                          {config.service_types && config.service_types.length > 0 ? (
+                            <div className="flex flex-wrap gap-1 max-w-[200px]">
+                              {config.service_types.length === SERVICE_TYPES.length ? (
+                                <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                                  Alla
+                                </span>
+                              ) : (
+                                config.service_types.map(st => (
+                                  <span 
+                                    key={st} 
+                                    className="text-xs px-2 py-0.5 rounded bg-muted"
+                                    title={st}
+                                  >
+                                    {st.split(' ')[0]}
+                                  </span>
+                                ))
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary">
+                              Alla
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">

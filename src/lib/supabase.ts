@@ -33,6 +33,7 @@ export interface PricingConfig {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  service_types: string[] | null;
 }
 
 export interface Calculation {

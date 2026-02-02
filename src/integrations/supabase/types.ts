@@ -212,6 +212,7 @@ export type Database = {
           id: string
           price_per_unit: number
           price_type: string
+          service_types: string[] | null
           unit: string | null
           updated_at: string
         }
@@ -226,6 +227,7 @@ export type Database = {
           id?: string
           price_per_unit: number
           price_type: string
+          service_types?: string[] | null
           unit?: string | null
           updated_at?: string
         }
@@ -240,6 +242,7 @@ export type Database = {
           id?: string
           price_per_unit?: number
           price_type?: string
+          service_types?: string[] | null
           unit?: string | null
           updated_at?: string
         }
