@@ -62,7 +62,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="p-2 rounded-lg bg-primary">
                 <Calculator className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-lg hidden sm:block">IT-Kostnadskalkylator</span>
+              <span className="font-semibold text-lg hidden sm:block">Tjänstekalkyl</span>
             </Link>
           </div>
 
