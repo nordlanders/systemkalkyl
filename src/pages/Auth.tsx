@@ -130,7 +130,7 @@ export default function Auth() {
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white">Tjänstekalkyl</h1>
-              <p className="text-base text-white/80">Räkna fram och underhåll kalkyl på enkelt sätt</p>
+              <p className="text-base text-white/80">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
             </div>
           </div>
 
@@ -216,7 +216,7 @@ export default function Auth() {
           </div>
           <div>
             <h1 className="text-4xl font-bold text-white">Tjänstekalkyl</h1>
-            <p className="text-base text-white/80">Räkna fram och underhåll kalkyl på enkelt sätt</p>
+            <p className="text-base text-white/80">Räkna fram och underhåll kalkyler på ett enkelt sätt</p>
           </div>
         </div>
 
