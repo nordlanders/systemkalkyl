@@ -23,8 +23,12 @@ import {
   ArrowDown,
   Download,
   Search,
-  X
+  X,
+  Clock,
+  CheckCircle2,
+  FileEdit
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -564,6 +568,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                         <SortIcon column="name" />
                       </div>
                     </TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead 
                       className="cursor-pointer hover:bg-muted select-none"
                       onClick={() => handleSort('municipality')}
@@ -628,6 +633,15 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   const updatedAt = calc.updated_at;
                   const calculationYear = (calc as any).calculation_year;
                   const municipality = (calc as any).municipality;
+                  const status = (calc as any).status as 'draft' | 'pending_approval' | 'approved' | undefined;
+                  
+                  const statusConfig = {
+                    draft: { label: 'Ej klar', icon: FileEdit, variant: 'secondary' as const, className: '' },
+                    pending_approval: { label: 'Väntar godkännande', icon: Clock, variant: 'outline' as const, className: 'border-amber-500 text-amber-600' },
+                    approved: { label: 'Godkänd', icon: CheckCircle2, variant: 'default' as const, className: 'bg-green-600 hover:bg-green-700' },
+                  };
+                  const currentStatus = statusConfig[status || 'draft'];
+                  const StatusIcon = currentStatus.icon;
                   
                   return (
                     <TableRow 
@@ -637,6 +651,12 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     >
                       <TableCell className="font-medium">
                         {calc.name || 'Namnlös'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={currentStatus.variant} className={`gap-1 ${currentStatus.className}`}>
+                          <StatusIcon className="h-3 w-3" />
+                          {currentStatus.label}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">

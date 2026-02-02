@@ -4,10 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Key, Eye, EyeOff, Copy, Check } from 'lucide-react';
+import { Loader2, Key, Eye, EyeOff, Copy, Check, FileCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+
+const OWNING_ORGANIZATIONS = [
+  'Sektionen Produktion',
+  'Sektionen Produktion, enhet Drift',
+  'Sektionen Produktion, enhet Servicedesk',
+  'Sektionen Digital Utveckling',
+  'Sektionen Strategi och Styrning',
+  'Digitalisering och IT Stab/säkerhet',
+];
 
 interface UserData {
   user_id: string;
@@ -15,6 +26,8 @@ interface UserData {
   full_name: string | null;
   role: 'admin' | 'user' | 'superadmin';
   permission_level: 'read_only' | 'read_write';
+  can_approve?: boolean;
+  approval_organizations?: string[];
 }
 
 interface EditUserDialogProps {
@@ -48,6 +61,8 @@ export default function EditUserDialog({
   const [resetLoading, setResetLoading] = useState(false);
   const [role, setRole] = useState<'user' | 'admin' | 'superadmin'>('user');
   const [permissionLevel, setPermissionLevel] = useState<'read_only' | 'read_write'>('read_write');
+  const [canApprove, setCanApprove] = useState(false);
+  const [approvalOrganizations, setApprovalOrganizations] = useState<string[]>([]);
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -59,11 +74,21 @@ export default function EditUserDialog({
     if (user && open) {
       setRole(user.role);
       setPermissionLevel(user.permission_level);
+      setCanApprove(user.can_approve ?? false);
+      setApprovalOrganizations(user.approval_organizations ?? []);
       setNewPassword('');
       setShowPassword(false);
       setCopied(false);
     }
   }, [user, open]);
+
+  function toggleOrganization(org: string) {
+    if (approvalOrganizations.includes(org)) {
+      setApprovalOrganizations(approvalOrganizations.filter(o => o !== org));
+    } else {
+      setApprovalOrganizations([...approvalOrganizations, org]);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -77,6 +102,8 @@ export default function EditUserDialog({
           userId: user.user_id,
           role,
           permissionLevel,
+          canApprove,
+          approvalOrganizations: canApprove ? approvalOrganizations : [],
         },
       });
 
@@ -170,7 +197,7 @@ export default function EditUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Redigera användare</DialogTitle>
           <DialogDescription>
@@ -221,6 +248,56 @@ export default function EditUserDialog({
               </p>
             )}
           </div>
+
+          <Separator />
+
+          {/* Approval permissions section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="canApprove" className="flex items-center gap-2">
+                  <FileCheck className="h-4 w-4 text-primary" />
+                  Kan godkänna kalkyler
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Tillåt användaren att godkänna kalkyler som är klara
+                </p>
+              </div>
+              <Switch
+                id="canApprove"
+                checked={canApprove}
+                onCheckedChange={setCanApprove}
+                disabled={isCurrentUser}
+              />
+            </div>
+
+            {canApprove && (
+              <div className="space-y-2 pl-6 border-l-2 border-primary/20">
+                <Label>Organisationer att godkänna</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Välj vilka organisationers kalkyler användaren kan godkänna. Lämna tomt för alla.
+                </p>
+                <div className="space-y-2">
+                  {OWNING_ORGANIZATIONS.map((org) => (
+                    <div key={org} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`org-${org}`}
+                        checked={approvalOrganizations.includes(org)}
+                        onCheckedChange={() => toggleOrganization(org)}
+                      />
+                      <label
+                        htmlFor={`org-${org}`}
+                        className="text-sm cursor-pointer"
+                      >
+                        {org}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Avbryt

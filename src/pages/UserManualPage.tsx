@@ -5,7 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter } from 'lucide-react';
+import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck } from 'lucide-react';
 
 export default function UserManualPage() {
   const { user, loading, isAdmin } = useAuth();
@@ -178,19 +178,67 @@ export default function UserManualPage() {
                 <AccordionTrigger>
                   <span className="flex items-center gap-2">
                     <Badge className="rounded-full">3</Badge>
-                    Sammanfattning och spara
+                    Sammanfattning, status och spara
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground space-y-2">
-                  <p>I sista steget ser du en sammanfattning av kalkylen:</p>
+                  <p>I sista steget ser du en sammanfattning och väljer status:</p>
                   <ul className="list-disc list-inside space-y-1 ml-2">
                     <li>Granska all information innan du sparar</li>
+                    <li><strong>Välj status:</strong>
+                      <ul className="list-disc list-inside ml-4 mt-1">
+                        <li><strong>Ej klar</strong> – Kalkylen är under arbete</li>
+                        <li><strong>Klar (men ej godkänd)</strong> – Kalkylen är klar och väntar på godkännande</li>
+                      </ul>
+                    </li>
                     <li>Klicka på "Spara kalkyl" för att spara</li>
-                    <li>Du kan gå tillbaka och ändra om något behöver justeras</li>
+                    <li>Varje sparning skapar en ny version för spårbarhet</li>
                   </ul>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+          </CardContent>
+        </Card>
+
+        {/* Status and Approval Guide */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileCheck className="h-5 w-5 text-primary" />
+              Status och godkännande
+            </CardTitle>
+            <CardDescription>
+              Så fungerar kalkylstatus och godkännandeflödet
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+              <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <h4 className="font-medium">Ej klar</h4>
+                <p className="text-sm text-muted-foreground">
+                  Kalkylen är under arbete och inte redo för granskning
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+              <Clock className="h-5 w-5 text-amber-500 mt-0.5" />
+              <div>
+                <h4 className="font-medium">Klar (men ej godkänd)</h4>
+                <p className="text-sm text-muted-foreground">
+                  Kalkylen är klar och väntar på att godkännas av en behörig person
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+              <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium">Godkänd</h4>
+                <p className="text-sm text-muted-foreground">
+                  Kalkylen har godkänts. Om ändringar görs krävs nytt godkännande.
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -280,6 +328,8 @@ export default function UserManualPage() {
                       <li>Skapa nya användare med e-post och lösenord</li>
                       <li>Tilldela roller (Användare, Admin, Superadmin)</li>
                       <li>Sätt behörighetsnivå (Läs/Skriv)</li>
+                      <li><strong>Godkännandebehörighet</strong> – Ange om användaren kan godkänna kalkyler</li>
+                      <li><strong>Organisationer</strong> – Välj vilka organisationers kalkyler användaren kan godkänna</li>
                       <li>Återställ användarlösenord</li>
                       <li>Se senaste inloggning för varje användare</li>
                     </ul>
@@ -298,6 +348,23 @@ export default function UserManualPage() {
                       <li>Antal kalkyler per kund</li>
                       <li>Totala kostnader per tjänstetyp</li>
                       <li>Trender över tid</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="approvals">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <FileCheck className="h-4 w-4" />
+                      Godkännanden
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Granska och godkänn kalkyler:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Se alla kalkyler som väntar på godkännande</li>
+                      <li>Granska detaljer för varje kalkyl</li>
+                      <li>Godkänn kalkyler för de organisationer du har behörighet till</li>
+                      <li>Godkända kalkyler kan fortfarande redigeras men kräver då nytt godkännande</li>
                     </ul>
                   </AccordionContent>
                 </AccordionItem>

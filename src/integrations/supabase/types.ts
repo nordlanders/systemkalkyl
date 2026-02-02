@@ -98,8 +98,73 @@ export type Database = {
           },
         ]
       }
+      calculation_versions: {
+        Row: {
+          calculation_id: string
+          calculation_year: number
+          ci_identity: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          items: Json
+          municipality: string
+          name: string | null
+          owning_organization: string | null
+          service_type: string
+          status: Database["public"]["Enums"]["calculation_status"]
+          total_cost: number
+          version: number
+        }
+        Insert: {
+          calculation_id: string
+          calculation_year: number
+          ci_identity: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          items?: Json
+          municipality: string
+          name?: string | null
+          owning_organization?: string | null
+          service_type: string
+          status: Database["public"]["Enums"]["calculation_status"]
+          total_cost?: number
+          version: number
+        }
+        Update: {
+          calculation_id?: string
+          calculation_year?: number
+          ci_identity?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          items?: Json
+          municipality?: string
+          name?: string | null
+          owning_organization?: string | null
+          service_type?: string
+          status?: Database["public"]["Enums"]["calculation_status"]
+          total_cost?: number
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calculation_versions_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "calculations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calculations: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_by_name: string | null
           calculation_year: number
           ci_identity: string
           cpu_cost: number
@@ -115,14 +180,19 @@ export type Database = {
           server_cost: number
           server_count: number
           service_type: string
+          status: Database["public"]["Enums"]["calculation_status"]
           storage_cost: number
           storage_gb: number
           total_cost: number
           updated_at: string | null
           updated_by_name: string | null
           user_id: string
+          version: number
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_by_name?: string | null
           calculation_year?: number
           ci_identity: string
           cpu_cost?: number
@@ -138,14 +208,19 @@ export type Database = {
           server_cost?: number
           server_count?: number
           service_type?: string
+          status?: Database["public"]["Enums"]["calculation_status"]
           storage_cost?: number
           storage_gb?: number
           total_cost?: number
           updated_at?: string | null
           updated_by_name?: string | null
           user_id: string
+          version?: number
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_by_name?: string | null
           calculation_year?: number
           ci_identity?: string
           cpu_cost?: number
@@ -161,12 +236,14 @@ export type Database = {
           server_cost?: number
           server_count?: number
           service_type?: string
+          status?: Database["public"]["Enums"]["calculation_status"]
           storage_cost?: number
           storage_gb?: number
           total_cost?: number
           updated_at?: string | null
           updated_by_name?: string | null
           user_id?: string
+          version?: number
         }
         Relationships: []
       }
@@ -256,6 +333,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_organizations: string[] | null
+          can_approve: boolean
           created_at: string
           email: string
           full_name: string | null
@@ -266,6 +345,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approval_organizations?: string[] | null
+          can_approve?: boolean
           created_at?: string
           email: string
           full_name?: string | null
@@ -276,6 +357,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approval_organizations?: string[] | null
+          can_approve?: boolean
           created_at?: string
           email?: string
           full_name?: string | null
@@ -324,6 +407,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "superadmin"
+      calculation_status: "draft" | "pending_approval" | "approved"
       permission_level: "read_only" | "read_write"
     }
     CompositeTypes: {
@@ -453,6 +537,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "superadmin"],
+      calculation_status: ["draft", "pending_approval", "approved"],
       permission_level: ["read_only", "read_write"],
     },
   },

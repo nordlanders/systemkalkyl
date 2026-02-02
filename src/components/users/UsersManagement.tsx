@@ -31,6 +31,8 @@ interface UserWithRole {
   last_login_at: string | null;
   permission_level: 'read_only' | 'read_write';
   role: 'admin' | 'user' | 'superadmin';
+  can_approve: boolean;
+  approval_organizations: string[];
 }
 
 export default function UsersManagement() {
@@ -71,6 +73,8 @@ export default function UsersManagement() {
           ...profile,
           permission_level: profile.permission_level || 'read_write',
           role: (userRole?.role as 'admin' | 'user') || 'user',
+          can_approve: (profile as any).can_approve ?? false,
+          approval_organizations: (profile as any).approval_organizations ?? [],
         };
       });
 

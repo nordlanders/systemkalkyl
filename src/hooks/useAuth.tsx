@@ -10,6 +10,8 @@ interface AuthContextType {
   isAdmin: boolean;
   permissionLevel: PermissionLevel;
   canWrite: boolean;
+  canApprove: boolean;
+  approvalOrganizations: string[];
   loading: boolean;
   fullName: string | null;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -24,6 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [permissionLevel, setPermissionLevel] = useState<PermissionLevel>('read_only');
+  const [canApprove, setCanApprove] = useState(false);
+  const [approvalOrganizations, setApprovalOrganizations] = useState<string[]>([]);
   const [fullName, setFullName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,11 +46,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             checkAdminRole(session.user.id);
             checkPermissionLevel(session.user.id);
             fetchFullName(session.user.id);
+            checkApprovalPermissions(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
           setPermissionLevel('read_only');
           setFullName(null);
+          setCanApprove(false);
+          setApprovalOrganizations([]);
         }
       }
     );
@@ -60,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         checkAdminRole(session.user.id);
         checkPermissionLevel(session.user.id);
         fetchFullName(session.user.id);
+        checkApprovalPermissions(session.user.id);
       }
       setLoading(false);
     });
@@ -98,6 +106,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFullName(data?.full_name ?? null);
   }
 
+  async function checkApprovalPermissions(userId: string) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('can_approve, approval_organizations')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    setCanApprove(data?.can_approve ?? false);
+    setApprovalOrganizations(data?.approval_organizations ?? []);
+  }
+
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     
@@ -133,10 +152,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(false);
     setPermissionLevel('read_only');
     setFullName(null);
+    setCanApprove(false);
+    setApprovalOrganizations([]);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, permissionLevel, canWrite, loading, fullName, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      isAdmin, 
+      permissionLevel, 
+      canWrite, 
+      canApprove, 
+      approvalOrganizations, 
+      loading, 
+      fullName, 
+      signIn, 
+      signUp, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );

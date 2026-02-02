@@ -22,7 +22,8 @@ import {
   Home,
   ChevronDown,
   Shield,
-  BookOpen
+  BookOpen,
+  FileCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -39,6 +40,7 @@ const mainNavItems = [
 ];
 
 const adminNavItems = [
+  { href: '/approvals', icon: FileCheck, label: 'Godkännanden' },
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/users', icon: Users, label: 'Användare' },
 ];

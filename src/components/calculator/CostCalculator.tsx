@@ -26,7 +26,10 @@ import {
   MessageSquare,
   User,
   Calendar,
-  Download
+  Download,
+  Clock,
+  CheckCircle2,
+  FileEdit
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -88,11 +91,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(editCalculation ? 2 : 1);
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>((editCalculation as any)?.status === 'approved' ? 'pending_approval' : (editCalculation as any)?.status ?? 'draft');
   
   const { user, fullName } = useAuth();
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
+  const currentStatus = (editCalculation as any)?.status as 'draft' | 'pending_approval' | 'approved' | undefined;
+  const isApproved = currentStatus === 'approved';
   const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && municipality !== '' && owningOrganization !== '';
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
@@ -268,6 +274,9 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     try {
       const totalCost = calculateTotalCost();
       const userName = fullName || user?.email || 'Okänd';
+      const currentVersion = (editCalculation as any)?.version ?? 1;
+      const newVersion = isEditing ? currentVersion + 1 : 1;
+      
       const calculationData = {
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
         ci_identity: ciIdentity.trim(),
@@ -277,6 +286,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
+        status: selectedStatus,
+        version: newVersion,
         // Keep legacy fields for backwards compatibility
         cpu_count: 0,
         storage_gb: 0,
@@ -291,6 +302,28 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
       let calculationId: string;
 
       if (isEditing && editCalculation) {
+        // Save current version to history before updating
+        const { data: currentItems } = await supabase
+          .from('calculation_items')
+          .select('*')
+          .eq('calculation_id', editCalculation.id);
+
+        await supabase.from('calculation_versions').insert({
+          calculation_id: editCalculation.id,
+          version: currentVersion,
+          name: editCalculation.name,
+          ci_identity: editCalculation.ci_identity,
+          service_type: editCalculation.service_type,
+          municipality: (editCalculation as any).municipality,
+          owning_organization: (editCalculation as any).owning_organization,
+          calculation_year: (editCalculation as any).calculation_year,
+          total_cost: editCalculation.total_cost,
+          status: currentStatus || 'draft',
+          items: currentItems || [],
+          created_by: user.id,
+          created_by_name: userName,
+        });
+
         // Update existing calculation
         const { error } = await supabase
           .from('calculations')
@@ -309,14 +342,18 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         await logAudit('update', 'calculations', calculationId, {
           name: editCalculation.name,
           total_cost: editCalculation.total_cost,
+          status: currentStatus,
+          version: currentVersion,
         }, {
           name: calculationData.name,
           total_cost: calculationData.total_cost,
+          status: selectedStatus,
+          version: newVersion,
         });
 
         toast({
           title: 'Kalkyl uppdaterad',
-          description: 'Dina ändringar har sparats.',
+          description: `Kalkylen har sparats som version ${newVersion}.`,
         });
       } else {
         // Create new calculation
@@ -336,11 +373,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         await logAudit('create', 'calculations', data.id, undefined, {
           name: data.name,
           total_cost: data.total_cost,
+          status: selectedStatus,
         });
 
         toast({
           title: 'Kalkyl sparad',
-          description: 'Din nya kalkyl har skapats.',
+          description: selectedStatus === 'pending_approval' 
+            ? 'Kalkylen har sparats och väntar på godkännande.'
+            : 'Din nya kalkyl har skapats.',
         });
       }
 
@@ -1254,6 +1294,69 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 </span>
                 <p className="text-muted-foreground mt-2">per månad</p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Selection */}
+          <Card className={isApproved ? 'border-green-500/50 bg-green-500/5' : ''}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                {isApproved ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <FileText className="h-5 w-5 text-primary" />
+                )}
+                Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isApproved ? (
+                <div className="space-y-2">
+                  <p className="text-green-600 font-medium flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Denna kalkyl är godkänd
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Om du sparar ändringar kommer kalkylen att behöva godkännas på nytt.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Välj status för kalkylen vid sparning:
+                  </p>
+                  <RadioGroup 
+                    value={selectedStatus} 
+                    onValueChange={(v) => setSelectedStatus(v as 'draft' | 'pending_approval')}
+                    className="space-y-3"
+                  >
+                    <div className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="draft" id="status-draft" className="mt-0.5" />
+                      <Label htmlFor="status-draft" className="flex-1 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <FileEdit className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">Ej klar</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Kalkylen är under arbete och inte redo för godkännande
+                        </p>
+                      </Label>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                      <RadioGroupItem value="pending_approval" id="status-pending" className="mt-0.5" />
+                      <Label htmlFor="status-pending" className="flex-1 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-amber-500" />
+                          <span className="font-medium">Klar (men ej godkänd)</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Kalkylen är klar och väntar på godkännande
+                        </p>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
             </CardContent>
           </Card>
 
