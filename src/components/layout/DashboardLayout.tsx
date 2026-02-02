@@ -21,7 +21,8 @@ import {
   BarChart3,
   Home,
   ChevronDown,
-  Shield
+  Shield,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -34,6 +35,7 @@ const mainNavItems = [
   { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false },
   { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
   { href: '/history', icon: History, label: 'Historik', adminOnly: false },
+  { href: '/manual', icon: BookOpen, label: 'Manual', adminOnly: false },
 ];
 
 const adminNavItems = [
