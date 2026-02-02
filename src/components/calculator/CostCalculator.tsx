@@ -49,6 +49,15 @@ const MUNICIPALITIES = [
   'Ljusdals kommun',
 ];
 
+const OWNING_ORGANIZATIONS = [
+  'Sektionen Produktion',
+  'Sektionen Produktion, enhet Drift',
+  'Sektionen Produktion, enhet Servicedesk',
+  'Sektionen Digital Utveckling',
+  'Sektionen Strategi och Styrning',
+  'Digitalisering och IT Stab/säkerhet',
+];
+
 interface CalculationRow {
   id: string;
   pricingConfigId: string;
@@ -71,6 +80,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
   const [municipality, setMunicipality] = useState((editCalculation as any)?.municipality ?? '');
+  const [owningOrganization, setOwningOrganization] = useState((editCalculation as any)?.owning_organization ?? '');
   const [calculationYear, setCalculationYear] = useState<number>((editCalculation as any)?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [rows, setRows] = useState<CalculationRow[]>([]);
@@ -83,7 +93,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
-  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && municipality !== '';
+  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && municipality !== '' && owningOrganization !== '';
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
@@ -263,6 +273,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
         municipality: municipality,
+        owning_organization: owningOrganization,
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
@@ -680,6 +691,29 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 </Select>
                 <p className="text-sm text-muted-foreground">
                   Vilket år kalkylen avser
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="owningOrganization">
+                  Ägande organisation <span className="text-destructive">*</span>
+                </Label>
+                <Select 
+                  value={owningOrganization} 
+                  onValueChange={setOwningOrganization}
+                >
+                  <SelectTrigger id="owningOrganization" className="w-full">
+                    <SelectValue placeholder="Välj ägande organisation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {OWNING_ORGANIZATIONS.map((org) => (
+                      <SelectItem key={org} value={org}>
+                        {org}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Vilken sektion/enhet som äger kalkylen
                 </p>
               </div>
               <div className="space-y-3">

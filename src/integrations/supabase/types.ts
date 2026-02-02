@@ -111,6 +111,7 @@ export type Database = {
           name: string | null
           operation_cost: number
           operation_hours: number
+          owning_organization: string | null
           server_cost: number
           server_count: number
           service_type: string
@@ -133,6 +134,7 @@ export type Database = {
           name?: string | null
           operation_cost?: number
           operation_hours?: number
+          owning_organization?: string | null
           server_cost?: number
           server_count?: number
           service_type?: string
@@ -155,6 +157,7 @@ export type Database = {
           name?: string | null
           operation_cost?: number
           operation_hours?: number
+          owning_organization?: string | null
           server_cost?: number
           server_count?: number
           service_type?: string
