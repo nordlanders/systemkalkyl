@@ -115,7 +115,7 @@ export default function AnalyticsPage() {
   const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>(MUNICIPALITIES);
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(SERVICE_TYPES);
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(OWNING_ORGANIZATIONS);
-  const [onlyApproved, setOnlyApproved] = useState<boolean>(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
@@ -174,7 +174,7 @@ export default function AnalyticsPage() {
     if (user) {
       loadData();
     }
-  }, [user, selectedYear, selectedMunicipalities, selectedServiceTypes, selectedOrganizations, onlyApproved]);
+  }, [user, selectedYear, selectedMunicipalities, selectedServiceTypes, selectedOrganizations, selectedStatus]);
 
   async function loadData() {
     try {
@@ -199,9 +199,9 @@ export default function AnalyticsPage() {
         .select('id, name, service_type, total_cost, ci_identity, calculation_year, municipality, owning_organization, status')
         .eq('calculation_year', parseInt(selectedYear));
 
-      // Apply approved filter
-      if (onlyApproved) {
-        query = query.eq('status', 'approved');
+      // Apply status filter
+      if (selectedStatus !== 'all') {
+        query = query.eq('status', selectedStatus as 'draft' | 'pending_approval' | 'approved');
       }
 
       if (selectedMunicipalities.length > 0 && selectedMunicipalities.length < MUNICIPALITIES.length) {
@@ -513,18 +513,18 @@ export default function AnalyticsPage() {
               </PopoverContent>
             </Popover>
             <div className="flex items-center gap-2">
-              <Checkbox
-                id="only-approved"
-                checked={onlyApproved}
-                onCheckedChange={(checked) => setOnlyApproved(checked === true)}
-              />
-              <Label 
-                htmlFor="only-approved" 
-                className="text-sm font-normal cursor-pointer flex items-center gap-1"
-              >
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                Godkänd kalkyl
-              </Label>
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Kalkylstatus" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla statusar</SelectItem>
+                  <SelectItem value="draft">Ej klar</SelectItem>
+                  <SelectItem value="pending_approval">Väntar godkännande</SelectItem>
+                  <SelectItem value="approved">Godkänd</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
