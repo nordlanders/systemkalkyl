@@ -115,7 +115,7 @@ export default function AnalyticsPage() {
   const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>(MUNICIPALITIES);
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(SERVICE_TYPES);
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(OWNING_ORGANIZATIONS);
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('approved');
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
