@@ -455,7 +455,7 @@ export default function AnalyticsPage() {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <Users className="h-4 w-4" />
-                  Organisation
+                  Ägare
                   {selectedOrganizations.length < OWNING_ORGANIZATIONS.length && (
                     <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
                       {selectedOrganizations.length}
