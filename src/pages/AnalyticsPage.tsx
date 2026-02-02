@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2 } from 'lucide-react';
+import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -60,6 +60,7 @@ interface Calculation {
   ci_identity: string;
   calculation_year: number;
   municipality: string;
+  owning_organization: string | null;
 }
 
 interface AggregatedData {
@@ -86,6 +87,15 @@ const SERVICE_TYPES = [
   'Bastjänst IT infrastruktur',
 ];
 
+const OWNING_ORGANIZATIONS = [
+  'Sektionen Produktion',
+  'Sektionen Produktion, enhet Drift',
+  'Sektionen Produktion, enhet Servicedesk',
+  'Sektionen Digital Utveckling',
+  'Sektionen Strategi och Styrning',
+  'Digitalisering och IT Stab/säkerhet',
+];
+
 const CHART_COLORS = [
   'hsl(var(--chart-4))',
   'hsl(var(--chart-1))',
@@ -104,6 +114,7 @@ export default function AnalyticsPage() {
   const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
   const [selectedMunicipalities, setSelectedMunicipalities] = useState<string[]>(MUNICIPALITIES);
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(SERVICE_TYPES);
+  const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(OWNING_ORGANIZATIONS);
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [items, setItems] = useState<CalculationItem[]>([]);
@@ -142,11 +153,27 @@ export default function AnalyticsPage() {
     setSelectedServiceTypes([]);
   };
 
+  const toggleOrganization = (org: string) => {
+    setSelectedOrganizations(prev => 
+      prev.includes(org)
+        ? prev.filter(o => o !== org)
+        : [...prev, org]
+    );
+  };
+
+  const selectAllOrganizations = () => {
+    setSelectedOrganizations(OWNING_ORGANIZATIONS);
+  };
+
+  const clearOrganizations = () => {
+    setSelectedOrganizations([]);
+  };
+
   useEffect(() => {
     if (user) {
       loadData();
     }
-  }, [user, selectedYear, selectedMunicipalities, selectedServiceTypes]);
+  }, [user, selectedYear, selectedMunicipalities, selectedServiceTypes, selectedOrganizations]);
 
   async function loadData() {
     try {
@@ -165,10 +192,10 @@ export default function AnalyticsPage() {
         setAvailableYears(years);
       }
 
-      // Load calculations filtered by selected year, municipalities and service types
+      // Load calculations filtered by selected year, municipalities, service types and organizations
       let query = supabase
         .from('calculations')
-        .select('id, name, service_type, total_cost, ci_identity, calculation_year, municipality')
+        .select('id, name, service_type, total_cost, ci_identity, calculation_year, municipality, owning_organization')
         .eq('calculation_year', parseInt(selectedYear));
 
       if (selectedMunicipalities.length > 0 && selectedMunicipalities.length < MUNICIPALITIES.length) {
@@ -187,6 +214,18 @@ export default function AnalyticsPage() {
         query = query.in('service_type', selectedServiceTypes);
       } else if (selectedServiceTypes.length === 0) {
         // No service types selected, return empty
+        setCalculations([]);
+        setItems([]);
+        setByServiceType([]);
+        setByPriceType([]);
+        setLoading(false);
+        return;
+      }
+
+      if (selectedOrganizations.length > 0 && selectedOrganizations.length < OWNING_ORGANIZATIONS.length) {
+        query = query.in('owning_organization', selectedOrganizations);
+      } else if (selectedOrganizations.length === 0) {
+        // No organizations selected, return empty
         setCalculations([]);
         setItems([]);
         setByServiceType([]);
@@ -405,6 +444,61 @@ export default function AnalyticsPage() {
                           className="text-sm font-normal cursor-pointer"
                         >
                           {serviceType}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Organisation
+                  {selectedOrganizations.length < OWNING_ORGANIZATIONS.length && (
+                    <span className="ml-1 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                      {selectedOrganizations.length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Välj ägande organisation</h4>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={selectAllOrganizations}
+                      >
+                        Alla
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={clearOrganizations}
+                      >
+                        Rensa
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {OWNING_ORGANIZATIONS.map((org) => (
+                      <div key={org} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`org-${org}`}
+                          checked={selectedOrganizations.includes(org)}
+                          onCheckedChange={() => toggleOrganization(org)}
+                        />
+                        <Label 
+                          htmlFor={`org-${org}`} 
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {org}
                         </Label>
                       </div>
                     ))}
