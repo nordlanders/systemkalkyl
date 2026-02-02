@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import ChangePasswordDialog from '@/components/auth/ChangePasswordDialog';
+import Footer from '@/components/layout/Footer';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,7 +47,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container flex h-16 items-center justify-between px-4">
@@ -193,9 +194,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className="container px-4 py-8">
+      <main className="container px-4 py-8 flex-1">
         {children}
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
