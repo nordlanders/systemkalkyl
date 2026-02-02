@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/input';
 import { 
   Calculator, 
   Plus, 
@@ -20,7 +21,9 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Download
+  Download,
+  Search,
+  X
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
@@ -50,22 +53,40 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | 'all'>(currentYear);
+  const [selectedMunicipality, setSelectedMunicipality] = useState<string>('all');
+  const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { user, isAdmin, canWrite } = useAuth();
   const { toast } = useToast();
 
-  // Get unique years from calculations for the filter
+  // Get unique values for filters
   const availableYears = [...new Set(calculations.map(c => (c as any).calculation_year as number))].filter(Boolean).sort((a, b) => b - a);
+  const availableMunicipalities = [...new Set(calculations.map(c => (c as any).municipality as string))].filter(Boolean).sort();
+  const availableServiceTypes = [...new Set(calculations.map(c => c.service_type as string))].filter(Boolean).sort();
 
-  // Filter calculations by selected year
-  const filteredByYear = selectedYear === 'all' 
-    ? calculations 
-    : calculations.filter(c => (c as any).calculation_year === selectedYear);
+  // Filter calculations
+  const filteredByFilters = calculations.filter(c => {
+    const matchesYear = selectedYear === 'all' || (c as any).calculation_year === selectedYear;
+    const matchesMunicipality = selectedMunicipality === 'all' || (c as any).municipality === selectedMunicipality;
+    const matchesServiceType = selectedServiceType === 'all' || c.service_type === selectedServiceType;
+    
+    // Search in name, CI-identity, municipality, and service type
+    const searchLower = searchQuery.toLowerCase().trim();
+    const matchesSearch = !searchLower || 
+      (c.name || '').toLowerCase().includes(searchLower) ||
+      (c.ci_identity || '').toLowerCase().includes(searchLower) ||
+      ((c as any).municipality || '').toLowerCase().includes(searchLower) ||
+      (c.service_type || '').toLowerCase().includes(searchLower) ||
+      ((c as any).owning_organization || '').toLowerCase().includes(searchLower);
+    
+    return matchesYear && matchesMunicipality && matchesServiceType && matchesSearch;
+  });
 
   // Sort calculations
-  const filteredCalculations = [...filteredByYear].sort((a, b) => {
+  const filteredCalculations = [...filteredByFilters].sort((a, b) => {
     let aValue: any;
     let bValue: any;
 
@@ -124,6 +145,15 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
       ? <ArrowUp className="h-4 w-4 ml-1" /> 
       : <ArrowDown className="h-4 w-4 ml-1" />;
   }
+
+  function clearAllFilters() {
+    setSelectedYear(currentYear);
+    setSelectedMunicipality('all');
+    setSelectedServiceType('all');
+    setSearchQuery('');
+  }
+
+  const hasActiveFilters = selectedYear !== currentYear || selectedMunicipality !== 'all' || selectedServiceType !== 'all' || searchQuery !== '';
 
   useEffect(() => {
     loadCalculations();
@@ -397,14 +427,37 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                 Klicka på en kalkyl för att redigera den
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+          </div>
+          
+          {/* Search and Filters */}
+          <div className="flex flex-col gap-3 mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Sök på namn, CI, kund, organisation..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
+              
               <Select 
                 value={selectedYear.toString()} 
                 onValueChange={(val) => setSelectedYear(val === 'all' ? 'all' : parseInt(val, 10))}
               >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Välj år" />
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue placeholder="Kalkylår" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Alla år</SelectItem>
@@ -415,7 +468,59 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   ))}
                 </SelectContent>
               </Select>
+              
+              <Select 
+                value={selectedMunicipality} 
+                onValueChange={setSelectedMunicipality}
+              >
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Kund" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla kunder</SelectItem>
+                  {availableMunicipalities.map((mun) => (
+                    <SelectItem key={mun} value={mun}>
+                      {mun}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select 
+                value={selectedServiceType} 
+                onValueChange={setSelectedServiceType}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Tjänstetyp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla tjänstetyper</SelectItem>
+                  {availableServiceTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {hasActiveFilters && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearAllFilters}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Rensa filter
+                </Button>
+              )}
             </div>
+            
+            {filteredCalculations.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                Visar {filteredCalculations.length} av {calculations.length} kalkyler
+              </p>
+            )}
           </div>
         </CardHeader>
         <CardContent>
