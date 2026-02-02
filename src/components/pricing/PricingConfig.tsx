@@ -388,7 +388,7 @@ export default function PricingConfig() {
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2">
                     <Layers className="h-4 w-4 text-muted-foreground" />
-                    Visa i tjänstetyper
+                    Ingår default i kalkyler för
                   </Label>
                   <div className="grid grid-cols-2 gap-3">
                     {SERVICE_TYPES.map((st) => (
