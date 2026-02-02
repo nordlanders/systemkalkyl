@@ -31,13 +31,15 @@ export default function CreateUserDialog({ onUserCreated }: CreateUserDialogProp
       hasUppercase: /[A-Z]/.test(password),
       hasLowercase: /[a-z]/.test(password),
       hasNumber: /[0-9]/.test(password),
+      hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
     };
   }, [password]);
 
   const isPasswordValid = passwordValidation.minLength && 
     passwordValidation.hasUppercase && 
     passwordValidation.hasLowercase && 
-    passwordValidation.hasNumber;
+    passwordValidation.hasNumber &&
+    passwordValidation.hasSpecial;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -167,6 +169,10 @@ export default function CreateUserDialog({ onUserCreated }: CreateUserDialogProp
                 <div className={`flex items-center gap-1 ${password ? (passwordValidation.hasNumber ? 'text-success' : 'text-destructive') : 'text-muted-foreground'}`}>
                   {password ? (passwordValidation.hasNumber ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />) : <span className="w-3">•</span>}
                   Siffra (0-9)
+                </div>
+                <div className={`flex items-center gap-1 ${password ? (passwordValidation.hasSpecial ? 'text-success' : 'text-destructive') : 'text-muted-foreground'}`}>
+                  {password ? (passwordValidation.hasSpecial ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />) : <span className="w-3">•</span>}
+                  Specialtecken (!@#$%...)
                 </div>
               </div>
             </div>
