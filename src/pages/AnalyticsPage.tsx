@@ -70,7 +70,7 @@ interface AggregatedData {
 }
 
 const MUNICIPALITIES = [
-  'Digitalisering och IT (används normalt för bastjänster)',
+  'Digitalisering och IT',
   'Sundsvalls kommun',
   'Ånge kommun',
   'Timrå kommun',

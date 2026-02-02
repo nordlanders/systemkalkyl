@@ -40,7 +40,7 @@ const SERVICE_TYPES = [
 ];
 
 const MUNICIPALITIES = [
-  'Digitalisering och IT (används normalt för bastjänster)',
+  'Digitalisering och IT',
   'Sundsvalls kommun',
   'Ånge kommun',
   'Timrå kommun',
