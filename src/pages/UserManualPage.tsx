@@ -1,15 +1,90 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck, Code, Database, ExternalLink, Copy, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function UserManualPage() {
   const { user, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [copiedEndpoint, setCopiedEndpoint] = useState<string | null>(null);
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+  const apiEndpoints = [
+    {
+      name: 'Kalkyler',
+      table: 'calculations',
+      description: 'Hämta alla kalkyler för inloggad användare',
+      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    },
+    {
+      name: 'Kalkylrader',
+      table: 'calculation_items',
+      description: 'Prisrader kopplade till kalkyler',
+      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+    },
+    {
+      name: 'Kalkylversioner',
+      table: 'calculation_versions',
+      description: 'Historik över kalkylversioner',
+      methods: ['GET'],
+    },
+    {
+      name: 'Priskonfiguration',
+      table: 'pricing_config',
+      description: 'Alla pristyper och priser',
+      methods: ['GET'],
+    },
+    {
+      name: 'Kunder',
+      table: 'customers',
+      description: 'Kunder som kan väljas i kalkyler',
+      methods: ['GET'],
+    },
+    {
+      name: 'Organisationer',
+      table: 'organizations',
+      description: 'Organisationer kopplade till kunder',
+      methods: ['GET'],
+    },
+    {
+      name: 'Användarprofiler',
+      table: 'profiles',
+      description: 'Användarinformation',
+      methods: ['GET'],
+    },
+    {
+      name: 'Nyheter',
+      table: 'news',
+      description: 'Nyheter som visas på startsidan',
+      methods: ['GET'],
+    },
+    {
+      name: 'Granskningslogg',
+      table: 'audit_log',
+      description: 'Logg över alla systemändringar',
+      methods: ['GET'],
+    },
+  ];
+
+  function copyToClipboard(text: string, endpoint: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedEndpoint(endpoint);
+    toast({
+      title: 'Kopierat',
+      description: 'URL kopierad till urklipp',
+    });
+    setTimeout(() => setCopiedEndpoint(null), 2000);
+  }
 
   useEffect(() => {
     if (!loading && !user) {
@@ -388,6 +463,140 @@ export default function UserManualPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* API Documentation */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Code className="h-5 w-5 text-primary" />
+              REST API
+            </CardTitle>
+            <CardDescription>
+              Tillgängliga API-endpoints för integration
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Systemet erbjuder ett REST API baserat på PostgREST. Alla anrop kräver autentisering 
+              med en giltig JWT-token i Authorization-headern.
+            </p>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Database className="h-4 w-4" />
+                  Visa tillgängliga API:er
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5 text-primary" />
+                    REST API Endpoints
+                  </DialogTitle>
+                  <DialogDescription>
+                    Alla endpoints kräver autentisering. Använd din API-nyckel eller JWT-token.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <ScrollArea className="h-[60vh] pr-4">
+                  <div className="space-y-4">
+                    <div className="p-3 rounded-lg bg-muted/50 border">
+                      <p className="text-sm font-medium mb-2">Bas-URL:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs bg-background px-2 py-1 rounded flex-1 overflow-x-auto">
+                          {supabaseUrl}/rest/v1
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 shrink-0"
+                          onClick={() => copyToClipboard(`${supabaseUrl}/rest/v1`, 'base')}
+                        >
+                          {copiedEndpoint === 'base' ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {apiEndpoints.map((endpoint) => (
+                      <div key={endpoint.table} className="p-4 rounded-lg border bg-card">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <h4 className="font-medium">{endpoint.name}</h4>
+                            <p className="text-sm text-muted-foreground">{endpoint.description}</p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            {endpoint.methods.map((method) => (
+                              <Badge 
+                                key={method} 
+                                variant={method === 'GET' ? 'secondary' : method === 'POST' ? 'default' : 'outline'}
+                                className="text-xs"
+                              >
+                                {method}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 mt-3">
+                          <code className="text-xs bg-muted px-2 py-1 rounded flex-1 overflow-x-auto">
+                            {supabaseUrl}/rest/v1/{endpoint.table}
+                          </code>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => copyToClipboard(`${supabaseUrl}/rest/v1/${endpoint.table}`, endpoint.table)}
+                          >
+                            {copiedEndpoint === endpoint.table ? (
+                              <Check className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
+                      <h4 className="font-medium mb-2 flex items-center gap-2">
+                        <ExternalLink className="h-4 w-4" />
+                        Dokumentation
+                      </h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        API:et följer PostgREST-standarden. Du kan använda query-parametrar för 
+                        filtrering, sortering och paginering.
+                      </p>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex gap-2">
+                          <code className="bg-muted px-2 py-0.5 rounded">?select=*</code>
+                          <span className="text-muted-foreground">Välj kolumner</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <code className="bg-muted px-2 py-0.5 rounded">?status=eq.approved</code>
+                          <span className="text-muted-foreground">Filtrera</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <code className="bg-muted px-2 py-0.5 rounded">?order=created_at.desc</code>
+                          <span className="text-muted-foreground">Sortera</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <code className="bg-muted px-2 py-0.5 rounded">?limit=10&offset=0</code>
+                          <span className="text-muted-foreground">Paginera</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
 
         {/* Tips */}
         <Card>
