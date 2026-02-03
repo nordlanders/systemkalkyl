@@ -282,7 +282,6 @@ export type Database = {
       }
       pricing_config: {
         Row: {
-          account: string | null
           category: string | null
           comment: string | null
           cost_owner: string | null
@@ -291,7 +290,9 @@ export type Database = {
           disallowed_service_types: string[] | null
           effective_from: string
           effective_to: string | null
+          external_account: string | null
           id: string
+          internal_account: string | null
           price_per_unit: number
           price_type: string
           service_types: string[] | null
@@ -299,7 +300,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          account?: string | null
           category?: string | null
           comment?: string | null
           cost_owner?: string | null
@@ -308,7 +308,9 @@ export type Database = {
           disallowed_service_types?: string[] | null
           effective_from: string
           effective_to?: string | null
+          external_account?: string | null
           id?: string
+          internal_account?: string | null
           price_per_unit: number
           price_type: string
           service_types?: string[] | null
@@ -316,7 +318,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          account?: string | null
           category?: string | null
           comment?: string | null
           cost_owner?: string | null
@@ -325,7 +326,9 @@ export type Database = {
           disallowed_service_types?: string[] | null
           effective_from?: string
           effective_to?: string | null
+          external_account?: string | null
           id?: string
+          internal_account?: string | null
           price_per_unit?: number
           price_type?: string
           service_types?: string[] | null
