@@ -45,7 +45,7 @@ const adminNavItems = [
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden' },
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/customers', icon: Building2, label: 'Kunder' },
-  { href: '/organizations', icon: Network, label: 'Organisationer' },
+  { href: '/organizations', icon: Network, label: 'Kundens organisation' },
   { href: '/users', icon: Users, label: 'Användare' },
 ];
 

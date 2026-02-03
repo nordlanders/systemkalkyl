@@ -214,9 +214,9 @@ export default function OrganizationsManagement() {
     <div className="space-y-8 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Organisationer</h1>
+          <h1 className="text-3xl font-bold text-foreground">Kundens organisation</h1>
           <p className="text-muted-foreground mt-1">
-            Hantera organisationer som kan väljas i kalkyler
+            Hantera organisationer kopplade till kunder som kan väljas i kalkyler
           </p>
         </div>
 
@@ -322,12 +322,12 @@ export default function OrganizationsManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
             <Network className="h-5 w-5 text-primary" />
-            Organisationslista
+            Kundernas organisationer
           </CardTitle>
           <CardDescription>
-            Alla organisationer ({organizations.length} st)
+            Alla organisationer kopplade till kunder ({organizations.length} st)
           </CardDescription>
         </CardHeader>
         <CardContent>
