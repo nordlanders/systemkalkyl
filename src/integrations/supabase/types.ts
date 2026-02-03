@@ -287,6 +287,45 @@ export type Database = {
           },
         ]
       }
+      configuration_items: {
+        Row: {
+          ci_number: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          organization: string | null
+          system_administrator: string | null
+          system_name: string
+          system_owner: string | null
+          updated_at: string
+        }
+        Insert: {
+          ci_number: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          organization?: string | null
+          system_administrator?: string | null
+          system_name: string
+          system_owner?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ci_number?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          organization?: string | null
+          system_administrator?: string | null
+          system_name?: string
+          system_owner?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string

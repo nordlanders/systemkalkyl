@@ -13,6 +13,7 @@ import HistoryPage from "./pages/HistoryPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import CustomersPage from "./pages/CustomersPage";
 import OwningOrganizationsPage from "./pages/OwningOrganizationsPage";
+import ConfigurationItemsPage from "./pages/ConfigurationItemsPage";
 import UserManualPage from "./pages/UserManualPage";
 import ApprovalsPage from "./pages/ApprovalsPage";
 import NotFound from "./pages/NotFound";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/owning-organizations" element={<OwningOrganizationsPage />} />
+            <Route path="/configuration-items" element={<ConfigurationItemsPage />} />
             <Route path="/manual" element={<UserManualPage />} />
             <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="*" element={<NotFound />} />
