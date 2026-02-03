@@ -116,10 +116,10 @@ export default function ConfigurationItemsManagement() {
       const expectedColumns = ['ci nummer', 'systemnamn', 'systemägare', 'systemförvaltare', 'organisation'];
       
       // Map column indices
-      const ciNumberIdx = header.findIndex(h => h === 'ci nummer' || h === 'ci_nummer' || h === 'cinummer');
-      const systemNameIdx = header.findIndex(h => h === 'systemnamn' || h === 'system_name');
-      const systemOwnerIdx = header.findIndex(h => h === 'systemägare' || h === 'system_owner');
-      const systemAdminIdx = header.findIndex(h => h === 'systemförvaltare' || h === 'system_administrator');
+      const ciNumberIdx = header.findIndex(h => h === 'ci nummer' || h === 'ci_nummer' || h === 'cinummer' || h === 'ci-nummer');
+      const systemNameIdx = header.findIndex(h => h === 'systemnamn' || h === 'system_name' || h === 'system namn');
+      const systemOwnerIdx = header.findIndex(h => h === 'systemägare' || h === 'system_owner' || h === 'system ägare');
+      const systemAdminIdx = header.findIndex(h => h === 'systemförvaltare' || h === 'system_administrator' || h === 'system förvaltare');
       const organizationIdx = header.findIndex(h => h === 'organisation' || h === 'organization');
 
       if (ciNumberIdx === -1 || systemNameIdx === -1) {
