@@ -51,6 +51,12 @@ interface Organization {
   is_active: boolean;
 }
 
+interface OwningOrganization {
+  id: string;
+  name: string;
+  is_active: boolean;
+}
+
 interface Customer {
   id: string;
   name: string;
@@ -85,6 +91,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [calculationYear, setCalculationYear] = useState<number>(editCalculation?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [owningOrganizations, setOwningOrganizations] = useState<OwningOrganization[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rows, setRows] = useState<CalculationRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,7 +121,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
 
   async function loadData() {
     try {
-      const [pricingResult, organizationsResult, customersResult] = await Promise.all([
+      const [pricingResult, organizationsResult, owningOrgsResult, customersResult] = await Promise.all([
         supabase
           .from('pricing_config')
           .select('*')
@@ -122,6 +129,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           .order('price_type'),
         supabase
           .from('organizations')
+          .select('*')
+          .eq('is_active', true)
+          .order('name'),
+        supabase
+          .from('owning_organizations')
           .select('*')
           .eq('is_active', true)
           .order('name'),
@@ -134,10 +146,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
 
       if (pricingResult.error) throw pricingResult.error;
       if (organizationsResult.error) throw organizationsResult.error;
+      if (owningOrgsResult.error) throw owningOrgsResult.error;
       if (customersResult.error) throw customersResult.error;
 
       setPricing(pricingResult.data as PricingConfig[]);
       setOrganizations(organizationsResult.data as Organization[]);
+      setOwningOrganizations(owningOrgsResult.data as OwningOrganization[]);
       setCustomers(customersResult.data as Customer[]);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -746,12 +760,21 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <Label htmlFor="owningOrganization">
                   Ägande organisation <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="owningOrganization"
-                  placeholder="T.ex. IT-avdelningen"
-                  value={owningOrganization}
-                  onChange={(e) => setOwningOrganization(e.target.value)}
-                />
+                <Select 
+                  value={owningOrganization} 
+                  onValueChange={(val) => setOwningOrganization(val)}
+                >
+                  <SelectTrigger id="owningOrganization" className="w-full">
+                    <SelectValue placeholder="Välj ägande organisation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {owningOrganizations.map((org) => (
+                      <SelectItem key={org.id} value={org.name}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p className="text-sm text-muted-foreground">
                   Vilken intern organisation som äger kalkylen
                 </p>
