@@ -65,6 +65,7 @@ export default function PricingConfig() {
   const [category, setCategory] = useState('Drift');
   const [comment, setComment] = useState('');
   const [costOwner, setCostOwner] = useState('Produktion');
+  const [account, setAccount] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(
@@ -108,6 +109,7 @@ export default function PricingConfig() {
     setCategory('Drift');
     setComment('');
     setCostOwner('Produktion');
+    setAccount('');
     setEffectiveFrom('');
     setEffectiveTo('');
     setSelectedServiceTypes(SERVICE_TYPES.map(st => st.value));
@@ -123,6 +125,7 @@ export default function PricingConfig() {
     setCategory(config.category || 'Drift');
     setComment(config.comment || '');
     setCostOwner(config.cost_owner || 'Produktion');
+    setAccount((config as any).account || '');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
     setSelectedServiceTypes(config.service_types || []);
@@ -158,6 +161,7 @@ export default function PricingConfig() {
         category: category || null,
         comment: comment || null,
         cost_owner: costOwner || null,
+        account: account || null,
         effective_from: effectiveFrom,
         effective_to: effectiveTo || null,
         created_by: user.id,
@@ -357,6 +361,15 @@ export default function PricingConfig() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Konto</Label>
+                  <Input
+                    placeholder="T.ex. 5010, 6210"
+                    value={account}
+                    onChange={(e) => setAccount(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label>Kommentar</Label>
                   <Textarea
                     placeholder="Beskrivning eller instruktioner för denna pristyp"
@@ -498,6 +511,7 @@ export default function PricingConfig() {
                   <TableHead>Pris</TableHead>
                   <TableHead>Enhet</TableHead>
                   <TableHead>Kategori</TableHead>
+                  <TableHead>Konto</TableHead>
                   <TableHead>Default i / Ej möjlig i</TableHead>
                   <TableHead>Giltigt från</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
@@ -506,7 +520,7 @@ export default function PricingConfig() {
               <TableBody>
                 {pricing.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 8 : 7} className="text-center text-muted-foreground py-8">
                       Inga priskonfigurationer hittades
                     </TableCell>
                   </TableRow>
@@ -538,6 +552,9 @@ export default function PricingConfig() {
                           <span className="text-xs px-2 py-1 rounded bg-muted">
                             {config.category || '—'}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          {(config as any).account || '—'}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1 max-w-[280px]">
