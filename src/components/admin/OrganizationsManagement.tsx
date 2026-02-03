@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +41,6 @@ export default function OrganizationsManagement() {
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [parentId, setParentId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
@@ -79,7 +78,6 @@ export default function OrganizationsManagement() {
 
   function resetForm() {
     setName('');
-    setDescription('');
     setCustomerId(null);
     setParentId(null);
     setIsActive(true);
@@ -89,7 +87,6 @@ export default function OrganizationsManagement() {
   function openEditDialog(org: Organization) {
     setEditingId(org.id);
     setName(org.name);
-    setDescription(org.description || '');
     setCustomerId(org.customer_id);
     setParentId(org.parent_id);
     setIsActive(org.is_active);
@@ -131,7 +128,6 @@ export default function OrganizationsManagement() {
     try {
       const orgData = {
         name: name.trim(),
-        description: description.trim() || null,
         customer_id: customerId,
         parent_id: parentId,
         is_active: isActive,
@@ -141,7 +137,7 @@ export default function OrganizationsManagement() {
       if (editingId) {
         const { error } = await supabase
           .from('organizations')
-          .update({ name: name.trim(), description: description.trim() || null, customer_id: customerId, parent_id: parentId, is_active: isActive })
+          .update({ name: name.trim(), customer_id: customerId, parent_id: parentId, is_active: isActive })
           .eq('id', editingId);
 
         if (error) throw error;
@@ -257,16 +253,6 @@ export default function OrganizationsManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Beskrivning</Label>
-                  <Textarea
-                    placeholder="Valfri beskrivning av organisationen..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label>Kund *</Label>
                   <Select value={customerId || 'none'} onValueChange={(v) => {
                     setCustomerId(v === 'none' ? null : v);
@@ -353,7 +339,6 @@ export default function OrganizationsManagement() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead>Namn</TableHead>
-                  <TableHead>Beskrivning</TableHead>
                   <TableHead>Kund</TableHead>
                   <TableHead>Överordnad</TableHead>
                   <TableHead>Status</TableHead>
@@ -364,7 +349,7 @@ export default function OrganizationsManagement() {
               <TableBody>
                 {organizations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 6 : 5} className="text-center text-muted-foreground py-8">
                       Inga organisationer hittades
                     </TableCell>
                   </TableRow>
@@ -372,9 +357,6 @@ export default function OrganizationsManagement() {
                   organizations.map((org) => (
                     <TableRow key={org.id}>
                       <TableCell className="font-medium">{org.name}</TableCell>
-                      <TableCell className="max-w-xs truncate text-muted-foreground">
-                        {org.description || '—'}
-                      </TableCell>
                       <TableCell>{getCustomerName(org.customer_id)}</TableCell>
                       <TableCell>{getParentName(org.parent_id)}</TableCell>
                       <TableCell>
