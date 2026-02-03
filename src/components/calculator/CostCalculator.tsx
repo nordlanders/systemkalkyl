@@ -692,32 +692,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="customer">
-                  Kund <span className="text-destructive">*</span>
-                </Label>
-                <Select 
-                  value={customerId || ''} 
-                  onValueChange={(val) => {
-                    setCustomerId(val || null);
-                    setOrganizationId(null); // Reset organization when customer changes
-                  }}
-                >
-                  <SelectTrigger id="customer" className="w-full">
-                    <SelectValue placeholder="Välj kund" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">
-                  Välj vilken kund kalkylen avser
-                </p>
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="calcName">
                   Namn på kalkyl <span className="text-destructive">*</span>
                 </Label>
@@ -746,26 +720,29 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="calculationYear">
-                  Kalkylår <span className="text-destructive">*</span>
+                <Label htmlFor="customer">
+                  Kund <span className="text-destructive">*</span>
                 </Label>
                 <Select 
-                  value={calculationYear.toString()} 
-                  onValueChange={(val) => setCalculationYear(parseInt(val, 10))}
+                  value={customerId || ''} 
+                  onValueChange={(val) => {
+                    setCustomerId(val || null);
+                    setOrganizationId(null); // Reset organization when customer changes
+                  }}
                 >
-                  <SelectTrigger id="calculationYear" className="w-full">
-                    <SelectValue placeholder="Välj kalkylår" />
+                  <SelectTrigger id="customer" className="w-full">
+                    <SelectValue placeholder="Välj kund" />
                   </SelectTrigger>
                   <SelectContent>
-                    {[currentYear - 1, currentYear, currentYear + 1, currentYear + 2].map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Vilket år kalkylen avser
+                  Välj vilken kund kalkylen avser
                 </p>
               </div>
               <div className="space-y-2">
@@ -798,6 +775,29 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 </Select>
                 <p className="text-sm text-muted-foreground">
                   Vilken organisation som äger kalkylen
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="calculationYear">
+                  Kalkylår <span className="text-destructive">*</span>
+                </Label>
+                <Select 
+                  value={calculationYear.toString()} 
+                  onValueChange={(val) => setCalculationYear(parseInt(val, 10))}
+                >
+                  <SelectTrigger id="calculationYear" className="w-full">
+                    <SelectValue placeholder="Välj kalkylår" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[currentYear - 1, currentYear, currentYear + 1, currentYear + 2].map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground">
+                  Vilket år kalkylen avser
                 </p>
               </div>
               <div className="space-y-3">
