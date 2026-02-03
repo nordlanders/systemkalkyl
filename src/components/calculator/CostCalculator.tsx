@@ -42,15 +42,6 @@ const SERVICE_TYPES = [
   { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
 ];
 
-const MUNICIPALITIES = [
-  'Digitalisering och IT',
-  'Sundsvalls kommun',
-  'Ånge kommun',
-  'Timrå kommun',
-  'Nordanstigs kommun',
-  'Hudiksvalls kommun',
-  'Ljusdals kommun',
-];
 
 interface Organization {
   id: string;
@@ -88,9 +79,9 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
-  const [municipality, setMunicipality] = useState((editCalculation as any)?.municipality ?? '');
-  const [owningOrganization, setOwningOrganization] = useState((editCalculation as any)?.owning_organization ?? '');
-  const [calculationYear, setCalculationYear] = useState<number>((editCalculation as any)?.calculation_year ?? currentYear);
+  const [customerId, setCustomerId] = useState<string | null>(editCalculation?.customer_id ?? null);
+  const [organizationId, setOrganizationId] = useState<string | null>(editCalculation?.organization_id ?? null);
+  const [calculationYear, setCalculationYear] = useState<number>(editCalculation?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -99,15 +90,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(editCalculation ? 2 : 1);
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>((editCalculation as any)?.status === 'approved' ? 'pending_approval' : (editCalculation as any)?.status ?? 'draft');
+  const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>(editCalculation?.status === 'approved' ? 'pending_approval' : editCalculation?.status ?? 'draft');
   
   const { user, fullName } = useAuth();
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
-  const currentStatus = (editCalculation as any)?.status as 'draft' | 'pending_approval' | 'approved' | undefined;
+  const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | undefined;
   const isApproved = currentStatus === 'approved';
-  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && municipality !== '' && owningOrganization !== '';
+  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && organizationId !== null;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
@@ -299,15 +290,22 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     try {
       const totalCost = calculateTotalCost();
       const userName = fullName || user?.email || 'Okänd';
-      const currentVersion = (editCalculation as any)?.version ?? 1;
+      const currentVersion = editCalculation?.version ?? 1;
       const newVersion = isEditing ? currentVersion + 1 : 1;
+      
+      // Get names for display/backwards compatibility
+      const selectedCustomer = customers.find(c => c.id === customerId);
+      const selectedOrganization = organizations.find(o => o.id === organizationId);
       
       const calculationData = {
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
-        municipality: municipality,
-        owning_organization: owningOrganization || null,
+        customer_id: customerId,
+        organization_id: organizationId,
+        // Keep text fields for backwards compatibility
+        municipality: selectedCustomer?.name || '',
+        owning_organization: selectedOrganization?.name || null,
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
@@ -344,9 +342,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           name: editCalculation.name,
           ci_identity: editCalculation.ci_identity,
           service_type: editCalculation.service_type,
-          municipality: (editCalculation as any).municipality,
-          owning_organization: (editCalculation as any).owning_organization,
-          calculation_year: (editCalculation as any).calculation_year,
+          municipality: editCalculation.municipality,
+          owning_organization: editCalculation.owning_organization,
+          customer_id: editCalculation.customer_id,
+          organization_id: editCalculation.organization_id,
+          calculation_year: editCalculation.calculation_year,
           total_cost: editCalculation.total_cost,
           status: currentStatus || 'draft',
           items: currentItems || [],
@@ -692,26 +692,29 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="municipality">
+                <Label htmlFor="customer">
                   Kund <span className="text-destructive">*</span>
                 </Label>
                 <Select 
-                  value={municipality} 
-                  onValueChange={setMunicipality}
+                  value={customerId || ''} 
+                  onValueChange={(val) => {
+                    setCustomerId(val || null);
+                    setOrganizationId(null); // Reset organization when customer changes
+                  }}
                 >
-                  <SelectTrigger id="municipality" className="w-full">
+                  <SelectTrigger id="customer" className="w-full">
                     <SelectValue placeholder="Välj kund" />
                   </SelectTrigger>
                   <SelectContent>
-                    {MUNICIPALITIES.map((m) => (
-                      <SelectItem key={m} value={m}>
-                        {m}
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Välj vilken kommun kalkylen avser
+                  Välj vilken kund kalkylen avser
                 </p>
               </div>
               <div className="space-y-2">
@@ -770,58 +773,25 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   Ägande organisation <span className="text-destructive">*</span>
                 </Label>
                 <Select 
-                  value={owningOrganization} 
-                  onValueChange={setOwningOrganization}
+                  value={organizationId || ''} 
+                  onValueChange={(val) => setOrganizationId(val || null)}
+                  disabled={!customerId}
                 >
                   <SelectTrigger id="owningOrganization" className="w-full">
-                    <SelectValue placeholder="Välj ägande organisation" />
+                    <SelectValue placeholder={customerId ? "Välj ägande organisation" : "Välj kund först"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {customers.map((customer) => {
-                      const customerOrgs = organizations.filter(org => org.customer_id === customer.id);
-                      if (customerOrgs.length === 0) return null;
-                      return (
-                        <div key={customer.id}>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
-                            {customer.name}
-                            {customer.description && (
-                              <span className="font-normal ml-2">— {customer.description}</span>
-                            )}
-                          </div>
-                          {customerOrgs.map((org) => (
-                            <SelectItem key={org.id} value={org.name}>
-                              <div className="flex flex-col">
-                                <span>{org.name}</span>
-                                {org.description && (
-                                  <span className="text-xs text-muted-foreground">{org.description}</span>
-                                )}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </div>
-                      );
-                    })}
-                    {/* Visa organisationer utan kund */}
-                    {organizations.filter(org => !org.customer_id).length > 0 && (
-                      <div>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
-                          Utan kund
-                        </div>
-                        {organizations.filter(org => !org.customer_id).map((org) => (
-                          <SelectItem key={org.id} value={org.name}>
-                            <div className="flex flex-col">
-                              <span>{org.name}</span>
-                              {org.description && (
-                                <span className="text-xs text-muted-foreground">{org.description}</span>
-                              )}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </div>
-                    )}
-                    {organizations.length === 0 && (
+                    {organizations
+                      .filter(org => org.customer_id === customerId)
+                      .map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))
+                    }
+                    {customerId && organizations.filter(org => org.customer_id === customerId).length === 0 && (
                       <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Inga organisationer finns. Skapa först i administrationen.
+                        Inga organisationer för vald kund
                       </div>
                     )}
                   </SelectContent>
