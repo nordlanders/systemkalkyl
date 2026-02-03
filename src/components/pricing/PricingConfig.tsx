@@ -65,7 +65,8 @@ export default function PricingConfig() {
   const [category, setCategory] = useState('Drift');
   const [comment, setComment] = useState('');
   const [costOwner, setCostOwner] = useState('Produktion');
-  const [account, setAccount] = useState('');
+  const [internalAccount, setInternalAccount] = useState('');
+  const [externalAccount, setExternalAccount] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(
@@ -109,7 +110,8 @@ export default function PricingConfig() {
     setCategory('Drift');
     setComment('');
     setCostOwner('Produktion');
-    setAccount('');
+    setInternalAccount('');
+    setExternalAccount('');
     setEffectiveFrom('');
     setEffectiveTo('');
     setSelectedServiceTypes(SERVICE_TYPES.map(st => st.value));
@@ -125,7 +127,8 @@ export default function PricingConfig() {
     setCategory(config.category || 'Drift');
     setComment(config.comment || '');
     setCostOwner(config.cost_owner || 'Produktion');
-    setAccount((config as any).account || '');
+    setInternalAccount((config as any).internal_account || '');
+    setExternalAccount((config as any).external_account || '');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
     setSelectedServiceTypes(config.service_types || []);
@@ -161,7 +164,8 @@ export default function PricingConfig() {
         category: category || null,
         comment: comment || null,
         cost_owner: costOwner || null,
-        account: account || null,
+        internal_account: internalAccount || null,
+        external_account: externalAccount || null,
         effective_from: effectiveFrom,
         effective_to: effectiveTo || null,
         created_by: user.id,
@@ -360,13 +364,23 @@ export default function PricingConfig() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Konto</Label>
-                  <Input
-                    placeholder="T.ex. 5010, 6210"
-                    value={account}
-                    onChange={(e) => setAccount(e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Internt konto</Label>
+                    <Input
+                      placeholder="T.ex. 5010"
+                      value={internalAccount}
+                      onChange={(e) => setInternalAccount(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Externt konto</Label>
+                    <Input
+                      placeholder="T.ex. 6210"
+                      value={externalAccount}
+                      onChange={(e) => setExternalAccount(e.target.value)}
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -511,7 +525,8 @@ export default function PricingConfig() {
                   <TableHead>Pris</TableHead>
                   <TableHead>Enhet</TableHead>
                   <TableHead>Kategori</TableHead>
-                  <TableHead>Konto</TableHead>
+                  <TableHead>Int. konto</TableHead>
+                  <TableHead>Ext. konto</TableHead>
                   <TableHead>Default i / Ej möjlig i</TableHead>
                   <TableHead>Giltigt från</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
@@ -520,7 +535,7 @@ export default function PricingConfig() {
               <TableBody>
                 {pricing.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 8 : 7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 9 : 8} className="text-center text-muted-foreground py-8">
                       Inga priskonfigurationer hittades
                     </TableCell>
                   </TableRow>
@@ -554,7 +569,10 @@ export default function PricingConfig() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          {(config as any).account || '—'}
+                          {(config as any).internal_account || '—'}
+                        </TableCell>
+                        <TableCell>
+                          {(config as any).external_account || '—'}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1 max-w-[280px]">
