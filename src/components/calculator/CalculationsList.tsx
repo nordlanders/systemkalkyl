@@ -671,10 +671,17 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                         {calc.name || 'Namnlös'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={currentStatus.variant} className={`gap-1 ${currentStatus.className}`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {currentStatus.label}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={currentStatus.variant} className={`gap-1 ${currentStatus.className}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {currentStatus.label}
+                          </Badge>
+                          {status === 'approved' && calc.version > 1 && (
+                            <span className="text-xs text-muted-foreground">
+                              v{calc.version}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">
