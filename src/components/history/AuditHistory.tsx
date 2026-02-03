@@ -100,6 +100,16 @@ export default function AuditHistory() {
     );
   };
 
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
+      draft: { label: 'Ej klar', variant: 'outline' },
+      pending_approval: { label: 'Klar', variant: 'secondary' },
+      approved: { label: 'Godkänd', variant: 'default' },
+    };
+    const config = statusConfig[status] || { label: status, variant: 'outline' as const };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('sv-SE', {
       style: 'currency',
@@ -153,10 +163,10 @@ export default function AuditHistory() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5 text-primary" />
-                Sparade beräkningar
+                Kalkylhändelser
               </CardTitle>
               <CardDescription>
-                Historik över alla kostnadsberäkningar du har sparat
+                Historik över skapade, sparade och godkända kalkyler
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -164,37 +174,98 @@ export default function AuditHistory() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-muted/50">
-                      <TableHead>Namn</TableHead>
-                      <TableHead>CPU:er</TableHead>
-                      <TableHead>Lagring</TableHead>
-                      <TableHead>Servrar</TableHead>
-                      <TableHead>Timmar</TableHead>
-                      <TableHead>Total kostnad</TableHead>
+                      <TableHead>Händelse</TableHead>
+                      <TableHead>Kalkyl</TableHead>
+                      <TableHead>Version</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Utförd av</TableHead>
                       <TableHead>Datum</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {calculations.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                          Inga beräkningar sparade ännu. Använd kalkylatorn för att skapa en!
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          Inga kalkylhändelser ännu. Använd kalkylatorn för att skapa en!
                         </TableCell>
                       </TableRow>
                     ) : (
-                      calculations.map((calc) => (
-                        <TableRow key={calc.id}>
-                          <TableCell className="font-medium">
-                            {calc.name || 'Namnlös'}
+                      calculations.flatMap((calc) => {
+                        const events = [];
+                        
+                        // Created event
+                        events.push({
+                          id: `${calc.id}-created`,
+                          type: 'created',
+                          label: 'Skapad',
+                          icon: <Plus className="h-4 w-4 text-success" />,
+                          name: calc.name || 'Namnlös',
+                          version: 1,
+                          status: 'draft' as const,
+                          performedBy: calc.created_by_name || 'Okänd',
+                          date: calc.created_at,
+                        });
+                        
+                        // Updated event (if updated_at differs from created_at)
+                        if (calc.updated_at && calc.updated_at !== calc.created_at) {
+                          events.push({
+                            id: `${calc.id}-updated`,
+                            type: 'updated',
+                            label: 'Sparad',
+                            icon: <Pencil className="h-4 w-4 text-accent" />,
+                            name: calc.name || 'Namnlös',
+                            version: calc.version,
+                            status: calc.status,
+                            performedBy: calc.updated_by_name || calc.created_by_name || 'Okänd',
+                            date: calc.updated_at,
+                          });
+                        }
+                        
+                        // Approved event
+                        if (calc.status === 'approved' && calc.approved_at) {
+                          events.push({
+                            id: `${calc.id}-approved`,
+                            type: 'approved',
+                            label: 'Godkänd',
+                            icon: <FileText className="h-4 w-4 text-primary" />,
+                            name: calc.name || 'Namnlös',
+                            version: calc.version,
+                            status: 'approved' as const,
+                            performedBy: calc.approved_by_name || 'Okänd',
+                            date: calc.approved_at,
+                          });
+                        }
+                        
+                        return events;
+                      })
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .map((event) => (
+                        <TableRow key={event.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {event.icon}
+                              <Badge variant={
+                                event.type === 'created' ? 'default' : 
+                                event.type === 'approved' ? 'secondary' : 'outline'
+                              }>
+                                {event.label}
+                              </Badge>
+                            </div>
                           </TableCell>
-                          <TableCell className="font-mono">{calc.cpu_count}</TableCell>
-                          <TableCell className="font-mono">{calc.storage_gb} GB</TableCell>
-                          <TableCell className="font-mono">{calc.server_count}</TableCell>
-                          <TableCell className="font-mono">{calc.operation_hours.toLocaleString('sv-SE')}</TableCell>
-                          <TableCell className="font-mono font-medium text-primary">
-                            {formatCurrency(Number(calc.total_cost))}
+                          <TableCell className="font-medium">
+                            {event.name}
+                          </TableCell>
+                          <TableCell className="font-mono">
+                            v{event.version}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(event.status)}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {format(new Date(calc.created_at), 'd MMM yyyy HH:mm', { locale: sv })}
+                            {event.performedBy}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground whitespace-nowrap">
+                            {format(new Date(event.date), 'd MMM yyyy HH:mm', { locale: sv })}
                           </TableCell>
                         </TableRow>
                       ))
