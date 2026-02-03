@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import CISelector from './CISelector';
+import CISelector, { type ConfigurationItem } from './CISelector';
 import { 
   Calculator,
   Save,
@@ -30,7 +30,8 @@ import {
   Download,
   Clock,
   CheckCircle2,
-  FileEdit
+  FileEdit,
+  Server
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -95,6 +96,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [owningOrganizations, setOwningOrganizations] = useState<OwningOrganization[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rows, setRows] = useState<CalculationRow[]>([]);
+  const [selectedCI, setSelectedCI] = useState<ConfigurationItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(editCalculation ? 2 : 1);
@@ -696,7 +698,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
 
       {step === 1 ? (
         /* Step 1: Name, CI Identity and Service Type */
-        <div className="space-y-6 max-w-2xl">
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -729,6 +732,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <CISelector
                   value={ciIdentity}
                   onChange={setCiIdentity}
+                  onItemChange={setSelectedCI}
                   placeholder="Sök på CI nummer eller systemnamn..."
                 />
                 <p className="text-sm text-muted-foreground">
@@ -836,6 +840,58 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
               </div>
             </CardContent>
           </Card>
+          </div>
+
+          {/* CI Information Panel */}
+          <div className="lg:col-span-1">
+            {selectedCI ? (
+              <Card className="sticky top-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Server className="h-5 w-5 text-primary" />
+                    CI-information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">CI nummer</p>
+                    <p className="font-medium">{selectedCI.ci_number}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Systemnamn</p>
+                    <p className="font-medium">{selectedCI.system_name}</p>
+                  </div>
+                  {selectedCI.system_owner && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Systemägare</p>
+                      <p className="font-medium">{selectedCI.system_owner}</p>
+                    </div>
+                  )}
+                  {selectedCI.system_administrator && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Systemförvaltare</p>
+                      <p className="font-medium">{selectedCI.system_administrator}</p>
+                    </div>
+                  )}
+                  {selectedCI.organization && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Organisation</p>
+                      <p className="font-medium">{selectedCI.organization}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Server className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <p className="text-muted-foreground">
+                    Välj en CI-identitet för att visa information om systemet
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       ) : step === 2 ? (
         /* Step 2: Price type rows */
