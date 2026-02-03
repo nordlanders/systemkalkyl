@@ -80,7 +80,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
   const [customerId, setCustomerId] = useState<string | null>(editCalculation?.customer_id ?? null);
-  const [customerOrganizationId, setCustomerOrganizationId] = useState<string | null>(editCalculation?.organization_id ?? null);
+  
   const [owningOrganization, setOwningOrganization] = useState(editCalculation?.owning_organization ?? '');
   const [calculationYear, setCalculationYear] = useState<number>(editCalculation?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
@@ -302,7 +302,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
         customer_id: customerId,
-        organization_id: customerOrganizationId,
+        organization_id: null,
         // Keep text fields for backwards compatibility
         municipality: selectedCustomer?.name || '',
         owning_organization: owningOrganization.trim() || null,
@@ -345,7 +345,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           municipality: editCalculation.municipality,
           owning_organization: editCalculation.owning_organization,
           customer_id: editCalculation.customer_id,
-          organization_id: customerOrganizationId,
+          organization_id: editCalculation.organization_id,
           calculation_year: editCalculation.calculation_year,
           total_cost: editCalculation.total_cost,
           status: currentStatus || 'draft',
@@ -725,10 +725,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 </Label>
                 <Select 
                   value={customerId || ''} 
-                  onValueChange={(val) => {
-                    setCustomerId(val || null);
-                    setCustomerOrganizationId(null); // Reset customer organization when customer changes
-                  }}
+                  onValueChange={(val) => setCustomerId(val || null)}
                 >
                   <SelectTrigger id="customer" className="w-full">
                     <SelectValue placeholder="Välj kund" />
@@ -743,38 +740,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 </Select>
                 <p className="text-sm text-muted-foreground">
                   Välj vilken kund kalkylen avser
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="customerOrganization">
-                  Kundens organisation
-                </Label>
-                <Select 
-                  value={customerOrganizationId || ''} 
-                  onValueChange={(val) => setCustomerOrganizationId(val || null)}
-                  disabled={!customerId}
-                >
-                  <SelectTrigger id="customerOrganization" className="w-full">
-                    <SelectValue placeholder={customerId ? "Välj kundens organisation" : "Välj kund först"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations
-                      .filter(org => org.customer_id === customerId)
-                      .map((org) => (
-                        <SelectItem key={org.id} value={org.id}>
-                          {org.name}
-                        </SelectItem>
-                      ))
-                    }
-                    {customerId && organizations.filter(org => org.customer_id === customerId).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Inga organisationer för vald kund
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">
-                  Vilken organisation hos kunden som avser kalkylen
                 </p>
               </div>
               <div className="space-y-2">
