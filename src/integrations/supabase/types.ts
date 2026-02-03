@@ -113,6 +113,7 @@ export type Database = {
           name: string | null
           organization_id: string | null
           owning_organization: string | null
+          owning_organization_id: string | null
           service_type: string
           status: Database["public"]["Enums"]["calculation_status"]
           total_cost: number
@@ -132,6 +133,7 @@ export type Database = {
           name?: string | null
           organization_id?: string | null
           owning_organization?: string | null
+          owning_organization_id?: string | null
           service_type: string
           status: Database["public"]["Enums"]["calculation_status"]
           total_cost?: number
@@ -151,6 +153,7 @@ export type Database = {
           name?: string | null
           organization_id?: string | null
           owning_organization?: string | null
+          owning_organization_id?: string | null
           service_type?: string
           status?: Database["public"]["Enums"]["calculation_status"]
           total_cost?: number
@@ -185,6 +188,7 @@ export type Database = {
           operation_hours: number
           organization_id: string | null
           owning_organization: string | null
+          owning_organization_id: string | null
           server_cost: number
           server_count: number
           service_type: string
@@ -215,6 +219,7 @@ export type Database = {
           operation_hours?: number
           organization_id?: string | null
           owning_organization?: string | null
+          owning_organization_id?: string | null
           server_cost?: number
           server_count?: number
           service_type?: string
@@ -245,6 +250,7 @@ export type Database = {
           operation_hours?: number
           organization_id?: string | null
           owning_organization?: string | null
+          owning_organization_id?: string | null
           server_cost?: number
           server_count?: number
           service_type?: string
@@ -270,6 +276,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculations_owning_organization_id_fkey"
+            columns: ["owning_organization_id"]
+            isOneToOne: false
+            referencedRelation: "owning_organizations"
             referencedColumns: ["id"]
           },
         ]

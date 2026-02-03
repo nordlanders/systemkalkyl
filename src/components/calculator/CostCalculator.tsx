@@ -87,7 +87,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
   const [customerId, setCustomerId] = useState<string | null>(editCalculation?.customer_id ?? null);
   
-  const [owningOrganization, setOwningOrganization] = useState(editCalculation?.owning_organization ?? '');
+  const [owningOrganizationId, setOwningOrganizationId] = useState<string | null>(editCalculation?.owning_organization_id ?? null);
   const [calculationYear, setCalculationYear] = useState<number>(editCalculation?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -106,7 +106,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const isEditing = !!editCalculation;
   const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | undefined;
   const isApproved = currentStatus === 'approved';
-  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganization.trim() !== '';
+  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
@@ -310,6 +310,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
       
       // Get names for display/backwards compatibility
       const selectedCustomer = customers.find(c => c.id === customerId);
+      const selectedOwningOrg = owningOrganizations.find(o => o.id === owningOrganizationId);
       
       const calculationData = {
         name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
@@ -317,9 +318,10 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         service_type: serviceType,
         customer_id: customerId,
         organization_id: null,
+        owning_organization_id: owningOrganizationId,
         // Keep text fields for backwards compatibility
         municipality: selectedCustomer?.name || '',
-        owning_organization: owningOrganization.trim() || null,
+        owning_organization: selectedOwningOrg?.name || null,
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
@@ -761,15 +763,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   Ägande organisation <span className="text-destructive">*</span>
                 </Label>
                 <Select 
-                  value={owningOrganization} 
-                  onValueChange={(val) => setOwningOrganization(val)}
+                  value={owningOrganizationId || ''} 
+                  onValueChange={(val) => setOwningOrganizationId(val || null)}
                 >
                   <SelectTrigger id="owningOrganization" className="w-full">
                     <SelectValue placeholder="Välj ägande organisation" />
                   </SelectTrigger>
                   <SelectContent>
                     {owningOrganizations.map((org) => (
-                      <SelectItem key={org.id} value={org.name}>
+                      <SelectItem key={org.id} value={org.id}>
                         {org.name}
                       </SelectItem>
                     ))}
