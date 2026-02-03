@@ -286,8 +286,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
-        status: selectedStatus,
+        // When editing an approved calculation, reset to draft status
+        status: isApproved ? 'draft' : selectedStatus,
         version: newVersion,
+        // Clear approval fields when creating new version from approved
+        approved_by: isApproved ? null : undefined,
+        approved_by_name: isApproved ? null : undefined,
+        approved_at: isApproved ? null : undefined,
         // Keep legacy fields for backwards compatibility
         cpu_count: 0,
         storage_gb: 0,
@@ -352,8 +357,10 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         });
 
         toast({
-          title: 'Kalkyl uppdaterad',
-          description: `Kalkylen har sparats som version ${newVersion}.`,
+          title: isApproved ? 'Ny version skapad' : 'Kalkyl uppdaterad',
+          description: isApproved 
+            ? `En ny version (v${newVersion}) har skapats som utkast.`
+            : `Kalkylen har sparats som version ${newVersion}.`,
         });
       } else {
         // Create new calculation
@@ -1314,10 +1321,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <div className="space-y-2">
                   <p className="text-green-600 font-medium flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4" />
-                    Denna kalkyl är godkänd
+                    Denna kalkyl är godkänd (v{editCalculation?.version})
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Om du sparar ändringar kommer kalkylen att behöva godkännas på nytt.
+                    När du sparar ändringar skapas en ny version (v{(editCalculation?.version || 0) + 1}) med status "Ej klar".
+                    Den tidigare godkända versionen sparas i historiken och kan visas i kalkyllistan.
                   </p>
                 </div>
               ) : (

@@ -26,7 +26,8 @@ import {
   X,
   Clock,
   CheckCircle2,
-  FileEdit
+  FileEdit,
+  History
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -44,6 +45,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import VersionHistoryDialog from './VersionHistoryDialog';
 
 interface CalculationsListProps {
   onEdit: (calculation: Calculation) => void;
@@ -62,6 +64,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortColumn, setSortColumn] = useState<string>('created_at');
+  const [historyCalculation, setHistoryCalculation] = useState<Calculation | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { user, isAdmin, canWrite } = useAuth();
@@ -743,6 +746,16 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                       </TableCell>
                       <TableCell className="text-right">
                           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                            {status === 'approved' && calc.version > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setHistoryCalculation(calc)}
+                                title="Visa versionshistorik"
+                              >
+                                <History className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="icon"
@@ -756,7 +769,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => onEdit(calc)}
-                                title="Redigera"
+                                title={status === 'approved' ? 'Skapa ny version' : 'Redigera'}
                               >
                                 <Pencil className="h-4 w-4" />
                               </Button>
@@ -808,6 +821,12 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <VersionHistoryDialog
+        calculation={historyCalculation}
+        open={!!historyCalculation}
+        onOpenChange={(open) => !open && setHistoryCalculation(null)}
+      />
     </div>
   );
 }
