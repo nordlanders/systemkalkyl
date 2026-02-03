@@ -55,6 +55,7 @@ const MUNICIPALITIES = [
 interface Organization {
   id: string;
   name: string;
+  description: string | null;
   customer_id: string | null;
   is_active: boolean;
 }
@@ -62,6 +63,7 @@ interface Organization {
 interface Customer {
   id: string;
   name: string;
+  description: string | null;
   is_active: boolean;
 }
 
@@ -782,10 +784,18 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                         <div key={customer.id}>
                           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
                             {customer.name}
+                            {customer.description && (
+                              <span className="font-normal ml-2">— {customer.description}</span>
+                            )}
                           </div>
                           {customerOrgs.map((org) => (
                             <SelectItem key={org.id} value={org.name}>
-                              {org.name}
+                              <div className="flex flex-col">
+                                <span>{org.name}</span>
+                                {org.description && (
+                                  <span className="text-xs text-muted-foreground">{org.description}</span>
+                                )}
+                              </div>
                             </SelectItem>
                           ))}
                         </div>
@@ -799,7 +809,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                         </div>
                         {organizations.filter(org => !org.customer_id).map((org) => (
                           <SelectItem key={org.id} value={org.name}>
-                            {org.name}
+                            <div className="flex flex-col">
+                              <span>{org.name}</span>
+                              {org.description && (
+                                <span className="text-xs text-muted-foreground">{org.description}</span>
+                              )}
+                            </div>
                           </SelectItem>
                         ))}
                       </div>

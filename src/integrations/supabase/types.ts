@@ -251,6 +251,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          description: string | null
           id: string
           is_active: boolean
           name: string
@@ -259,6 +260,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -267,6 +269,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
           name?: string
@@ -312,6 +315,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_id: string | null
+          description: string | null
           id: string
           is_active: boolean
           name: string
@@ -322,6 +326,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -332,6 +337,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_id?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean
           name?: string
