@@ -71,25 +71,25 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const { toast } = useToast();
 
   // Get unique values for filters
-  const availableYears = [...new Set(calculations.map(c => (c as any).calculation_year as number))].filter(Boolean).sort((a, b) => b - a);
-  const availableMunicipalities = [...new Set(calculations.map(c => (c as any).municipality as string))].filter(Boolean).sort();
-  const availableServiceTypes = [...new Set(calculations.map(c => c.service_type as string))].filter(Boolean).sort();
+  const availableYears = [...new Set(calculations.map(c => c.calculation_year))].filter(Boolean).sort((a, b) => b - a);
+  const availableMunicipalities = [...new Set(calculations.map(c => c.municipality))].filter(Boolean).sort();
+  const availableServiceTypes = [...new Set(calculations.map(c => c.service_type))].filter(Boolean).sort();
 
   // Filter calculations
   const filteredByFilters = calculations.filter(c => {
-    const matchesYear = selectedYear === 'all' || (c as any).calculation_year === selectedYear;
-    const matchesMunicipality = selectedMunicipality === 'all' || (c as any).municipality === selectedMunicipality;
+    const matchesYear = selectedYear === 'all' || c.calculation_year === selectedYear;
+    const matchesMunicipality = selectedMunicipality === 'all' || c.municipality === selectedMunicipality;
     const matchesServiceType = selectedServiceType === 'all' || c.service_type === selectedServiceType;
-    const matchesStatus = selectedStatus === 'all' || (c as any).status === selectedStatus;
+    const matchesStatus = selectedStatus === 'all' || c.status === selectedStatus;
     
     // Search in name, CI-identity, municipality, and service type
     const searchLower = searchQuery.toLowerCase().trim();
     const matchesSearch = !searchLower || 
       (c.name || '').toLowerCase().includes(searchLower) ||
       (c.ci_identity || '').toLowerCase().includes(searchLower) ||
-      ((c as any).municipality || '').toLowerCase().includes(searchLower) ||
+      (c.municipality || '').toLowerCase().includes(searchLower) ||
       (c.service_type || '').toLowerCase().includes(searchLower) ||
-      ((c as any).owning_organization || '').toLowerCase().includes(searchLower);
+      (c.owning_organization || '').toLowerCase().includes(searchLower);
     
     return matchesYear && matchesMunicipality && matchesServiceType && matchesStatus && matchesSearch;
   });
@@ -109,12 +109,12 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
         bValue = (b.service_type || '').toLowerCase();
         break;
       case 'municipality':
-        aValue = ((a as any).municipality || '').toLowerCase();
-        bValue = ((b as any).municipality || '').toLowerCase();
+        aValue = (a.municipality || '').toLowerCase();
+        bValue = (b.municipality || '').toLowerCase();
         break;
       case 'calculation_year':
-        aValue = (a as any).calculation_year || 0;
-        bValue = (b as any).calculation_year || 0;
+        aValue = a.calculation_year || 0;
+        bValue = b.calculation_year || 0;
         break;
       case 'total_cost':
         aValue = Number(a.total_cost) || 0;
@@ -652,9 +652,9 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   const createdByName = calc.created_by_name;
                   const updatedByName = calc.updated_by_name;
                   const updatedAt = calc.updated_at;
-                  const calculationYear = (calc as any).calculation_year;
-                  const municipality = (calc as any).municipality;
-                  const status = (calc as any).status as 'draft' | 'pending_approval' | 'approved' | undefined;
+                  const calculationYear = calc.calculation_year;
+                  const municipality = calc.municipality;
+                  const status = calc.status;
                   
                   const statusConfig = {
                     draft: { label: 'Ej klar', icon: FileEdit, variant: 'secondary' as const, className: '' },

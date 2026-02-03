@@ -106,10 +106,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_name: string | null
+          customer_id: string | null
           id: string
           items: Json
           municipality: string
           name: string | null
+          organization_id: string | null
           owning_organization: string | null
           service_type: string
           status: Database["public"]["Enums"]["calculation_status"]
@@ -123,10 +125,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_name?: string | null
+          customer_id?: string | null
           id?: string
           items?: Json
           municipality: string
           name?: string | null
+          organization_id?: string | null
           owning_organization?: string | null
           service_type: string
           status: Database["public"]["Enums"]["calculation_status"]
@@ -140,10 +144,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_name?: string | null
+          customer_id?: string | null
           id?: string
           items?: Json
           municipality?: string
           name?: string | null
+          organization_id?: string | null
           owning_organization?: string | null
           service_type?: string
           status?: Database["public"]["Enums"]["calculation_status"]
@@ -171,11 +177,13 @@ export type Database = {
           cpu_count: number
           created_at: string
           created_by_name: string | null
+          customer_id: string | null
           id: string
           municipality: string
           name: string | null
           operation_cost: number
           operation_hours: number
+          organization_id: string | null
           owning_organization: string | null
           server_cost: number
           server_count: number
@@ -199,11 +207,13 @@ export type Database = {
           cpu_count?: number
           created_at?: string
           created_by_name?: string | null
+          customer_id?: string | null
           id?: string
           municipality?: string
           name?: string | null
           operation_cost?: number
           operation_hours?: number
+          organization_id?: string | null
           owning_organization?: string | null
           server_cost?: number
           server_count?: number
@@ -227,11 +237,13 @@ export type Database = {
           cpu_count?: number
           created_at?: string
           created_by_name?: string | null
+          customer_id?: string | null
           id?: string
           municipality?: string
           name?: string | null
           operation_cost?: number
           operation_hours?: number
+          organization_id?: string | null
           owning_organization?: string | null
           server_cost?: number
           server_count?: number
@@ -245,7 +257,22 @@ export type Database = {
           user_id?: string
           version?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "calculations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {

@@ -48,6 +48,8 @@ export interface Calculation {
   service_type: string;
   municipality: string;
   owning_organization: string | null;
+  customer_id: string | null;
+  organization_id: string | null;
   calculation_year: number;
   cpu_count: number;
   storage_gb: number;
@@ -78,6 +80,8 @@ export interface CalculationVersion {
   service_type: string;
   municipality: string;
   owning_organization: string | null;
+  customer_id: string | null;
+  organization_id: string | null;
   calculation_year: number;
   total_cost: number;
   status: CalculationStatus;
