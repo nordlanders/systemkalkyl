@@ -48,6 +48,7 @@ export interface Calculation {
   service_type: string;
   municipality: string;
   owning_organization: string | null;
+  owning_organization_id: string | null;
   customer_id: string | null;
   organization_id: string | null;
   calculation_year: number;
@@ -80,6 +81,7 @@ export interface CalculationVersion {
   service_type: string;
   municipality: string;
   owning_organization: string | null;
+  owning_organization_id: string | null;
   customer_id: string | null;
   organization_id: string | null;
   calculation_year: number;
