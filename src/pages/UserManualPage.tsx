@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck, Code, Database, ExternalLink, Copy, Check } from 'lucide-react';
+import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck, Code, Database, ExternalLink, Copy, Check, Network, Table2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function UserManualPage() {
@@ -590,6 +590,339 @@ export default function UserManualPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Network className="h-4 w-4" />
+                  Visa informationsmodell (ERD)
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-5xl max-h-[90vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Network className="h-5 w-5 text-primary" />
+                    Informationsmodell (ERD)
+                  </DialogTitle>
+                  <DialogDescription>
+                    Entity-Relationship Diagram som visar tabellernas relationer
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <ScrollArea className="h-[70vh]">
+                  <div className="p-4 space-y-6">
+                    <div className="p-4 rounded-lg border bg-muted/30">
+                      <h4 className="font-medium mb-4">Relationer mellan tabeller</h4>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">calculations</Badge>
+                          <span className="text-muted-foreground">→ har många →</span>
+                          <Badge variant="outline" className="font-mono">calculation_items</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">calculations</Badge>
+                          <span className="text-muted-foreground">→ har många →</span>
+                          <Badge variant="outline" className="font-mono">calculation_versions</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">customers</Badge>
+                          <span className="text-muted-foreground">→ har många →</span>
+                          <Badge variant="outline" className="font-mono">organizations</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">organizations</Badge>
+                          <span className="text-muted-foreground">→ kan ha överordnad →</span>
+                          <Badge variant="outline" className="font-mono">organizations</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">profiles</Badge>
+                          <span className="text-muted-foreground">→ har en →</span>
+                          <Badge variant="outline" className="font-mono">user_roles</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">pricing_config</Badge>
+                          <span className="text-muted-foreground">→ används i →</span>
+                          <Badge variant="outline" className="font-mono">calculation_items</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium text-lg mb-4">Tabellbeskrivningar</h4>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">calculations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Huvudtabell för kalkyler med status, totalkostnad och metadata</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">calculation_items</p>
+                          <p className="text-xs text-muted-foreground mt-1">Prisrader kopplade till kalkyler med kvantitet och pris</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">calculation_versions</p>
+                          <p className="text-xs text-muted-foreground mt-1">Versionshistorik för spårbarhet</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">customers</p>
+                          <p className="text-xs text-muted-foreground mt-1">Kunder som kan väljas i kalkyler</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">organizations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Organisationer under kunder (hierarkisk)</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">pricing_config</p>
+                          <p className="text-xs text-muted-foreground mt-1">Prislistor med giltighetsperioder</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">profiles</p>
+                          <p className="text-xs text-muted-foreground mt-1">Användarprofiler med behörigheter</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">user_roles</p>
+                          <p className="text-xs text-muted-foreground mt-1">Användarroller (admin, user, superadmin)</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">audit_log</p>
+                          <p className="text-xs text-muted-foreground mt-1">Logg över alla systemändringar</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">news</p>
+                          <p className="text-xs text-muted-foreground mt-1">Nyheter som visas på startsidan</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Table2 className="h-4 w-4" />
+                  Visa databasstruktur
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Table2 className="h-5 w-5 text-primary" />
+                    Databasstruktur
+                  </DialogTitle>
+                  <DialogDescription>
+                    Detaljerad information om alla tabeller och kolumner
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <ScrollArea className="h-[70vh] pr-4">
+                  <div className="space-y-6">
+                    {[
+                      {
+                        name: 'calculations',
+                        description: 'Huvudtabell för kalkyler',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'user_id', type: 'uuid', required: true },
+                          { name: 'ci_identity', type: 'text', required: true },
+                          { name: 'name', type: 'text' },
+                          { name: 'service_type', type: 'text', required: true },
+                          { name: 'municipality', type: 'text', required: true },
+                          { name: 'owning_organization', type: 'text' },
+                          { name: 'calculation_year', type: 'integer', required: true },
+                          { name: 'total_cost', type: 'numeric', required: true },
+                          { name: 'status', type: 'enum (draft, pending_approval, approved)', required: true },
+                          { name: 'version', type: 'integer', required: true },
+                          { name: 'approved_by', type: 'uuid' },
+                          { name: 'approved_at', type: 'timestamp' },
+                          { name: 'approved_by_name', type: 'text' },
+                          { name: 'created_by_name', type: 'text' },
+                          { name: 'updated_by_name', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp' },
+                        ]
+                      },
+                      {
+                        name: 'calculation_items',
+                        description: 'Prisrader kopplade till kalkyler',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'calculation_id', type: 'uuid', required: true, fk: 'calculations' },
+                          { name: 'pricing_config_id', type: 'uuid', fk: 'pricing_config' },
+                          { name: 'price_type', type: 'text', required: true },
+                          { name: 'quantity', type: 'numeric', required: true },
+                          { name: 'unit_price', type: 'numeric', required: true },
+                          { name: 'total_price', type: 'numeric', required: true },
+                          { name: 'comment', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'calculation_versions',
+                        description: 'Versionshistorik för kalkyler',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'calculation_id', type: 'uuid', required: true, fk: 'calculations' },
+                          { name: 'version', type: 'integer', required: true },
+                          { name: 'name', type: 'text' },
+                          { name: 'ci_identity', type: 'text', required: true },
+                          { name: 'service_type', type: 'text', required: true },
+                          { name: 'municipality', type: 'text', required: true },
+                          { name: 'owning_organization', type: 'text' },
+                          { name: 'calculation_year', type: 'integer', required: true },
+                          { name: 'total_cost', type: 'numeric', required: true },
+                          { name: 'status', type: 'enum', required: true },
+                          { name: 'items', type: 'jsonb', required: true },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_by_name', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'customers',
+                        description: 'Kunder som kan väljas i kalkyler',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'name', type: 'text', required: true },
+                          { name: 'description', type: 'text' },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'organizations',
+                        description: 'Organisationer kopplade till kunder',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'name', type: 'text', required: true },
+                          { name: 'description', type: 'text' },
+                          { name: 'customer_id', type: 'uuid', fk: 'customers' },
+                          { name: 'parent_id', type: 'uuid', fk: 'organizations' },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'pricing_config',
+                        description: 'Priskonfiguration för kalkylrader',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'price_type', type: 'text', required: true },
+                          { name: 'price_per_unit', type: 'numeric', required: true },
+                          { name: 'unit', type: 'text' },
+                          { name: 'category', type: 'text' },
+                          { name: 'comment', type: 'text' },
+                          { name: 'cost_owner', type: 'text' },
+                          { name: 'internal_account', type: 'text' },
+                          { name: 'external_account', type: 'text' },
+                          { name: 'service_types', type: 'text[]' },
+                          { name: 'disallowed_service_types', type: 'text[]' },
+                          { name: 'effective_from', type: 'date', required: true },
+                          { name: 'effective_to', type: 'date' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'profiles',
+                        description: 'Användarprofiler med behörigheter',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'user_id', type: 'uuid', required: true },
+                          { name: 'email', type: 'text', required: true },
+                          { name: 'full_name', type: 'text' },
+                          { name: 'permission_level', type: 'enum (read_only, read_write)', required: true },
+                          { name: 'can_approve', type: 'boolean', required: true },
+                          { name: 'approval_organizations', type: 'text[]' },
+                          { name: 'last_login_at', type: 'timestamp' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'user_roles',
+                        description: 'Användarroller (admin, user, superadmin)',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'user_id', type: 'uuid', required: true },
+                          { name: 'role', type: 'enum (admin, user, superadmin)', required: true },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'audit_log',
+                        description: 'Logg över systemändringar',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'user_id', type: 'uuid' },
+                          { name: 'action', type: 'text', required: true },
+                          { name: 'table_name', type: 'text', required: true },
+                          { name: 'record_id', type: 'uuid', required: true },
+                          { name: 'old_values', type: 'jsonb' },
+                          { name: 'new_values', type: 'jsonb' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'news',
+                        description: 'Nyheter som visas på startsidan',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'title', type: 'text', required: true },
+                          { name: 'content', type: 'text', required: true },
+                          { name: 'published', type: 'boolean', required: true },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_by_name', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                    ].map((table) => (
+                      <div key={table.name} className="rounded-lg border bg-card">
+                        <div className="p-4 border-b bg-muted/30">
+                          <div className="flex items-center gap-2">
+                            <Database className="h-4 w-4 text-primary" />
+                            <h4 className="font-mono font-semibold">{table.name}</h4>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{table.description}</p>
+                        </div>
+                        <div className="p-2">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="text-left text-muted-foreground">
+                                <th className="p-2 font-medium">Kolumn</th>
+                                <th className="p-2 font-medium">Typ</th>
+                                <th className="p-2 font-medium">Egenskaper</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {table.columns.map((col) => (
+                                <tr key={col.name} className="border-t border-muted/50">
+                                  <td className="p-2 font-mono text-xs">{col.name}</td>
+                                  <td className="p-2 text-xs text-muted-foreground">{col.type}</td>
+                                  <td className="p-2">
+                                    <div className="flex gap-1 flex-wrap">
+                                      {col.pk && <Badge variant="default" className="text-xs">PK</Badge>}
+                                      {col.fk && <Badge variant="outline" className="text-xs">FK → {col.fk}</Badge>}
+                                      {col.required && <Badge variant="secondary" className="text-xs">Obligatorisk</Badge>}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </ScrollArea>
               </DialogContent>
