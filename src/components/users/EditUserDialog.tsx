@@ -11,14 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Key, Eye, EyeOff, Copy, Check, FileCheck } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
-const OWNING_ORGANIZATIONS = [
-  'Sektionen Produktion',
-  'Sektionen Produktion, enhet Drift',
-  'Sektionen Produktion, enhet Servicedesk',
-  'Sektionen Digital Utveckling',
-  'Sektionen Strategi och Styrning',
-  'Digitalisering och IT Stab/säkerhet',
-];
+interface OwningOrganization {
+  id: string;
+  name: string;
+}
 
 interface UserData {
   user_id: string;
@@ -66,8 +62,28 @@ export default function EditUserDialog({
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [owningOrganizations, setOwningOrganizations] = useState<OwningOrganization[]>([]);
 
   const { toast } = useToast();
+
+  // Fetch owning organizations from database
+  useEffect(() => {
+    async function fetchOwningOrganizations() {
+      const { data, error } = await supabase
+        .from('owning_organizations')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (!error && data) {
+        setOwningOrganizations(data);
+      }
+    }
+    
+    if (open) {
+      fetchOwningOrganizations();
+    }
+  }, [open]);
 
   // Update local state when user prop changes or dialog opens
   useEffect(() => {
@@ -278,18 +294,18 @@ export default function EditUserDialog({
                   Välj vilka organisationers kalkyler användaren kan godkänna. Lämna tomt för alla.
                 </p>
                 <div className="space-y-2">
-                  {OWNING_ORGANIZATIONS.map((org) => (
-                    <div key={org} className="flex items-center space-x-2">
+                  {owningOrganizations.map((org) => (
+                    <div key={org.id} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`org-${org}`}
-                        checked={approvalOrganizations.includes(org)}
-                        onCheckedChange={() => toggleOrganization(org)}
+                        id={`org-${org.id}`}
+                        checked={approvalOrganizations.includes(org.name)}
+                        onCheckedChange={() => toggleOrganization(org.name)}
                       />
                       <label
-                        htmlFor={`org-${org}`}
+                        htmlFor={`org-${org.id}`}
                         className="text-sm cursor-pointer"
                       >
-                        {org}
+                        {org.name}
                       </label>
                     </div>
                   ))}
