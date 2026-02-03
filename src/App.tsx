@@ -11,7 +11,7 @@ import Pricing from "./pages/Pricing";
 import UsersPage from "./pages/UsersPage";
 import HistoryPage from "./pages/HistoryPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import SamlConfigGuide from "./pages/SamlConfigGuide";
+
 import UserManualPage from "./pages/UserManualPage";
 import ApprovalsPage from "./pages/ApprovalsPage";
 import NotFound from "./pages/NotFound";
@@ -33,7 +33,7 @@ const App = () => (
             <Route path="/users" element={<UsersPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/saml-config" element={<SamlConfigGuide />} />
+            
             <Route path="/manual" element={<UserManualPage />} />
             <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="*" element={<NotFound />} />
