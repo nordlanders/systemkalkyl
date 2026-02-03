@@ -7,12 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Calculator, Loader2, ArrowLeft, HelpCircle } from 'lucide-react';
+import { Calculator, Loader2, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import loginBackground from '@/assets/login-background.jpg';
-import SamlSsoButton from '@/components/auth/SamlSsoButton';
-import { Link } from 'react-router-dom';
-import { Separator } from '@/components/ui/separator';
 
 const authSchema = z.object({
   email: z.string().email('Ange en giltig e-postadress'),
@@ -266,25 +263,6 @@ export default function Auth() {
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Logga in
               </Button>
-
-              <div className="relative my-4">
-                <Separator />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                  eller
-                </span>
-              </div>
-
-              <SamlSsoButton disabled={loading} />
-              
-              <div className="mt-4 text-center">
-                <Link 
-                  to="/saml-config" 
-                  className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1"
-                >
-                  <HelpCircle className="h-3 w-3" />
-                  SSO-konfigurationsguide för administratörer
-                </Link>
-              </div>
             </form>
           </CardContent>
         </Card>
