@@ -96,6 +96,24 @@ export default function ConfigurationItemsManagement() {
     });
   }
 
+  async function readFileWithEncoding(file: File): Promise<string> {
+    // Try UTF-8 first
+    let text = await file.text();
+    
+    // Check if we have encoding issues (common with Swedish chars from Excel)
+    if (text.includes('�') || text.includes('Ã¤') || text.includes('Ã¶') || text.includes('Ã¥')) {
+      // Try reading with Windows-1252 (common for Swedish Excel exports)
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsText(file, 'windows-1252');
+      });
+    }
+    
+    return text;
+  }
+
   async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -104,7 +122,7 @@ export default function ConfigurationItemsManagement() {
     setImportResult(null);
 
     try {
-      const text = await file.text();
+      const text = await readFileWithEncoding(file);
       const rows = parseCSV(text);
       
       if (rows.length < 2) {
