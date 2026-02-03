@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +31,6 @@ export default function CustomersManagement() {
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [isActive, setIsActive] = useState(true);
 
   const { user, isAdmin } = useAuth();
@@ -64,7 +63,6 @@ export default function CustomersManagement() {
 
   function resetForm() {
     setName('');
-    setDescription('');
     setIsActive(true);
     setEditingId(null);
   }
@@ -72,7 +70,6 @@ export default function CustomersManagement() {
   function openEditDialog(customer: Customer) {
     setEditingId(customer.id);
     setName(customer.name);
-    setDescription(customer.description || '');
     setIsActive(customer.is_active);
     setDialogOpen(true);
   }
@@ -100,7 +97,6 @@ export default function CustomersManagement() {
     try {
       const customerData = {
         name: name.trim(),
-        description: description.trim() || null,
         is_active: isActive,
         created_by: user.id,
       };
@@ -108,7 +104,7 @@ export default function CustomersManagement() {
       if (editingId) {
         const { error } = await supabase
           .from('customers')
-          .update({ name: name.trim(), description: description.trim() || null, is_active: isActive })
+          .update({ name: name.trim(), is_active: isActive })
           .eq('id', editingId);
 
         if (error) throw error;
@@ -208,16 +204,6 @@ export default function CustomersManagement() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Beskrivning</Label>
-                  <Textarea
-                    placeholder="Valfri beskrivning av kunden..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-
                 <div className="flex items-center justify-between">
                   <Label>Aktiv</Label>
                   <Switch
@@ -268,7 +254,6 @@ export default function CustomersManagement() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead>Namn</TableHead>
-                  <TableHead>Beskrivning</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Skapad</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
@@ -277,7 +262,7 @@ export default function CustomersManagement() {
               <TableBody>
                 {customers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 5 : 4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 4 : 3} className="text-center text-muted-foreground py-8">
                       Inga kunder hittades
                     </TableCell>
                   </TableRow>
@@ -285,9 +270,6 @@ export default function CustomersManagement() {
                   customers.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell className="font-medium">{customer.name}</TableCell>
-                      <TableCell className="max-w-xs truncate text-muted-foreground">
-                        {customer.description || '—'}
-                      </TableCell>
                       <TableCell>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           customer.is_active 
