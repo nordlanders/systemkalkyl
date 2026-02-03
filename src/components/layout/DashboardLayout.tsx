@@ -24,8 +24,7 @@ import {
   Shield,
   BookOpen,
   FileCheck,
-  Building2,
-  Network
+  Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -45,7 +44,6 @@ const adminNavItems = [
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden' },
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/customers', icon: Building2, label: 'Kunder' },
-  { href: '/organizations', icon: Network, label: 'Kundens organisation' },
   { href: '/users', icon: Users, label: 'Användare' },
 ];
 
