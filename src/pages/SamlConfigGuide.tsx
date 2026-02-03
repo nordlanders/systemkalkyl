@@ -13,8 +13,8 @@ export default function SamlConfigGuide() {
   // These values need to be configured based on your Supabase project
   const supabaseProjectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'your-project-ref';
   const acsUrl = `https://${supabaseProjectRef}.supabase.co/auth/v1/sso/saml/acs`;
-  const entityId = `https://${supabaseProjectRef}.supabase.co/auth/v1/sso/saml/metadata`;
-  const metadataUrl = `https://${supabaseProjectRef}.supabase.co/auth/v1/sso/saml/metadata`;
+  const entityId = `urn:supabase:sso:${supabaseProjectRef}`;
+  // Note: Supabase doesn't expose a public metadata endpoint - SP metadata must be constructed manually
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -43,7 +43,7 @@ export default function SamlConfigGuide() {
       metadata: [
         { label: 'ACS URL (Assertion Consumer Service)', value: acsUrl },
         { label: 'Entity ID / Audience URI', value: entityId },
-        { label: 'Metadata URL', value: metadataUrl },
+        { label: 'NameID Format', value: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress' },
       ],
     },
     {
