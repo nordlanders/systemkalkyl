@@ -28,6 +28,7 @@ export interface PricingConfig {
   category: string | null;
   comment: string | null;
   cost_owner: string | null;
+  account: string | null;
   effective_from: string;
   effective_to: string | null;
   created_by: string | null;
