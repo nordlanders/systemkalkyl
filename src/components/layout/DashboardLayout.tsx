@@ -25,7 +25,8 @@ import {
   BookOpen,
   FileCheck,
   Building2,
-  Building
+  Building,
+  Server
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +47,7 @@ const adminNavItems = [
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/customers', icon: Building2, label: 'Kunder' },
   { href: '/owning-organizations', icon: Building, label: 'Ägande organisation' },
+  { href: '/configuration-items', icon: Server, label: 'Configuration Items' },
   { href: '/users', icon: Users, label: 'Användare' },
 ];
 
