@@ -17,11 +17,12 @@ import {
 } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 
-interface ConfigurationItem {
+export interface ConfigurationItem {
   id: string;
   ci_number: string;
   system_name: string;
   system_owner: string | null;
+  system_administrator: string | null;
   organization: string | null;
   is_active: boolean;
 }
@@ -29,11 +30,12 @@ interface ConfigurationItem {
 interface CISelectorProps {
   value: string;
   onChange: (ciNumber: string) => void;
+  onItemChange?: (item: ConfigurationItem | null) => void;
   placeholder?: string;
   disabled?: boolean;
 }
 
-export default function CISelector({ value, onChange, placeholder = 'Sök CI nummer eller systemnamn...', disabled }: CISelectorProps) {
+export default function CISelector({ value, onChange, onItemChange, placeholder = 'Sök CI nummer eller systemnamn...', disabled }: CISelectorProps) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<ConfigurationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ export default function CISelector({ value, onChange, placeholder = 'Sök CI num
     try {
       const { data, error } = await supabase
         .from('configuration_items')
-        .select('id, ci_number, system_name, system_owner, organization, is_active')
+        .select('id, ci_number, system_name, system_owner, system_administrator, organization, is_active')
         .eq('is_active', true)
         .order('ci_number');
 
@@ -59,6 +61,14 @@ export default function CISelector({ value, onChange, placeholder = 'Sök CI num
       setLoading(false);
     }
   }
+
+  // Notify parent when selected item changes
+  useEffect(() => {
+    if (onItemChange) {
+      const selectedItem = items.find(item => item.ci_number === value) || null;
+      onItemChange(selectedItem);
+    }
+  }, [value, items, onItemChange]);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery) return items;
