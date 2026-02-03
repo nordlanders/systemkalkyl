@@ -14,9 +14,15 @@ import { Plus, Pencil, Trash2, Loader2, Network, AlertCircle } from 'lucide-reac
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
+interface Customer {
+  id: string;
+  name: string;
+}
+
 interface Organization {
   id: string;
   name: string;
+  customer_id: string | null;
   parent_id: string | null;
   is_active: boolean;
   created_at: string;
@@ -25,12 +31,14 @@ interface Organization {
 
 export default function OrganizationsManagement() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState('');
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const [parentId, setParentId] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
 
@@ -38,23 +46,26 @@ export default function OrganizationsManagement() {
   const { toast } = useToast();
 
   useEffect(() => {
-    loadOrganizations();
+    loadData();
   }, []);
 
-  async function loadOrganizations() {
+  async function loadData() {
     try {
-      const { data, error } = await supabase
-        .from('organizations')
-        .select('*')
-        .order('name');
+      const [orgsResult, customersResult] = await Promise.all([
+        supabase.from('organizations').select('*').order('name'),
+        supabase.from('customers').select('id, name').eq('is_active', true).order('name'),
+      ]);
 
-      if (error) throw error;
-      setOrganizations(data || []);
+      if (orgsResult.error) throw orgsResult.error;
+      if (customersResult.error) throw customersResult.error;
+
+      setOrganizations(orgsResult.data || []);
+      setCustomers(customersResult.data || []);
     } catch (error) {
-      console.error('Error loading organizations:', error);
+      console.error('Error loading data:', error);
       toast({
         title: 'Fel vid laddning',
-        description: 'Kunde inte ladda organisationer.',
+        description: 'Kunde inte ladda data.',
         variant: 'destructive',
       });
     } finally {
@@ -64,6 +75,7 @@ export default function OrganizationsManagement() {
 
   function resetForm() {
     setName('');
+    setCustomerId(null);
     setParentId(null);
     setIsActive(true);
     setEditingId(null);
@@ -72,9 +84,16 @@ export default function OrganizationsManagement() {
   function openEditDialog(org: Organization) {
     setEditingId(org.id);
     setName(org.name);
+    setCustomerId(org.customer_id);
     setParentId(org.parent_id);
     setIsActive(org.is_active);
     setDialogOpen(true);
+  }
+
+  function getCustomerName(customerId: string | null): string {
+    if (!customerId) return '—';
+    const customer = customers.find(c => c.id === customerId);
+    return customer?.name || '—';
   }
 
   function getParentName(parentId: string | null): string {
@@ -106,6 +125,7 @@ export default function OrganizationsManagement() {
     try {
       const orgData = {
         name: name.trim(),
+        customer_id: customerId,
         parent_id: parentId,
         is_active: isActive,
         created_by: user.id,
@@ -114,7 +134,7 @@ export default function OrganizationsManagement() {
       if (editingId) {
         const { error } = await supabase
           .from('organizations')
-          .update({ name: name.trim(), parent_id: parentId, is_active: isActive })
+          .update({ name: name.trim(), customer_id: customerId, parent_id: parentId, is_active: isActive })
           .eq('id', editingId);
 
         if (error) throw error;
@@ -130,7 +150,7 @@ export default function OrganizationsManagement() {
 
       resetForm();
       setDialogOpen(false);
-      loadOrganizations();
+      loadData();
     } catch (error: any) {
       console.error('Error saving organization:', error);
       toast({
@@ -167,7 +187,7 @@ export default function OrganizationsManagement() {
 
       if (error) throw error;
       toast({ title: 'Organisation borttagen', description: 'Organisationen har tagits bort.' });
-      loadOrganizations();
+      loadData();
     } catch (error) {
       console.error('Error deleting organization:', error);
       toast({
@@ -187,7 +207,8 @@ export default function OrganizationsManagement() {
   }
 
   // Filter out current organization from parent options to avoid self-reference
-  const parentOptions = organizations.filter(o => o.id !== editingId);
+  // Also filter to show only organizations from the same customer
+  const parentOptions = organizations.filter(o => o.id !== editingId && (customerId ? o.customer_id === customerId : true));
 
   return (
     <div className="space-y-8 fade-in">
@@ -226,6 +247,26 @@ export default function OrganizationsManagement() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Kund *</Label>
+                  <Select value={customerId || 'none'} onValueChange={(v) => {
+                    setCustomerId(v === 'none' ? null : v);
+                    setParentId(null); // Reset parent when customer changes
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Välj kund..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Ingen kund vald</SelectItem>
+                      {customers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id}>
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
@@ -295,6 +336,7 @@ export default function OrganizationsManagement() {
               <TableHeader>
                 <TableRow className="bg-muted/50">
                   <TableHead>Namn</TableHead>
+                  <TableHead>Kund</TableHead>
                   <TableHead>Överordnad</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Skapad</TableHead>
@@ -304,7 +346,7 @@ export default function OrganizationsManagement() {
               <TableBody>
                 {organizations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 5 : 4} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 6 : 5} className="text-center text-muted-foreground py-8">
                       Inga organisationer hittades
                     </TableCell>
                   </TableRow>
@@ -312,6 +354,7 @@ export default function OrganizationsManagement() {
                   organizations.map((org) => (
                     <TableRow key={org.id}>
                       <TableCell className="font-medium">{org.name}</TableCell>
+                      <TableCell>{getCustomerName(org.customer_id)}</TableCell>
                       <TableCell>{getParentName(org.parent_id)}</TableCell>
                       <TableCell>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${

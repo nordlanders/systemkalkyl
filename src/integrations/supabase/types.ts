@@ -311,6 +311,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          customer_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -320,6 +321,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -329,6 +331,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
@@ -336,6 +339,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "organizations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "organizations_parent_id_fkey"
             columns: ["parent_id"]
