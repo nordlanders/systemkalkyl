@@ -52,14 +52,18 @@ const MUNICIPALITIES = [
   'Ljusdals kommun',
 ];
 
-const OWNING_ORGANIZATIONS = [
-  'Sektionen Produktion',
-  'Sektionen Produktion, enhet Drift',
-  'Sektionen Produktion, enhet Servicedesk',
-  'Sektionen Digital Utveckling',
-  'Sektionen Strategi och Styrning',
-  'Digitalisering och IT Stab/säkerhet',
-];
+interface Organization {
+  id: string;
+  name: string;
+  customer_id: string | null;
+  is_active: boolean;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  is_active: boolean;
+}
 
 interface CalculationRow {
   id: string;
@@ -86,6 +90,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [owningOrganization, setOwningOrganization] = useState((editCalculation as any)?.owning_organization ?? '');
   const [calculationYear, setCalculationYear] = useState<number>((editCalculation as any)?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [rows, setRows] = useState<CalculationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -103,7 +109,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
-    loadPricing();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -112,21 +118,38 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
     }
   }, [editCalculation, pricing]);
 
-  async function loadPricing() {
+  async function loadData() {
     try {
-      const { data, error } = await supabase
-        .from('pricing_config')
-        .select('*')
-        .order('category')
-        .order('price_type');
+      const [pricingResult, organizationsResult, customersResult] = await Promise.all([
+        supabase
+          .from('pricing_config')
+          .select('*')
+          .order('category')
+          .order('price_type'),
+        supabase
+          .from('organizations')
+          .select('*')
+          .eq('is_active', true)
+          .order('name'),
+        supabase
+          .from('customers')
+          .select('*')
+          .eq('is_active', true)
+          .order('name'),
+      ]);
 
-      if (error) throw error;
-      setPricing(data as PricingConfig[]);
+      if (pricingResult.error) throw pricingResult.error;
+      if (organizationsResult.error) throw organizationsResult.error;
+      if (customersResult.error) throw customersResult.error;
+
+      setPricing(pricingResult.data as PricingConfig[]);
+      setOrganizations(organizationsResult.data as Organization[]);
+      setCustomers(customersResult.data as Customer[]);
     } catch (error) {
-      console.error('Error loading pricing:', error);
+      console.error('Error loading data:', error);
       toast({
-        title: 'Fel vid laddning av priser',
-        description: 'Kunde inte ladda aktuell priskonfiguration.',
+        title: 'Fel vid laddning',
+        description: 'Kunde inte ladda nödvändig data.',
         variant: 'destructive',
       });
     } finally {
@@ -752,15 +775,44 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                     <SelectValue placeholder="Välj ägande organisation" />
                   </SelectTrigger>
                   <SelectContent>
-                    {OWNING_ORGANIZATIONS.map((org) => (
-                      <SelectItem key={org} value={org}>
-                        {org}
-                      </SelectItem>
-                    ))}
+                    {customers.map((customer) => {
+                      const customerOrgs = organizations.filter(org => org.customer_id === customer.id);
+                      if (customerOrgs.length === 0) return null;
+                      return (
+                        <div key={customer.id}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                            {customer.name}
+                          </div>
+                          {customerOrgs.map((org) => (
+                            <SelectItem key={org.id} value={org.name}>
+                              {org.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    {/* Visa organisationer utan kund */}
+                    {organizations.filter(org => !org.customer_id).length > 0 && (
+                      <div>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                          Utan kund
+                        </div>
+                        {organizations.filter(org => !org.customer_id).map((org) => (
+                          <SelectItem key={org.id} value={org.name}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    )}
+                    {organizations.length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Inga organisationer finns. Skapa först i administrationen.
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Vilken sektion/enhet som äger kalkylen
+                  Vilken organisation som äger kalkylen
                 </p>
               </div>
               <div className="space-y-3">
