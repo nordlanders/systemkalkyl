@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import CISelector from './CISelector';
 import { 
   Calculator,
   Save,
@@ -725,14 +726,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <Label htmlFor="ciIdentity">
                   CI-identitet (CMDB) <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="ciIdentity"
-                  placeholder="T.ex. CI-12345"
+                <CISelector
                   value={ciIdentity}
-                  onChange={(e) => setCiIdentity(e.target.value)}
+                  onChange={setCiIdentity}
+                  placeholder="Sök på CI nummer eller systemnamn..."
                 />
                 <p className="text-sm text-muted-foreground">
-                  Systemets unika identifierare i Configuration Management Database
+                  Välj systemets CI-identitet från registret eller ange manuellt
                 </p>
               </div>
               <div className="space-y-2">
