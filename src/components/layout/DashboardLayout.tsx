@@ -26,7 +26,8 @@ import {
   FileCheck,
   Building2,
   Building,
-  Server
+  Server,
+  FileSpreadsheet
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +49,7 @@ const adminNavItems = [
   { href: '/customers', icon: Building2, label: 'Kunder' },
   { href: '/owning-organizations', icon: Building, label: 'Ägande organisation' },
   { href: '/configuration-items', icon: Server, label: 'Configuration Items' },
+  { href: '/budget-outcome', icon: FileSpreadsheet, label: 'Budget & Utfall' },
   { href: '/users', icon: Users, label: 'Användare' },
 ];
 
