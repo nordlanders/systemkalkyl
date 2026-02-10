@@ -1,13 +1,18 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { Upload, Trash2, FileSpreadsheet, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, Trash2, FileSpreadsheet, Loader2, AlertCircle, Calendar, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { sv } from 'date-fns/locale';
 
 interface BudgetRow {
   ansvar: string;
@@ -47,10 +52,17 @@ function parseCsvLine(line: string): string[] {
 
 function parseNumber(val: string): number {
   if (!val || val.trim() === '') return 0;
-  // Handle Swedish number format: spaces as thousands sep, comma as decimal
   const cleaned = val.replace(/\s/g, '').replace(',', '.');
   const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
+}
+
+interface ImportVersion {
+  import_date: string;
+  extraction_date: string | null;
+  import_label: string | null;
+  imported_at: string;
+  count: number;
 }
 
 export default function BudgetOutcomeManagement() {
@@ -60,6 +72,9 @@ export default function BudgetOutcomeManagement() {
   const [preview, setPreview] = useState<BudgetRow[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [extractionDate, setExtractionDate] = useState('');
+  const [importLabel, setImportLabel] = useState('');
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
   const { data: existingData = [], isLoading } = useQuery({
     queryKey: ['budget-outcomes'],
@@ -67,20 +82,49 @@ export default function BudgetOutcomeManagement() {
       const { data, error } = await supabase
         .from('budget_outcomes')
         .select('*')
+        .order('import_date', { ascending: false })
         .order('ansvar', { ascending: true });
       if (error) throw error;
       return data;
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('budget_outcomes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+  // Group data by import_date to create versions
+  const versions = useMemo<ImportVersion[]>(() => {
+    const map = new Map<string, ImportVersion>();
+    existingData.forEach((row: any) => {
+      const key = row.import_date;
+      if (!map.has(key)) {
+        map.set(key, {
+          import_date: row.import_date,
+          extraction_date: row.extraction_date,
+          import_label: row.import_label,
+          imported_at: row.imported_at,
+          count: 0,
+        });
+      }
+      map.get(key)!.count++;
+    });
+    return Array.from(map.values()).sort((a, b) => b.import_date.localeCompare(a.import_date));
+  }, [existingData]);
+
+  const filteredData = useMemo(() => {
+    if (!selectedVersion) return [];
+    return existingData.filter((row: any) => row.import_date === selectedVersion);
+  }, [existingData, selectedVersion]);
+
+  const deleteVersionMutation = useMutation({
+    mutationFn: async (importDate: string) => {
+      const { error } = await supabase
+        .from('budget_outcomes')
+        .delete()
+        .eq('import_date', importDate);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budget-outcomes'] });
-      toast({ title: 'All data raderad' });
+      setSelectedVersion(null);
+      toast({ title: 'Version raderad' });
     },
     onError: (err: Error) => {
       toast({ title: 'Fel vid radering', description: err.message, variant: 'destructive' });
@@ -103,7 +147,6 @@ export default function BudgetOutcomeManagement() {
         }
 
         const headerLine = parseCsvLine(lines[0]);
-        // Validate headers loosely
         const normalizedHeaders = headerLine.map(h => h.toUpperCase().trim());
         const expectedFirst = ['ANSVAR', 'UKONTO'];
         if (!expectedFirst.every(eh => normalizedHeaders.includes(eh))) {
@@ -142,7 +185,6 @@ export default function BudgetOutcomeManagement() {
       }
     };
     reader.readAsText(file, 'UTF-8');
-    // Reset file input
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -150,18 +192,23 @@ export default function BudgetOutcomeManagement() {
     if (preview.length === 0) return;
     setImporting(true);
     try {
-      // Insert in batches of 500
+      const today = new Date().toISOString().split('T')[0];
       const batchSize = 500;
       for (let i = 0; i < preview.length; i += batchSize) {
         const batch = preview.slice(i, i + batchSize).map(row => ({
           ...row,
           imported_by: user?.id,
+          import_date: today,
+          extraction_date: extractionDate || null,
+          import_label: importLabel || null,
         }));
         const { error } = await supabase.from('budget_outcomes').insert(batch);
         if (error) throw error;
       }
       toast({ title: 'Import klar', description: `${preview.length} rader importerade.` });
       setPreview([]);
+      setExtractionDate('');
+      setImportLabel('');
       queryClient.invalidateQueries({ queryKey: ['budget-outcomes'] });
     } catch (err: any) {
       toast({ title: 'Importfel', description: err.message, variant: 'destructive' });
@@ -173,13 +220,19 @@ export default function BudgetOutcomeManagement() {
   const formatNumber = (num: number) =>
     new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 2 }).format(num);
 
+  const formatDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), 'd MMM yyyy', { locale: sv });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Budget & Utfall</h1>
-          <p className="text-muted-foreground">Importera budget- och utfallsdata från CSV-fil</p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold">Budget & Utfall</h1>
+        <p className="text-muted-foreground">Importera och versionshantera budget- och utfallsdata från CSV-fil</p>
       </div>
 
       {/* Upload section */}
@@ -194,6 +247,31 @@ export default function BudgetOutcomeManagement() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="extraction-date">Uttagsdatum</Label>
+              <Input
+                id="extraction-date"
+                type="date"
+                value={extractionDate}
+                onChange={(e) => setExtractionDate(e.target.value)}
+                placeholder="Välj uttagsdatum"
+              />
+              <p className="text-xs text-muted-foreground">Datum då data togs ut ur källsystemet</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="import-label">Etikett (valfritt)</Label>
+              <Input
+                id="import-label"
+                value={importLabel}
+                onChange={(e) => setImportLabel(e.target.value)}
+                placeholder="T.ex. 'Månadsrapport januari'"
+                maxLength={100}
+              />
+              <p className="text-xs text-muted-foreground">Valfri beskrivning av importen</p>
+            </div>
+          </div>
+
           <div className="flex gap-3 flex-wrap">
             <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="gap-2">
               <Upload className="h-4 w-4" />
@@ -206,17 +284,6 @@ export default function BudgetOutcomeManagement() {
               onChange={handleFileSelect}
               className="hidden"
             />
-            {existingData.length > 0 && (
-              <Button
-                variant="destructive"
-                className="gap-2"
-                onClick={() => deleteMutation.mutate()}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-                Radera all befintlig data ({existingData.length} rader)
-              </Button>
-            )}
           </div>
 
           {parseError && (
@@ -233,7 +300,11 @@ export default function BudgetOutcomeManagement() {
         <Card>
           <CardHeader>
             <CardTitle>Förhandsvisning ({preview.length} rader)</CardTitle>
-            <CardDescription>Granska data innan import</CardDescription>
+            <CardDescription>
+              Importdatum: {format(new Date(), 'd MMM yyyy', { locale: sv })}
+              {extractionDate && ` · Uttagsdatum: ${formatDate(extractionDate)}`}
+              {importLabel && ` · ${importLabel}`}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="overflow-auto max-h-96 border rounded-md">
@@ -279,51 +350,131 @@ export default function BudgetOutcomeManagement() {
         </Card>
       )}
 
-      {/* Existing data */}
+      {/* Version history */}
       {isLoading ? (
         <div className="flex justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : existingData.length > 0 && preview.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Importerad data ({existingData.length} rader)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-auto max-h-96 border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    {CSV_HEADERS.map(h => (
-                      <TableHead key={h} className="whitespace-nowrap text-xs">{h}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {existingData.slice(0, 100).map((row: any) => (
-                    <TableRow key={row.id}>
-                      <TableCell className="text-xs">{row.ansvar}</TableCell>
-                      <TableCell className="text-xs">{row.ukonto}</TableCell>
-                      <TableCell className="text-xs">{row.vht}</TableCell>
-                      <TableCell className="text-xs">{row.akt}</TableCell>
-                      <TableCell className="text-xs">{row.proj}</TableCell>
-                      <TableCell className="text-xs">{row.objekt}</TableCell>
-                      <TableCell className="text-xs">{row.mot}</TableCell>
-                      <TableCell className="text-xs">{row.kgrp}</TableCell>
-                      <TableCell className="text-xs text-right">{formatNumber(row.budget_2025)}</TableCell>
-                      <TableCell className="text-xs text-right">{formatNumber(row.utfall_ack)}</TableCell>
-                      <TableCell className="text-xs text-right">{formatNumber(row.diff)}</TableCell>
-                      <TableCell className="text-xs text-right">{formatNumber(row.budget_2026)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            {existingData.length > 100 && (
-              <p className="text-sm text-muted-foreground mt-2">Visar 100 av {existingData.length} rader</p>
-            )}
-          </CardContent>
-        </Card>
+      ) : versions.length > 0 && preview.length === 0 ? (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Importhistorik ({versions.length} versioner)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {versions.map((v) => (
+                  <div
+                    key={v.import_date}
+                    className={`flex items-center justify-between p-3 rounded-md border cursor-pointer transition-colors ${
+                      selectedVersion === v.import_date
+                        ? 'border-primary bg-primary/5'
+                        : 'hover:bg-muted/50'
+                    }`}
+                    onClick={() =>
+                      setSelectedVersion(selectedVersion === v.import_date ? null : v.import_date)
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Importerad: {formatDate(v.import_date)}</span>
+                          {v.import_label && (
+                            <Badge variant="secondary">{v.import_label}</Badge>
+                          )}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {v.extraction_date
+                            ? `Uttagsdatum: ${formatDate(v.extraction_date)}`
+                            : 'Inget uttagsdatum angivet'}
+                          {' · '}
+                          {v.count} rader
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedVersion(
+                            selectedVersion === v.import_date ? null : v.import_date
+                          );
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                        Visa
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteVersionMutation.mutate(v.import_date);
+                        }}
+                        disabled={deleteVersionMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Radera
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Selected version data */}
+          {selectedVersion && filteredData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Data för import {formatDate(selectedVersion)} ({filteredData.length} rader)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-auto max-h-96 border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        {CSV_HEADERS.map(h => (
+                          <TableHead key={h} className="whitespace-nowrap text-xs">{h}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredData.slice(0, 100).map((row: any) => (
+                        <TableRow key={row.id}>
+                          <TableCell className="text-xs">{row.ansvar}</TableCell>
+                          <TableCell className="text-xs">{row.ukonto}</TableCell>
+                          <TableCell className="text-xs">{row.vht}</TableCell>
+                          <TableCell className="text-xs">{row.akt}</TableCell>
+                          <TableCell className="text-xs">{row.proj}</TableCell>
+                          <TableCell className="text-xs">{row.objekt}</TableCell>
+                          <TableCell className="text-xs">{row.mot}</TableCell>
+                          <TableCell className="text-xs">{row.kgrp}</TableCell>
+                          <TableCell className="text-xs text-right">{formatNumber(row.budget_2025)}</TableCell>
+                          <TableCell className="text-xs text-right">{formatNumber(row.utfall_ack)}</TableCell>
+                          <TableCell className="text-xs text-right">{formatNumber(row.diff)}</TableCell>
+                          <TableCell className="text-xs text-right">{formatNumber(row.budget_2026)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                {filteredData.length > 100 && (
+                  <p className="text-sm text-muted-foreground mt-2">Visar 100 av {filteredData.length} rader</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </>
       ) : null}
     </div>
   );

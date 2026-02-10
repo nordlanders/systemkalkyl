@@ -54,7 +54,10 @@ export type Database = {
           budget_2025: number | null
           budget_2026: number | null
           diff: number | null
+          extraction_date: string | null
           id: string
+          import_date: string
+          import_label: string | null
           imported_at: string
           imported_by: string | null
           kgrp: string | null
@@ -71,7 +74,10 @@ export type Database = {
           budget_2025?: number | null
           budget_2026?: number | null
           diff?: number | null
+          extraction_date?: string | null
           id?: string
+          import_date?: string
+          import_label?: string | null
           imported_at?: string
           imported_by?: string | null
           kgrp?: string | null
@@ -88,7 +94,10 @@ export type Database = {
           budget_2025?: number | null
           budget_2026?: number | null
           diff?: number | null
+          extraction_date?: string | null
           id?: string
+          import_date?: string
+          import_label?: string | null
           imported_at?: string
           imported_by?: string | null
           kgrp?: string | null
