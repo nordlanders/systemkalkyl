@@ -16,6 +16,7 @@ import OwningOrganizationsPage from "./pages/OwningOrganizationsPage";
 import ConfigurationItemsPage from "./pages/ConfigurationItemsPage";
 import UserManualPage from "./pages/UserManualPage";
 import ApprovalsPage from "./pages/ApprovalsPage";
+import BudgetOutcomePage from "./pages/BudgetOutcomePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/configuration-items" element={<ConfigurationItemsPage />} />
             <Route path="/manual" element={<UserManualPage />} />
             <Route path="/approvals" element={<ApprovalsPage />} />
+            <Route path="/budget-outcome" element={<BudgetOutcomePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

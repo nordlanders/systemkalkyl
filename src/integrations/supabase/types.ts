@@ -47,6 +47,60 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_outcomes: {
+        Row: {
+          akt: string | null
+          ansvar: string | null
+          budget_2025: number | null
+          budget_2026: number | null
+          diff: number | null
+          id: string
+          imported_at: string
+          imported_by: string | null
+          kgrp: string | null
+          mot: string | null
+          objekt: string | null
+          proj: string | null
+          ukonto: string | null
+          utfall_ack: number | null
+          vht: string | null
+        }
+        Insert: {
+          akt?: string | null
+          ansvar?: string | null
+          budget_2025?: number | null
+          budget_2026?: number | null
+          diff?: number | null
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          kgrp?: string | null
+          mot?: string | null
+          objekt?: string | null
+          proj?: string | null
+          ukonto?: string | null
+          utfall_ack?: number | null
+          vht?: string | null
+        }
+        Update: {
+          akt?: string | null
+          ansvar?: string | null
+          budget_2025?: number | null
+          budget_2026?: number | null
+          diff?: number | null
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          kgrp?: string | null
+          mot?: string | null
+          objekt?: string | null
+          proj?: string | null
+          ukonto?: string | null
+          utfall_ack?: number | null
+          vht?: string | null
+        }
+        Relationships: []
+      }
       calculation_items: {
         Row: {
           calculation_id: string
