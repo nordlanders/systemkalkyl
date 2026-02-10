@@ -131,60 +131,85 @@ export default function BudgetOutcomeManagement() {
     },
   });
 
+  const parseFileContent = (text: string) => {
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) {
+      setParseError('Filen innehåller ingen data.');
+      return;
+    }
+
+    const headerLine = parseCsvLine(lines[0]);
+    const normalizedHeaders = headerLine.map(h => h.toUpperCase().trim());
+    const expectedFirst = ['ANSVAR', 'UKONTO'];
+    if (!expectedFirst.every(eh => normalizedHeaders.includes(eh))) {
+      setParseError('CSV-filen saknar förväntade kolumner (ANSVAR, UKONTO). Kontrollera formatet.');
+      return;
+    }
+
+    const rows: BudgetRow[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCsvLine(lines[i]);
+      if (cols.length < 12) continue;
+      rows.push({
+        ansvar: cols[0] || '',
+        ukonto: cols[1] || '',
+        vht: cols[2] || '',
+        akt: cols[3] || '',
+        proj: cols[4] || '',
+        objekt: cols[5] || '',
+        mot: cols[6] || '',
+        kgrp: cols[7] || '',
+        budget_2025: parseNumber(cols[8]),
+        utfall_ack: parseNumber(cols[9]),
+        diff: parseNumber(cols[10]),
+        budget_2026: parseNumber(cols[11]),
+      });
+    }
+
+    if (rows.length === 0) {
+      setParseError('Inga giltiga rader hittades i filen.');
+      return;
+    }
+
+    setPreview(rows);
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setParseError(null);
+    setPreview([]);
 
+    // First try reading as ArrayBuffer to detect encoding
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const text = event.target?.result as string;
-        const lines = text.split(/\r?\n/).filter(l => l.trim());
-        if (lines.length < 2) {
-          setParseError('Filen innehåller ingen data.');
-          return;
+        const buffer = event.target?.result as ArrayBuffer;
+        const bytes = new Uint8Array(buffer);
+
+        // Check for BOM or try to detect Windows-1252 vs UTF-8
+        let text: string;
+
+        // UTF-8 BOM
+        if (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
+          text = new TextDecoder('utf-8').decode(buffer);
+        } else {
+          // Try UTF-8 first
+          const utf8Text = new TextDecoder('utf-8', { fatal: true });
+          try {
+            text = utf8Text.decode(buffer);
+          } catch {
+            // Fallback to Windows-1252 (common for Swedish Excel exports)
+            text = new TextDecoder('windows-1252').decode(buffer);
+          }
         }
 
-        const headerLine = parseCsvLine(lines[0]);
-        const normalizedHeaders = headerLine.map(h => h.toUpperCase().trim());
-        const expectedFirst = ['ANSVAR', 'UKONTO'];
-        if (!expectedFirst.every(eh => normalizedHeaders.includes(eh))) {
-          setParseError('CSV-filen saknar förväntade kolumner (ANSVAR, UKONTO). Kontrollera formatet.');
-          return;
-        }
-
-        const rows: BudgetRow[] = [];
-        for (let i = 1; i < lines.length; i++) {
-          const cols = parseCsvLine(lines[i]);
-          if (cols.length < 12) continue;
-          rows.push({
-            ansvar: cols[0] || '',
-            ukonto: cols[1] || '',
-            vht: cols[2] || '',
-            akt: cols[3] || '',
-            proj: cols[4] || '',
-            objekt: cols[5] || '',
-            mot: cols[6] || '',
-            kgrp: cols[7] || '',
-            budget_2025: parseNumber(cols[8]),
-            utfall_ack: parseNumber(cols[9]),
-            diff: parseNumber(cols[10]),
-            budget_2026: parseNumber(cols[11]),
-          });
-        }
-
-        if (rows.length === 0) {
-          setParseError('Inga giltiga rader hittades i filen.');
-          return;
-        }
-
-        setPreview(rows);
+        parseFileContent(text);
       } catch {
         setParseError('Kunde inte läsa filen. Kontrollera formatet.');
       }
     };
-    reader.readAsText(file, 'UTF-8');
+    reader.readAsArrayBuffer(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
