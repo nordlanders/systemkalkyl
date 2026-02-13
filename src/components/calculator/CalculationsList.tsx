@@ -667,8 +667,8 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   return (
                     <TableRow 
                       key={calc.id} 
-                      className={canWrite ? "cursor-pointer hover:bg-muted/50" : ""}
-                      onClick={() => canWrite && onEdit(calc)}
+                      className={(canWrite || status === 'approved') ? "cursor-pointer hover:bg-muted/50" : ""}
+                      onClick={() => (canWrite || status === 'approved') && onEdit(calc)}
                     >
                       <TableCell className="font-medium">
                         {calc.name || 'Namnlös'}
