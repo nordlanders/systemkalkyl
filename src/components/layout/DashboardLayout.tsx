@@ -41,10 +41,10 @@ const mainNavItems = [
   { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
   { href: '/history', icon: History, label: 'Historik', adminOnly: false },
   { href: '/manual', icon: BookOpen, label: 'Manual', adminOnly: false },
+  { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: false },
 ];
 
 const adminNavItems = [
-  { href: '/approvals', icon: FileCheck, label: 'Godkännanden' },
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/customers', icon: Building2, label: 'Kunder' },
   { href: '/owning-organizations', icon: Building, label: 'Ägande organisation' },
