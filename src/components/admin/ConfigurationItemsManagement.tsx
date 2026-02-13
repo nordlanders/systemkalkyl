@@ -13,7 +13,6 @@ import {
   Upload, 
   FileSpreadsheet, 
   Loader2, 
-  Trash2, 
   AlertCircle,
   CheckCircle2,
   Download,
@@ -215,27 +214,27 @@ export default function ConfigurationItemsManagement() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Är du säker på att du vill ta bort denna CI-post?')) return;
-
+  async function handleToggleActive(id: string, currentlyActive: boolean) {
     try {
       const { error } = await supabase
         .from('configuration_items')
-        .delete()
+        .update({ is_active: !currentlyActive })
         .eq('id', id);
 
       if (error) throw error;
 
       toast({
-        title: 'CI-post borttagen',
-        description: 'CI-posten har tagits bort.',
+        title: currentlyActive ? 'CI-post inaktiverad' : 'CI-post aktiverad',
+        description: currentlyActive 
+          ? 'CI-posten har markerats som inaktiv.' 
+          : 'CI-posten har markerats som aktiv.',
       });
       loadItems();
     } catch (error) {
-      console.error('Error deleting CI:', error);
+      console.error('Error toggling CI status:', error);
       toast({
-        title: 'Fel vid borttagning',
-        description: 'Kunde inte ta bort CI-posten.',
+        title: 'Fel',
+        description: 'Kunde inte ändra status på CI-posten.',
         variant: 'destructive',
       });
     }
@@ -421,11 +420,11 @@ export default function ConfigurationItemsManagement() {
                         <TableCell>
                           <Button
                             variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(item.id)}
-                            className="text-destructive hover:text-destructive"
+                            size="sm"
+                            onClick={() => handleToggleActive(item.id, item.is_active)}
+                            className={item.is_active ? 'text-muted-foreground hover:text-foreground' : 'text-primary hover:text-primary'}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            {item.is_active ? 'Inaktivera' : 'Aktivera'}
                           </Button>
                         </TableCell>
                       )}
