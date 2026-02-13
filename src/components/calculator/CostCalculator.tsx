@@ -80,9 +80,11 @@ interface CostCalculatorProps {
   editCalculation?: Calculation | null;
   onBack: () => void;
   onSaved: () => void;
+  readOnly?: boolean;
+  onCreateNewVersion?: () => void;
 }
 
-export default function CostCalculator({ editCalculation, onBack, onSaved }: CostCalculatorProps) {
+export default function CostCalculator({ editCalculation, onBack, onSaved, readOnly = false, onCreateNewVersion }: CostCalculatorProps) {
   const currentYear = new Date().getFullYear();
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
@@ -99,7 +101,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
   const [selectedCI, setSelectedCI] = useState<ConfigurationItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState<1 | 2 | 3>(editCalculation ? 2 : 1);
+  const [step, setStep] = useState<1 | 2 | 3>(readOnly ? 3 : editCalculation ? 2 : 1);
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>(editCalculation?.status === 'approved' ? 'pending_approval' : editCalculation?.status ?? 'draft');
   
@@ -648,14 +650,16 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">
-            {isEditing ? 'Redigera kalkyl' : 'Ny kalkyl'}
+            {readOnly ? 'Visa kalkyl' : isEditing ? 'Redigera kalkyl' : 'Ny kalkyl'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {step === 1 
-              ? 'Steg 1: Ange namn, CI-identitet och tjänstetyp' 
-              : step === 2 
-                ? 'Steg 2: Välj pristyper och ange antal'
-                : 'Steg 3: Granska och bekräfta'}
+            {readOnly
+              ? 'Denna kalkyl är godkänd och kan inte ändras'
+              : step === 1 
+                ? 'Steg 1: Ange namn, CI-identitet och tjänstetyp' 
+                : step === 2 
+                  ? 'Steg 2: Välj pristyper och ange antal'
+                  : 'Steg 3: Granska och bekräfta'}
           </p>
         </div>
         {/* Step indicator */}
@@ -720,6 +724,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   placeholder="T.ex. Produktionsmiljö Q1"
                   value={calculationName}
                   onChange={(e) => setCalculationName(e.target.value)}
+                  disabled={readOnly}
                 />
                 <p className="text-sm text-muted-foreground">
                   Ett beskrivande namn som hjälper dig identifiera kalkylen
@@ -734,6 +739,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   onChange={setCiIdentity}
                   onItemChange={setSelectedCI}
                   placeholder="Sök på CI nummer eller systemnamn..."
+                  disabled={readOnly}
                 />
                 <p className="text-sm text-muted-foreground">
                   Välj systemets CI-identitet från registret eller ange manuellt
@@ -746,6 +752,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <Select 
                   value={customerId || ''} 
                   onValueChange={(val) => setCustomerId(val || null)}
+                  disabled={readOnly}
                 >
                   <SelectTrigger id="customer" className="w-full">
                     <SelectValue placeholder="Välj kund" />
@@ -769,6 +776,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <Select 
                   value={owningOrganizationId || ''} 
                   onValueChange={(val) => setOwningOrganizationId(val || null)}
+                  disabled={readOnly}
                 >
                   <SelectTrigger id="owningOrganization" className="w-full">
                     <SelectValue placeholder="Välj ägande organisation" />
@@ -792,6 +800,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <Select 
                   value={calculationYear.toString()} 
                   onValueChange={(val) => setCalculationYear(parseInt(val, 10))}
+                  disabled={readOnly}
                 >
                   <SelectTrigger id="calculationYear" className="w-full">
                     <SelectValue placeholder="Välj kalkylår" />
@@ -812,7 +821,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 <Label>
                   Tjänstetyp <span className="text-destructive">*</span>
                 </Label>
-                <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2">
+                <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2" disabled={readOnly}>
                   {SERVICE_TYPES.map((type) => (
                     <div key={type.value} className="flex items-center space-x-3">
                       <RadioGroupItem value={type.value} id={type.value} />
@@ -922,8 +931,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                 ) : (
                   <div className="space-y-3">
                     {rows.map((row, index) => {
-                      const isRowEditing = !isEditing || editingRowId === row.id;
-                      const isLocked = isEditing && editingRowId !== row.id;
+                      const isRowEditing = !readOnly && (!isEditing || editingRowId === row.id);
+                      const isLocked = readOnly || (isEditing && editingRowId !== row.id);
                       
                       return (
                         <div 
@@ -940,7 +949,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                               <span className="text-sm font-medium text-muted-foreground">
                                 Rad {index + 1}
                               </span>
-                              {isEditing && (
+                              {isEditing && !readOnly && (
                                 <div className="flex items-center gap-1">
                                   {isLocked ? (
                                     <Button 
@@ -1138,10 +1147,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   </div>
                 )}
                 
-                <Button onClick={addRow} variant="outline" className="w-full gap-2">
-                  <Plus className="h-4 w-4" />
-                  Lägg till rad
-                </Button>
+                {!readOnly && (
+                  <Button onClick={addRow} variant="outline" className="w-full gap-2">
+                    <Plus className="h-4 w-4" />
+                    Lägg till rad
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
@@ -1295,12 +1306,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   <p className="text-sm">{serviceType}</p>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t">
-                <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="gap-2">
-                  <Pencil className="h-3 w-3" />
-                  Ändra grundläggande information
-                </Button>
-              </div>
+              {!readOnly && (
+                <div className="mt-4 pt-4 border-t">
+                  <Button variant="ghost" size="sm" onClick={() => setStep(1)} className="gap-2">
+                    <Pencil className="h-3 w-3" />
+                    Ändra grundläggande information
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -1333,12 +1346,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t">
-                <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="gap-2">
-                  <Pencil className="h-3 w-3" />
-                  Ändra prisrader
-                </Button>
-              </div>
+              {!readOnly && (
+                <div className="mt-4 pt-4 border-t">
+                  <Button variant="ghost" size="sm" onClick={() => setStep(2)} className="gap-2">
+                    <Pencil className="h-3 w-3" />
+                    Ändra prisrader
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -1402,89 +1417,131 @@ export default function CostCalculator({ editCalculation, onBack, onSaved }: Cos
           </Card>
 
           {/* Status Selection */}
-          <Card className={isApproved ? 'border-green-500/50 bg-green-500/5' : ''}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                {isApproved ? (
+          {readOnly ? (
+            <Card className="border-green-500/50 bg-green-500/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
-                ) : (
-                  <FileText className="h-5 w-5 text-primary" />
-                )}
-                Status
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isApproved ? (
-                <div className="space-y-2">
+                  Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
                   <p className="text-green-600 font-medium flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4" />
                     Denna kalkyl är godkänd (v{editCalculation?.version})
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    När du sparar ändringar skapas en ny version (v{(editCalculation?.version || 0) + 1}) med status "Ej klar".
-                    Den tidigare godkända versionen sparas i historiken och kan visas i kalkyllistan.
+                    Godkända kalkyler kan inte ändras. Du kan skapa en ny version baserad på denna kalkyl.
                   </p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Välj status för kalkylen vid sparning:
-                  </p>
-                  <RadioGroup 
-                    value={selectedStatus} 
-                    onValueChange={(v) => setSelectedStatus(v as 'draft' | 'pending_approval')}
-                    className="space-y-3"
-                  >
-                    <div className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                      <RadioGroupItem value="draft" id="status-draft" className="mt-0.5" />
-                      <Label htmlFor="status-draft" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <FileEdit className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">Ej klar</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Kalkylen är under arbete och inte redo för godkännande
-                        </p>
-                      </Label>
-                    </div>
-                    <div className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                      <RadioGroupItem value="pending_approval" id="status-pending" className="mt-0.5" />
-                      <Label htmlFor="status-pending" className="flex-1 cursor-pointer">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-amber-500" />
-                          <span className="font-medium">Klar (men ej godkänd)</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Kalkylen är klar och väntar på godkännande
-                        </p>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className={isApproved ? 'border-green-500/50 bg-green-500/5' : ''}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  {isApproved ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <FileText className="h-5 w-5 text-primary" />
+                  )}
+                  Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isApproved ? (
+                  <div className="space-y-2">
+                    <p className="text-green-600 font-medium flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Denna kalkyl är godkänd (v{editCalculation?.version})
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      När du sparar ändringar skapas en ny version (v{(editCalculation?.version || 0) + 1}) med status "Ej klar".
+                      Den tidigare godkända versionen sparas i historiken och kan visas i kalkyllistan.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Välj status för kalkylen vid sparning:
+                    </p>
+                    <RadioGroup 
+                      value={selectedStatus} 
+                      onValueChange={(v) => setSelectedStatus(v as 'draft' | 'pending_approval')}
+                      className="space-y-3"
+                    >
+                      <div className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="draft" id="status-draft" className="mt-0.5" />
+                        <Label htmlFor="status-draft" className="flex-1 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <FileEdit className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">Ej klar</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Kalkylen är under arbete och inte redo för godkännande
+                          </p>
+                        </Label>
+                      </div>
+                      <div className="flex items-start space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="pending_approval" id="status-pending" className="mt-0.5" />
+                        <Label htmlFor="status-pending" className="flex-1 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-amber-500" />
+                            <span className="font-medium">Klar (men ej godkänd)</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Kalkylen är klar och väntar på godkännande
+                          </p>
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <p className="text-sm text-muted-foreground">
-                  Granska informationen ovan. Klicka på bekräfta för att {isEditing ? 'uppdatera' : 'spara'} kalkylen.
-                </p>
-                <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setStep(2)} className="gap-2">
-                    <ArrowLeft className="h-4 w-4" />
-                    Tillbaka
-                  </Button>
-                  <Button onClick={saveCalculation} disabled={saving} className="gap-2">
-                    {saving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Check className="h-4 w-4" />
-                    )}
-                    {isEditing ? 'Bekräfta och uppdatera' : 'Bekräfta och spara'}
-                  </Button>
-                </div>
+                {readOnly ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Vill du göra ändringar? Skapa en ny version baserad på denna godkända kalkyl.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button variant="outline" onClick={onBack} className="gap-2">
+                        <ArrowLeft className="h-4 w-4" />
+                        Tillbaka till lista
+                      </Button>
+                      <Button onClick={onCreateNewVersion} className="gap-2">
+                        <Plus className="h-4 w-4" />
+                        Skapa ny version
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">
+                      Granska informationen ovan. Klicka på bekräfta för att {isEditing ? 'uppdatera' : 'spara'} kalkylen.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button variant="outline" onClick={() => setStep(2)} className="gap-2">
+                        <ArrowLeft className="h-4 w-4" />
+                        Tillbaka
+                      </Button>
+                      <Button onClick={saveCalculation} disabled={saving} className="gap-2">
+                        {saving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Check className="h-4 w-4" />
+                        )}
+                        {isEditing ? 'Bekräfta och uppdatera' : 'Bekräfta och spara'}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

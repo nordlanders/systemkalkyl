@@ -12,6 +12,7 @@ export default function CalculatorPage() {
   const navigate = useNavigate();
   const [view, setView] = useState<'list' | 'calculator'>('list');
   const [editingCalculation, setEditingCalculation] = useState<Calculation | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -32,23 +33,32 @@ export default function CalculatorPage() {
   }
 
   const handleEdit = (calculation: Calculation) => {
+    const isApproved = calculation.status === 'approved';
     setEditingCalculation(calculation);
+    setReadOnly(isApproved);
     setView('calculator');
   };
 
   const handleCreateNew = () => {
     setEditingCalculation(null);
+    setReadOnly(false);
     setView('calculator');
   };
 
   const handleBack = () => {
     setEditingCalculation(null);
+    setReadOnly(false);
     setView('list');
   };
 
   const handleSaved = () => {
     setEditingCalculation(null);
+    setReadOnly(false);
     setView('list');
+  };
+
+  const handleCreateNewVersion = () => {
+    setReadOnly(false);
   };
 
   return (
@@ -60,6 +70,8 @@ export default function CalculatorPage() {
           editCalculation={editingCalculation} 
           onBack={handleBack}
           onSaved={handleSaved}
+          readOnly={readOnly}
+          onCreateNewVersion={handleCreateNewVersion}
         />
       )}
     </DashboardLayout>
