@@ -24,6 +24,7 @@ export interface ConfigurationItem {
   system_owner: string | null;
   system_administrator: string | null;
   organization: string | null;
+  object_number: string | null;
   is_active: boolean;
 }
 
@@ -49,7 +50,7 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
     try {
       const { data, error } = await supabase
         .from('configuration_items')
-        .select('id, ci_number, system_name, system_owner, system_administrator, organization, is_active')
+        .select('id, ci_number, system_name, system_owner, system_administrator, organization, object_number, is_active')
         .eq('is_active', true)
         .order('ci_number');
 

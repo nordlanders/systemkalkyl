@@ -357,6 +357,7 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean
+          object_number: string | null
           organization: string | null
           system_administrator: string | null
           system_name: string
@@ -369,6 +370,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean
+          object_number?: string | null
           organization?: string | null
           system_administrator?: string | null
           system_name: string
@@ -381,6 +383,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean
+          object_number?: string | null
           organization?: string | null
           system_administrator?: string | null
           system_name?: string
