@@ -9,11 +9,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Key, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
 const passwordSchema = z.object({
@@ -27,8 +26,12 @@ const passwordSchema = z.object({
   path: ['confirmPassword'],
 });
 
-export default function ChangePasswordDialog() {
-  const [open, setOpen] = useState(false);
+interface ChangePasswordDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export default function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -75,7 +78,7 @@ export default function ChangePasswordDialog() {
       });
 
       resetForm();
-      setOpen(false);
+      onOpenChange(false);
     } catch (error: any) {
       console.error('Error updating password:', error);
       
@@ -96,15 +99,9 @@ export default function ChangePasswordDialog() {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
-      setOpen(isOpen);
+      onOpenChange(isOpen);
       if (!isOpen) resetForm();
     }}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
-          <Key className="h-4 w-4" />
-          <span className="hidden sm:inline">Byt lösenord</span>
-        </Button>
-      </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -144,7 +141,7 @@ export default function ChangePasswordDialog() {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
               Avbryt
             </Button>
             <Button type="submit" disabled={loading}>

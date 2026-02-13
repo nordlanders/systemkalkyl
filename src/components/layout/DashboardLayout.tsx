@@ -27,7 +27,8 @@ import {
   Building2,
   Building,
   Server,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Key
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,7 +41,6 @@ const mainNavItems = [
   { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false },
   { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
   { href: '/history', icon: History, label: 'Historik', adminOnly: false },
-  { href: '/manual', icon: BookOpen, label: 'Manual', adminOnly: false },
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: false },
 ];
 
@@ -57,6 +57,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, signOut, isAdmin } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -137,7 +138,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </span>
               )}
             </div>
-            <ChangePasswordDialog />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" title="Inställningar">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover z-50">
+                <DropdownMenuItem onSelect={() => setPasswordDialogOpen(true)} className="cursor-pointer gap-2">
+                  <Key className="h-4 w-4" />
+                  Byt lösenord
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/manual" className="flex items-center gap-2 cursor-pointer">
+                    <BookOpen className="h-4 w-4" />
+                    Manual
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <ChangePasswordDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
             <Button variant="ghost" size="icon" onClick={signOut} title="Logga ut">
               <LogOut className="h-4 w-4" />
             </Button>
