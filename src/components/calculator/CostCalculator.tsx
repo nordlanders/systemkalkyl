@@ -894,6 +894,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                       <p className="font-medium">{selectedCI.organization}</p>
                     </div>
                   )}
+                  {selectedCI.object_number && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Objektnummer</p>
+                      <p className="font-medium">{selectedCI.object_number}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ) : (

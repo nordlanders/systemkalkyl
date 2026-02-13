@@ -27,6 +27,7 @@ interface ConfigurationItem {
   system_owner: string | null;
   system_administrator: string | null;
   organization: string | null;
+  object_number: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -131,7 +132,7 @@ export default function ConfigurationItemsManagement() {
 
       // Validate header row
       const header = rows[0].map(h => h.toLowerCase().trim());
-      const expectedColumns = ['ci nummer', 'systemnamn', 'systemägare', 'systemförvaltare', 'organisation'];
+      const expectedColumns = ['ci nummer', 'systemnamn', 'systemägare', 'systemförvaltare', 'organisation', 'objektnummer'];
       
       // Map column indices
       const ciNumberIdx = header.findIndex(h => h === 'ci nummer' || h === 'ci_nummer' || h === 'cinummer' || h === 'ci-nummer');
@@ -139,6 +140,7 @@ export default function ConfigurationItemsManagement() {
       const systemOwnerIdx = header.findIndex(h => h === 'systemägare' || h === 'system_owner' || h === 'system ägare');
       const systemAdminIdx = header.findIndex(h => h === 'systemförvaltare' || h === 'system_administrator' || h === 'system förvaltare');
       const organizationIdx = header.findIndex(h => h === 'organisation' || h === 'organization');
+      const objectNumberIdx = header.findIndex(h => h === 'objektnummer' || h === 'object_number' || h === 'objekt nummer' || h === 'objekt');
 
       if (ciNumberIdx === -1 || systemNameIdx === -1) {
         throw new Error('Obligatoriska kolumner saknas. "CI nummer" och "Systemnamn" måste finnas.');
@@ -166,6 +168,7 @@ export default function ConfigurationItemsManagement() {
           system_owner: systemOwnerIdx >= 0 ? row[systemOwnerIdx]?.trim() || null : null,
           system_administrator: systemAdminIdx >= 0 ? row[systemAdminIdx]?.trim() || null : null,
           organization: organizationIdx >= 0 ? row[organizationIdx]?.trim() || null : null,
+          object_number: objectNumberIdx >= 0 ? row[objectNumberIdx]?.trim() || null : null,
           created_by: user?.id,
         };
 
@@ -239,8 +242,8 @@ export default function ConfigurationItemsManagement() {
   }
 
   function downloadTemplate() {
-    const header = 'CI nummer;Systemnamn;Systemägare;Systemförvaltare;Organisation';
-    const exampleRow = 'CI-12345;E-tjänstplattform;Anna Andersson;Erik Eriksson;IT-avdelningen';
+    const header = 'CI nummer;Systemnamn;Systemägare;Systemförvaltare;Organisation;Objektnummer';
+    const exampleRow = 'CI-12345;E-tjänstplattform;Anna Andersson;Erik Eriksson;IT-avdelningen;OBJ-001';
     const content = `${header}\n${exampleRow}`;
     
     const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8' });
@@ -299,6 +302,7 @@ export default function ConfigurationItemsManagement() {
                 <li><strong>Systemägare</strong> - Ansvarig person för systemet</li>
                 <li><strong>Systemförvaltare</strong> - Person som förvaltar systemet</li>
                 <li><strong>Organisation</strong> - Tillhörande organisation</li>
+                <li><strong>Objektnummer</strong> - Objektnummer kopplat till CI-posten</li>
               </ul>
             </AlertDescription>
           </Alert>
@@ -389,11 +393,12 @@ export default function ConfigurationItemsManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>CI nummer</TableHead>
+                     <TableHead>CI nummer</TableHead>
                     <TableHead>Systemnamn</TableHead>
                     <TableHead>Systemägare</TableHead>
                     <TableHead>Systemförvaltare</TableHead>
                     <TableHead>Organisation</TableHead>
+                    <TableHead>Objektnummer</TableHead>
                     <TableHead>Status</TableHead>
                     {isAdmin && <TableHead className="w-[80px]">Åtgärder</TableHead>}
                   </TableRow>
@@ -406,6 +411,7 @@ export default function ConfigurationItemsManagement() {
                       <TableCell>{item.system_owner || '-'}</TableCell>
                       <TableCell>{item.system_administrator || '-'}</TableCell>
                       <TableCell>{item.organization || '-'}</TableCell>
+                      <TableCell>{item.object_number || '-'}</TableCell>
                       <TableCell>
                         <Badge variant={item.is_active ? 'default' : 'secondary'}>
                           {item.is_active ? 'Aktiv' : 'Inaktiv'}

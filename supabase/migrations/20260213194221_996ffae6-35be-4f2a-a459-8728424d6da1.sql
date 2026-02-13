@@ -1,0 +1,1 @@
+ALTER TABLE public.configuration_items ADD COLUMN object_number text;
