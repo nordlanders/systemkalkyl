@@ -22,18 +22,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Loader2, 
-  Calculator, 
-  Settings, 
-  Users, 
-  History, 
-  BarChart3,
   Newspaper,
   Plus,
   Pencil,
   Trash2,
-  ArrowRight,
   Info
 } from 'lucide-react';
+import homepageIllustration from '@/assets/homepage-illustration.jpg';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -57,7 +52,7 @@ export default function HomePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
   const [saving, setSaving] = useState(false);
-  const [lastPricingUpdate, setLastPricingUpdate] = useState<string | null>(null);
+  
   
   // Form state
   const [title, setTitle] = useState('');
@@ -73,27 +68,10 @@ export default function HomePage() {
   useEffect(() => {
     if (user) {
       loadNews();
-      loadLastPricingUpdate();
     }
   }, [user]);
 
-  async function loadLastPricingUpdate() {
-    try {
-      const { data, error } = await supabase
-        .from('pricing_config')
-        .select('updated_at')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
 
-      if (error) throw error;
-      if (data) {
-        setLastPricingUpdate(data.updated_at);
-      }
-    } catch (error) {
-      console.error('Error loading pricing update:', error);
-    }
-  }
 
   async function loadNews() {
     try {
@@ -217,22 +195,6 @@ export default function HomePage() {
   const publishedNews = news.filter(n => n.published);
   const displayNews = isAdmin ? news : publishedNews;
 
-  const quickLinks = [
-    { href: '/calculator', icon: Calculator, label: 'Kalkylator', description: 'Skapa och hantera kalkyler' },
-    { 
-      href: '/pricing', 
-      icon: Settings, 
-      label: 'Priskonfiguration', 
-      description: 'Hantera prislistor',
-      extra: lastPricingUpdate 
-        ? `Senast uppdaterad ${format(new Date(lastPricingUpdate), 'd MMM yyyy', { locale: sv })}`
-        : undefined
-    },
-    { href: '/users', icon: Users, label: 'Användare', description: 'Hantera systemanvändare', adminOnly: true },
-    { href: '/history', icon: History, label: 'Historik', description: 'Se ändringshistorik' },
-    { href: '/analytics', icon: BarChart3, label: 'Analys', description: 'Översikt och statistik', adminOnly: true },
-  ];
-
   return (
     <DashboardLayout>
       <div className="space-y-8 fade-in">
@@ -252,33 +214,13 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Quick Links */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {quickLinks
-            .filter(link => !link.adminOnly || isAdmin)
-            .map((link) => (
-              <Link key={link.href} to={link.href}>
-                <Card className="h-full hover:shadow-md transition-shadow cursor-pointer group">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                        <link.icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold flex items-center gap-2">
-                          {link.label}
-                          <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </h3>
-                        <p className="text-sm text-muted-foreground">{link.description}</p>
-                        {'extra' in link && link.extra && (
-                          <p className="text-xs text-muted-foreground/70 mt-1">{link.extra}</p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+        {/* Illustration */}
+        <div className="rounded-2xl overflow-hidden shadow-lg">
+          <img 
+            src={homepageIllustration} 
+            alt="IT-infrastruktur, nätverk, kostnadshantering" 
+            className="w-full h-auto object-cover"
+          />
         </div>
 
         {/* News Section */}
