@@ -215,11 +215,11 @@ export default function HomePage() {
         </div>
 
         {/* Illustration */}
-        <div className="rounded-2xl overflow-hidden shadow-lg max-h-48 sm:max-h-56">
+        <div className="rounded-2xl overflow-hidden shadow-lg">
           <img 
             src={homepageIllustration} 
             alt="IT-infrastruktur, nätverk, kostnadshantering" 
-            className="w-full h-full object-cover object-center"
+            className="w-full h-auto object-contain"
           />
         </div>
 
