@@ -28,7 +28,7 @@ import {
   Trash2,
   Info
 } from 'lucide-react';
-import homepageIllustration from '@/assets/homepage-illustration.jpg';
+
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -214,14 +214,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Illustration */}
-        <div className="rounded-2xl overflow-hidden shadow-lg">
-          <img 
-            src={homepageIllustration} 
-            alt="IT-infrastruktur, nätverk, kostnadshantering" 
-            className="w-full h-auto object-contain"
-          />
-        </div>
 
         {/* News Section */}
         <Card>
