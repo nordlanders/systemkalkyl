@@ -115,6 +115,12 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
+    if (!readOnly) {
+      setStep(1);
+    }
+  }, [readOnly]);
+
+  useEffect(() => {
     loadData();
   }, []);
 
