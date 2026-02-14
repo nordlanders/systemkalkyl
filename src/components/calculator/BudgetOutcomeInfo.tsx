@@ -30,10 +30,11 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
   async function loadBudgetData(objNr: string) {
     setLoading(true);
     try {
+      // Fetch all budget rows that have an objekt value
       const { data, error } = await supabase
         .from('budget_outcomes')
-        .select('budget_2025, budget_2026, utfall_ack, diff')
-        .eq('objekt', objNr);
+        .select('budget_2025, budget_2026, utfall_ack, diff, objekt')
+        .not('objekt', 'is', null);
 
       if (error) throw error;
 
@@ -42,7 +43,19 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
         return;
       }
 
-      const totals = data.reduce<BudgetSummary>(
+      // Match: compare CI object_number against the numeric part (before first space) of budget objekt
+      const matched = data.filter((row) => {
+        if (!row.objekt) return false;
+        const budgetObjNum = row.objekt.split(' ')[0].trim();
+        return budgetObjNum === objNr || row.objekt === objNr;
+      });
+
+      if (matched.length === 0) {
+        setSummary(null);
+        return;
+      }
+
+      const totals = matched.reduce<BudgetSummary>(
         (acc, row) => ({
           budget_2025: acc.budget_2025 + (row.budget_2025 || 0),
           budget_2026: acc.budget_2026 + (row.budget_2026 || 0),
