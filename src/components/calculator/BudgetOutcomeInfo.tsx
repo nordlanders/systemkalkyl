@@ -1,27 +1,27 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Loader2, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface BudgetOutcomeInfoProps {
   objectNumber: string | null;
 }
 
-interface BudgetSummary {
+interface UkontoRow {
+  ukonto: string;
+  utfall_ack: number;
   budget_2025: number;
   budget_2026: number;
-  utfall_ack: number;
-  diff: number;
-  rowCount: number;
 }
 
 export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoProps) {
   const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState<BudgetSummary | null>(null);
+  const [rows, setRows] = useState<UkontoRow[]>([]);
 
   useEffect(() => {
     if (!objectNumber) {
-      setSummary(null);
+      setRows([]);
       return;
     }
     loadBudgetData(objectNumber);
@@ -30,20 +30,19 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
   async function loadBudgetData(objNr: string) {
     setLoading(true);
     try {
-      // Fetch all budget rows that have a mot (motpart) value — this is where object numbers (starting with 6, 7 digits) are stored
       const { data, error } = await supabase
         .from('budget_outcomes')
-        .select('budget_2025, budget_2026, utfall_ack, diff, mot')
+        .select('ukonto, budget_2025, budget_2026, utfall_ack, mot')
         .not('mot', 'is', null);
 
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        setSummary(null);
+        setRows([]);
         return;
       }
 
-      // Match: compare CI object_number against the numeric part (before first space) of budget mot field
+      // Match on mot field numeric part
       const matched = data.filter((row) => {
         if (!row.mot) return false;
         const motNum = row.mot.split(' ')[0].trim();
@@ -51,35 +50,40 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
       });
 
       if (matched.length === 0) {
-        setSummary(null);
+        setRows([]);
         return;
       }
 
-      const totals = matched.reduce<BudgetSummary>(
-        (acc, row) => ({
-          budget_2025: acc.budget_2025 + (row.budget_2025 || 0),
-          budget_2026: acc.budget_2026 + (row.budget_2026 || 0),
-          utfall_ack: acc.utfall_ack + (row.utfall_ack || 0),
-          diff: acc.diff + (row.diff || 0),
-          rowCount: acc.rowCount + 1,
-        }),
-        { budget_2025: 0, budget_2026: 0, utfall_ack: 0, diff: 0, rowCount: 0 }
-      );
+      // Group by ukonto and sum values
+      const map = new Map<string, UkontoRow>();
+      matched.forEach((row) => {
+        const key = row.ukonto || '(tomt)';
+        const existing = map.get(key);
+        if (existing) {
+          existing.utfall_ack += row.utfall_ack || 0;
+          existing.budget_2025 += row.budget_2025 || 0;
+          existing.budget_2026 += row.budget_2026 || 0;
+        } else {
+          map.set(key, {
+            ukonto: key,
+            utfall_ack: row.utfall_ack || 0,
+            budget_2025: row.budget_2025 || 0,
+            budget_2026: row.budget_2026 || 0,
+          });
+        }
+      });
 
-      setSummary(totals);
+      setRows(Array.from(map.values()).sort((a, b) => a.ukonto.localeCompare(b.ukonto, 'sv')));
     } catch (error) {
       console.error('Error loading budget data:', error);
-      setSummary(null);
+      setRows([]);
     } finally {
       setLoading(false);
     }
   }
 
-  function formatCurrency(value: number) {
+  function formatNumber(value: number) {
     return new Intl.NumberFormat('sv-SE', {
-      style: 'currency',
-      currency: 'SEK',
-      minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
   }
@@ -96,7 +100,7 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
     );
   }
 
-  if (!summary) {
+  if (rows.length === 0) {
     return (
       <Card className="border-dashed">
         <CardContent className="py-6 text-center">
@@ -108,8 +112,14 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
     );
   }
 
-  const DiffIcon = summary.diff > 0 ? TrendingUp : summary.diff < 0 ? TrendingDown : Minus;
-  const diffColor = summary.diff > 0 ? 'text-green-600' : summary.diff < 0 ? 'text-destructive' : 'text-muted-foreground';
+  const totals = rows.reduce(
+    (acc, r) => ({
+      utfall_ack: acc.utfall_ack + r.utfall_ack,
+      budget_2025: acc.budget_2025 + r.budget_2025,
+      budget_2026: acc.budget_2026 + r.budget_2026,
+    }),
+    { utfall_ack: 0, budget_2025: 0, budget_2026: 0 }
+  );
 
   return (
     <Card>
@@ -119,30 +129,37 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
           Budget & Utfall – Objekt {objectNumber}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs font-medium text-muted-foreground">Budget 2025</p>
-            <p className="text-sm font-semibold">{formatCurrency(summary.budget_2025)}</p>
-          </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs font-medium text-muted-foreground">Budget 2026</p>
-            <p className="text-sm font-semibold">{formatCurrency(summary.budget_2026)}</p>
-          </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs font-medium text-muted-foreground">Utfall ack.</p>
-            <p className="text-sm font-semibold">{formatCurrency(summary.utfall_ack)}</p>
-          </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-xs font-medium text-muted-foreground">Differens</p>
-            <p className={`text-sm font-semibold flex items-center gap-1 ${diffColor}`}>
-              <DiffIcon className="h-3 w-3" />
-              {formatCurrency(summary.diff)}
-            </p>
-          </div>
+      <CardContent>
+        <div className="overflow-auto border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">Ukonto</TableHead>
+                <TableHead className="text-xs text-right">Utfall ack.</TableHead>
+                <TableHead className="text-xs text-right">Budget 2025</TableHead>
+                <TableHead className="text-xs text-right">Budget 2026</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.ukonto}>
+                  <TableCell className="text-xs font-medium">{row.ukonto}</TableCell>
+                  <TableCell className="text-xs text-right">{formatNumber(row.utfall_ack)}</TableCell>
+                  <TableCell className="text-xs text-right">{formatNumber(row.budget_2025)}</TableCell>
+                  <TableCell className="text-xs text-right">{formatNumber(row.budget_2026)}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="font-semibold border-t-2">
+                <TableCell className="text-xs">Totalt</TableCell>
+                <TableCell className="text-xs text-right">{formatNumber(totals.utfall_ack)}</TableCell>
+                <TableCell className="text-xs text-right">{formatNumber(totals.budget_2025)}</TableCell>
+                <TableCell className="text-xs text-right">{formatNumber(totals.budget_2026)}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
-        <p className="text-xs text-muted-foreground text-center">
-          Baserat på {summary.rowCount} budgetrad{summary.rowCount !== 1 ? 'er' : ''}
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Baserat på {rows.length} ukonto-grupp{rows.length !== 1 ? 'er' : ''}
         </p>
       </CardContent>
     </Card>
