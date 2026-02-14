@@ -1319,9 +1319,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   <span className="font-medium truncate max-w-[150px]">{calculationName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">CI-identitet</span>
-                  <span className="font-mono">{ciIdentity}</span>
+                  <span className="text-muted-foreground">Objektnummer</span>
+                  <span className="font-mono">{selectedCI?.object_number || ''}</span>
                 </div>
+                {selectedCI?.ci_number && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">CI-identitet</span>
+                    <span className="font-mono">{selectedCI.ci_number}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Tjänstetyp</span>
                   <span className="text-xs">{serviceType}</span>
