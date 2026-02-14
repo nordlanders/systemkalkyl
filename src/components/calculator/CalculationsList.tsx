@@ -777,7 +777,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                       </TableCell>
                       <TableCell className="text-right">
                           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                            {status === 'approved' && calc.version > 1 && (
+                            {(status === 'approved' || status === 'closed') && (
                               <Button
                                 variant="ghost"
                                 size="icon"

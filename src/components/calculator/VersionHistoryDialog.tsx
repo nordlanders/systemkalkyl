@@ -12,7 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import { type Calculation, type CalculationVersion } from '@/lib/supabase';
-import { Loader2, History, Eye, ArrowLeft, Clock, CheckCircle2, FileEdit, User } from 'lucide-react';
+import { Loader2, History, Eye, ArrowLeft, Clock, CheckCircle2, FileEdit, User, Archive } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -78,6 +78,7 @@ export default function VersionHistoryDialog({
       draft: { label: 'Ej klar', icon: FileEdit, variant: 'secondary' as const, className: '' },
       pending_approval: { label: 'Väntar godkännande', icon: Clock, variant: 'outline' as const, className: 'border-amber-500 text-amber-600' },
       approved: { label: 'Godkänd', icon: CheckCircle2, variant: 'default' as const, className: 'bg-green-600 hover:bg-green-700' },
+      closed: { label: 'Avslutad', icon: Archive, variant: 'outline' as const, className: 'border-muted-foreground text-muted-foreground' },
     };
     return configs[status as keyof typeof configs] || configs.draft;
   };
@@ -231,16 +232,96 @@ export default function VersionHistoryDialog({
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : versions.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Ingen versionshistorik finns för denna kalkyl.</p>
-            <p className="text-sm mt-1">
-              Historik skapas när en kalkyl uppdateras.
-            </p>
-          </div>
+          <ScrollArea className="max-h-[400px]">
+            <div className="space-y-2">
+              {/* Current version - shown even with no history */}
+              {calculation && (() => {
+                const statusConfig = getStatusConfig(calculation.status);
+                const StatusIcon = statusConfig.icon;
+                return (
+                  <div className="flex items-center justify-between p-4 border-2 border-primary/30 rounded-lg bg-primary/5">
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Version {calculation.version}</span>
+                          <Badge variant="outline" className="text-xs border-primary text-primary">Aktuell</Badge>
+                          <Badge variant={statusConfig.variant} className={`gap-1 text-xs ${statusConfig.className}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {statusConfig.label}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                          <span>
+                            {calculation.updated_at 
+                              ? format(new Date(calculation.updated_at), 'd MMM yyyy HH:mm', { locale: sv })
+                              : format(new Date(calculation.created_at), 'd MMM yyyy HH:mm', { locale: sv })}
+                          </span>
+                          {(calculation.updated_by_name || calculation.created_by_name) && (
+                            <span className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {calculation.updated_by_name || calculation.created_by_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-sm font-medium text-primary">
+                        {formatCurrency(Number(calculation.total_cost))}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+              <p className="text-center text-sm text-muted-foreground pt-2">
+                Ingen äldre versionshistorik finns.
+              </p>
+            </div>
+          </ScrollArea>
         ) : (
           <ScrollArea className="max-h-[400px]">
             <div className="space-y-2">
+              {/* Current version */}
+              {calculation && (() => {
+                const statusConfig = getStatusConfig(calculation.status);
+                const StatusIcon = statusConfig.icon;
+                return (
+                  <div className="flex items-center justify-between p-4 border-2 border-primary/30 rounded-lg bg-primary/5">
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Version {calculation.version}</span>
+                          <Badge variant="outline" className="text-xs border-primary text-primary">Aktuell</Badge>
+                          <Badge variant={statusConfig.variant} className={`gap-1 text-xs ${statusConfig.className}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {statusConfig.label}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                          <span>
+                            {calculation.updated_at 
+                              ? format(new Date(calculation.updated_at), 'd MMM yyyy HH:mm', { locale: sv })
+                              : format(new Date(calculation.created_at), 'd MMM yyyy HH:mm', { locale: sv })}
+                          </span>
+                          {(calculation.updated_by_name || calculation.created_by_name) && (
+                            <span className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {calculation.updated_by_name || calculation.created_by_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="font-mono text-sm font-medium text-primary">
+                        {formatCurrency(Number(calculation.total_cost))}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Previous versions */}
               {versions.map((version) => {
                 const statusConfig = getStatusConfig(version.status);
                 const StatusIcon = statusConfig.icon;
