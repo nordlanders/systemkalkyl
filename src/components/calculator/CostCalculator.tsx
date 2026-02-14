@@ -1175,16 +1175,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
             {/* Navigate to Step 3 */}
             <Card>
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">
-                      <strong>{calculationName}</strong> • CI: {ciIdentity} • {serviceType}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {rows.length} prisrad{rows.length !== 1 ? 'er' : ''} • Total: {formatCurrency(calculateTotalCost())}
-                    </p>
-                  </div>
+              <CardContent className="pt-6 flex justify-end">
                   <Button 
                     onClick={() => setStep(3)} 
                     disabled={!canProceedToStep3} 
@@ -1193,7 +1184,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     Granska och bekräfta
                     <ArrowRight className="h-4 w-4" />
                   </Button>
-                </div>
               </CardContent>
             </Card>
           </div>
