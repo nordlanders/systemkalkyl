@@ -66,7 +66,7 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
   // Notify parent when selected item changes
   useEffect(() => {
     if (onItemChange) {
-      const selectedItem = items.find(item => item.ci_number === value) || null;
+      const selectedItem = items.find(item => item.id === value) || null;
       onItemChange(selectedItem);
     }
   }, [value, items, onItemChange]);
@@ -82,7 +82,7 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
     );
   }, [items, searchQuery]);
 
-  const selectedItem = items.find(item => item.ci_number === value);
+  const selectedItem = items.find(item => item.id === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -99,9 +99,11 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
               <Server className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="truncate">
                 {selectedItem.system_name}
-                <span className="text-muted-foreground ml-1 text-xs">
-                  (CI: {selectedItem.ci_number}{selectedItem.object_number ? ` • Objekt: ${selectedItem.object_number}` : ''})
-                </span>
+                {selectedItem.object_number && (
+                  <span className="text-muted-foreground ml-1 text-xs">
+                    (Objekt: {selectedItem.object_number})
+                  </span>
+                )}
               </span>
             </span>
           ) : value ? (
@@ -130,9 +132,9 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
               {filteredItems.map((item) => (
                 <CommandItem
                   key={item.id}
-                  value={item.ci_number}
+                  value={item.id}
                   onSelect={() => {
-                    onChange(item.ci_number);
+                    onChange(item.id);
                     setOpen(false);
                     setSearchQuery('');
                   }}
@@ -142,7 +144,7 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4 shrink-0",
-                        value === item.ci_number ? "opacity-100" : "opacity-0"
+                        value === item.id ? "opacity-100" : "opacity-0"
                       )}
                     />
                     <div className="flex-1 min-w-0">
@@ -150,8 +152,8 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
                         {item.system_name}
                       </div>
                       <div className="text-sm text-muted-foreground truncate">
-                        CI: {item.ci_number}{item.object_number ? ` • Objekt: ${item.object_number}` : ''}
-                        {(item.system_owner || item.organization) ? ` • ${[item.system_owner, item.organization].filter(Boolean).join(' • ')}` : ''}
+                        {item.object_number ? `Objekt: ${item.object_number}` : ''}
+                        {(item.system_owner || item.organization) ? `${item.object_number ? ' • ' : ''}${[item.system_owner, item.organization].filter(Boolean).join(' • ')}` : ''}
                       </div>
                     </div>
                   </div>
