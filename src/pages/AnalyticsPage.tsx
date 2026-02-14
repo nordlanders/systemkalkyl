@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users, CheckCircle2 } from 'lucide-react';
+import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users, CheckCircle2, GitCompareArrows } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -43,6 +43,7 @@ import {
   Legend,
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import BudgetComparisonTab from '@/components/analytics/BudgetComparisonTab';
 
 interface CalculationItem {
   price_type: string;
@@ -599,6 +600,10 @@ export default function AnalyticsPage() {
                   <BarChart3 className="h-4 w-4" />
                   Per pristyp
                 </TabsTrigger>
+                <TabsTrigger value="budget-comparison" className="gap-2">
+                  <GitCompareArrows className="h-4 w-4" />
+                  Jämför med budget & utfall
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="service-type">
@@ -813,6 +818,9 @@ export default function AnalyticsPage() {
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+              <TabsContent value="budget-comparison">
+                <BudgetComparisonTab />
               </TabsContent>
             </Tabs>
           </>
