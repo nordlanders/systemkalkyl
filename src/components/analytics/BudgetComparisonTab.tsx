@@ -44,6 +44,7 @@ interface BudgetOutcome {
 }
 
 interface ConfigItem {
+  id: string;
   ci_number: string;
   system_name: string;
   object_number: string | null;
@@ -78,7 +79,7 @@ export default function BudgetComparisonTab() {
           .order('name', { ascending: true }),
         supabase
           .from('configuration_items')
-          .select('ci_number, system_name, object_number')
+          .select('id, ci_number, system_name, object_number')
           .eq('is_active', true),
       ]);
       setCalculations(calcsRes.data || []);
@@ -111,17 +112,22 @@ export default function BudgetComparisonTab() {
       setVersions(versionsData || []);
       setSelectedVersion('current');
 
-      // Find object_number via CI
-      const ci = configItems.find(c => c.ci_number === calc.ci_identity);
+      // Find object_number via CI - ci_identity is the UUID (id) of the configuration_item
+      const ci = configItems.find(c => c.id === calc.ci_identity);
       const objectNumber = ci?.object_number;
 
       if (objectNumber) {
+        // Budget data uses 'mot' column with format "6110700 Lagring" - match by prefix
         const { data: budgetRows } = await supabase
           .from('budget_outcomes')
-          .select('id, objekt, ansvar, ukonto, budget_2025, budget_2026, utfall_ack, diff, import_label, extraction_date')
-          .eq('objekt', objectNumber)
-          .order('ansvar', { ascending: true });
-        setBudgetData(budgetRows || []);
+          .select('id, objekt, ansvar, ukonto, budget_2025, budget_2026, utfall_ack, diff, import_label, extraction_date, mot')
+          .not('mot', 'is', null);
+        
+        // Filter rows where mot starts with the object number
+        const matchedRows = (budgetRows || []).filter((r: any) => 
+          r.mot && r.mot.toString().startsWith(objectNumber)
+        );
+        setBudgetData(matchedRows);
       } else {
         setBudgetData([]);
       }
@@ -132,7 +138,7 @@ export default function BudgetComparisonTab() {
   }, [selectedCalcId, calculations, configItems]);
 
   const selectedCalc = calculations.find(c => c.id === selectedCalcId);
-  const selectedCI = selectedCalc ? configItems.find(c => c.ci_number === selectedCalc.ci_identity) : null;
+  const selectedCI = selectedCalc ? configItems.find(c => c.id === selectedCalc.ci_identity) : null;
 
   const currentCalcCost = useMemo(() => {
     if (!selectedCalc) return 0;
