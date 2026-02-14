@@ -112,13 +112,43 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
     );
   }
 
-  const totals = rows.reduce(
+  // Classify: positive budget_2026 = intäkt, negative = kostnad
+  const incomeRows = rows.filter(r => r.budget_2026 >= 0);
+  const costRows = rows.filter(r => r.budget_2026 < 0);
+
+  const sumRows = (arr: UkontoRow[]) => arr.reduce(
     (acc, r) => ({
       utfall_ack: acc.utfall_ack + r.utfall_ack,
       budget_2025: acc.budget_2025 + r.budget_2025,
       budget_2026: acc.budget_2026 + r.budget_2026,
     }),
     { utfall_ack: 0, budget_2025: 0, budget_2026: 0 }
+  );
+
+  const incomeTotals = sumRows(incomeRows);
+  const costTotals = sumRows(costRows);
+  const grandTotals = sumRows(rows);
+
+  const renderSection = (title: string, sectionRows: UkontoRow[], sectionTotals: { utfall_ack: number; budget_2025: number; budget_2026: number }) => (
+    <>
+      <TableRow className="bg-muted/30">
+        <TableCell colSpan={4} className="text-xs font-semibold py-1.5">{title}</TableCell>
+      </TableRow>
+      {sectionRows.map((row) => (
+        <TableRow key={row.ukonto}>
+          <TableCell className="text-xs font-medium pl-6">{row.ukonto}</TableCell>
+          <TableCell className="text-xs text-right">{formatNumber(row.utfall_ack)}</TableCell>
+          <TableCell className="text-xs text-right">{formatNumber(row.budget_2025)}</TableCell>
+          <TableCell className="text-xs text-right">{formatNumber(row.budget_2026)}</TableCell>
+        </TableRow>
+      ))}
+      <TableRow className="border-t">
+        <TableCell className="text-xs font-semibold pl-6">Summa {title.toLowerCase()}</TableCell>
+        <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.utfall_ack)}</TableCell>
+        <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.budget_2025)}</TableCell>
+        <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.budget_2026)}</TableCell>
+      </TableRow>
+    </>
   );
 
   return (
@@ -134,33 +164,24 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs">Ukonto</TableHead>
+                <TableHead className="text-xs">Konto</TableHead>
                 <TableHead className="text-xs text-right">Utfall ack.</TableHead>
                 <TableHead className="text-xs text-right">Budget 2025</TableHead>
                 <TableHead className="text-xs text-right">Budget 2026</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.ukonto}>
-                  <TableCell className="text-xs font-medium">{row.ukonto}</TableCell>
-                  <TableCell className="text-xs text-right">{formatNumber(row.utfall_ack)}</TableCell>
-                  <TableCell className="text-xs text-right">{formatNumber(row.budget_2025)}</TableCell>
-                  <TableCell className="text-xs text-right">{formatNumber(row.budget_2026)}</TableCell>
-                </TableRow>
-              ))}
+              {incomeRows.length > 0 && renderSection('Intäkter', incomeRows, incomeTotals)}
+              {costRows.length > 0 && renderSection('Kostnader', costRows, costTotals)}
               <TableRow className="font-semibold border-t-2">
-                <TableCell className="text-xs">Totalt</TableCell>
-                <TableCell className="text-xs text-right">{formatNumber(totals.utfall_ack)}</TableCell>
-                <TableCell className="text-xs text-right">{formatNumber(totals.budget_2025)}</TableCell>
-                <TableCell className="text-xs text-right">{formatNumber(totals.budget_2026)}</TableCell>
+                <TableCell className="text-xs">Netto</TableCell>
+                <TableCell className="text-xs text-right">{formatNumber(grandTotals.utfall_ack)}</TableCell>
+                <TableCell className="text-xs text-right">{formatNumber(grandTotals.budget_2025)}</TableCell>
+                <TableCell className="text-xs text-right">{formatNumber(grandTotals.budget_2026)}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </div>
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          Baserat på {rows.length} ukonto-grupp{rows.length !== 1 ? 'er' : ''}
-        </p>
       </CardContent>
     </Card>
   );
