@@ -1300,7 +1300,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
             {/* Budget & Utfall popup button */}
             {selectedCI?.object_number && (
               <Button
-                variant="outline"
                 className="w-full gap-2"
                 onClick={() => {
                   const objNr = selectedCI.object_number;
