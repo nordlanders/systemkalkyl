@@ -171,10 +171,10 @@ export default function ConfigurationItemsManagement() {
           created_by: user?.id
         };
 
-        // Upsert - update if CI number exists, otherwise insert
+        // Insert new row with unique UUID
         const { error } = await supabase.
         from('configuration_items').
-        upsert(itemData, { onConflict: 'ci_number' });
+        insert(itemData);
 
         if (error) {
           errors.push(`Rad ${i + 2}: ${error.message}`);
