@@ -32,7 +32,8 @@ import {
   Clock,
   CheckCircle2,
   FileEdit,
-  Server
+  Server,
+  ExternalLink
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -1294,6 +1295,92 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   )}
                 </CardContent>
               </Card>
+            )}
+
+            {/* Budget & Utfall popup button */}
+            {selectedCI?.object_number && (
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => {
+                  const objNr = selectedCI.object_number;
+                  const popup = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                  if (!popup) return;
+                  popup.document.write('<html><head><title>Budget & Utfall – Objekt ' + objNr + '</title><style>body{font-family:system-ui,sans-serif;margin:20px;color:#333}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}th{background:#f3f4f6;font-weight:600;font-size:13px}.right{text-align:right}.section{background:#f9fafb;font-weight:600;padding:6px 12px;font-size:13px}.subtotal{font-weight:600;border-top:2px solid #d1d5db}.grand{font-weight:700;border-top:3px solid #6b7280;font-size:15px}.indent{padding-left:24px}.loading{text-align:center;padding:40px;color:#999}</style></head><body>');
+                  popup.document.write('<h2>Budget & Utfall – Objekt ' + objNr + '</h2>');
+                  popup.document.write('<p class="loading">Laddar data...</p>');
+                  popup.document.write('</body></html>');
+                  popup.document.close();
+
+                  // Fetch data via supabase
+                  supabase
+                    .from('budget_outcomes')
+                    .select('vht, budget_2025, budget_2026, utfall_ack, mot')
+                    .not('mot', 'is', null)
+                    .then(({ data, error }) => {
+                      if (!popup || popup.closed) return;
+                      if (error || !data) {
+                        popup.document.body.innerHTML = '<h2>Fel vid laddning</h2><p>' + (error?.message || 'Ingen data') + '</p>';
+                        return;
+                      }
+
+                      const matched = data.filter((row: any) => {
+                        if (!row.mot) return false;
+                        return row.mot.split(' ')[0].trim() === objNr;
+                      });
+
+                      if (matched.length === 0) {
+                        popup.document.body.innerHTML = '<h2>Budget & Utfall – Objekt ' + objNr + '</h2><p>Ingen data hittades.</p>';
+                        return;
+                      }
+
+                      // Group by vht
+                      const map = new Map<string, { vht: string; utfall_ack: number; budget_2025: number; budget_2026: number }>();
+                      matched.forEach((row: any) => {
+                        const key = row.vht || '(tomt)';
+                        const ex = map.get(key);
+                        if (ex) {
+                          ex.utfall_ack += row.utfall_ack || 0;
+                          ex.budget_2025 += row.budget_2025 || 0;
+                          ex.budget_2026 += row.budget_2026 || 0;
+                        } else {
+                          map.set(key, { vht: key, utfall_ack: row.utfall_ack || 0, budget_2025: row.budget_2025 || 0, budget_2026: row.budget_2026 || 0 });
+                        }
+                      });
+
+                      const allRows = Array.from(map.values()).sort((a, b) => a.vht.localeCompare(b.vht, 'sv'));
+                      const incomeRows = allRows.filter(r => r.budget_2026 >= 0);
+                      const costRows = allRows.filter(r => r.budget_2026 < 0);
+
+                      const fmt = (n: number) => new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(n);
+                      const sum = (arr: typeof allRows) => arr.reduce((a, r) => ({ utfall_ack: a.utfall_ack + r.utfall_ack, budget_2025: a.budget_2025 + r.budget_2025, budget_2026: a.budget_2026 + r.budget_2026 }), { utfall_ack: 0, budget_2025: 0, budget_2026: 0 });
+
+                      let html = '<h2>Budget & Utfall – Objekt ' + objNr + '</h2>';
+                      html += '<table><thead><tr><th>Konto</th><th class="right">Utfall ack.</th><th class="right">Budget 2025</th><th class="right">Budget 2026</th></tr></thead><tbody>';
+
+                      const renderSection = (title: string, sRows: typeof allRows) => {
+                        const t = sum(sRows);
+                        html += '<tr><td colspan="4" class="section">' + title + '</td></tr>';
+                        sRows.forEach(r => {
+                          html += '<tr><td class="indent">' + r.vht + '</td><td class="right">' + fmt(r.utfall_ack) + '</td><td class="right">' + fmt(r.budget_2025) + '</td><td class="right">' + fmt(r.budget_2026) + '</td></tr>';
+                        });
+                        html += '<tr class="subtotal"><td class="indent">Summa ' + title.toLowerCase() + '</td><td class="right">' + fmt(t.utfall_ack) + '</td><td class="right">' + fmt(t.budget_2025) + '</td><td class="right">' + fmt(t.budget_2026) + '</td></tr>';
+                      };
+
+                      if (incomeRows.length > 0) renderSection('Intäkter', incomeRows);
+                      if (costRows.length > 0) renderSection('Kostnader', costRows);
+
+                      const grand = sum(allRows);
+                      html += '<tr class="grand"><td>Netto</td><td class="right">' + fmt(grand.utfall_ack) + '</td><td class="right">' + fmt(grand.budget_2025) + '</td><td class="right">' + fmt(grand.budget_2026) + '</td></tr>';
+                      html += '</tbody></table>';
+
+                      popup.document.body.innerHTML = html;
+                    });
+                }}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Budget & Utfall
+              </Button>
             )}
           </div>
         </div>
