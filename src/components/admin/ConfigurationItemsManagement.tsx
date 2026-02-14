@@ -365,7 +365,7 @@ export default function ConfigurationItemsManagement() {
       {/* List section */}
       <Card>
         <CardHeader>
-          <CardTitle>Registrerade CI-poster</CardTitle>
+          <CardTitle>Objekt och CI-poster</CardTitle>
           <CardDescription>
             {items.length} poster totalt
           </CardDescription>
