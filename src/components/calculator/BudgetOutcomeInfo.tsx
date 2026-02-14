@@ -30,11 +30,11 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
   async function loadBudgetData(objNr: string) {
     setLoading(true);
     try {
-      // Fetch all budget rows that have an objekt value
+      // Fetch all budget rows that have a mot (motpart) value — this is where object numbers (starting with 6, 7 digits) are stored
       const { data, error } = await supabase
         .from('budget_outcomes')
-        .select('budget_2025, budget_2026, utfall_ack, diff, objekt')
-        .not('objekt', 'is', null);
+        .select('budget_2025, budget_2026, utfall_ack, diff, mot')
+        .not('mot', 'is', null);
 
       if (error) throw error;
 
@@ -43,11 +43,11 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
         return;
       }
 
-      // Match: compare CI object_number against the numeric part (before first space) of budget objekt
+      // Match: compare CI object_number against the numeric part (before first space) of budget mot field
       const matched = data.filter((row) => {
-        if (!row.objekt) return false;
-        const budgetObjNum = row.objekt.split(' ')[0].trim();
-        return budgetObjNum === objNr || row.objekt === objNr;
+        if (!row.mot) return false;
+        const motNum = row.mot.split(' ')[0].trim();
+        return motNum === objNr;
       });
 
       if (matched.length === 0) {
