@@ -738,7 +738,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ciIdentity">
-                  CI-identitet (CMDB) <span className="text-destructive">*</span>
+                  Objekt / CI-identitet <span className="text-destructive">*</span>
                 </Label>
                 <CISelector
                   value={ciIdentity}
@@ -748,7 +748,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   disabled={readOnly}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Välj systemets CI-identitet från registret eller ange manuellt
+                  Välj objekt eller CI-identitet från registret, eller ange manuellt
                 </p>
               </div>
               <div className="space-y-2">
