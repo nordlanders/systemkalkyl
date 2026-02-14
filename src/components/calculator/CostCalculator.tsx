@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import CISelector, { type ConfigurationItem } from './CISelector';
+import BudgetOutcomeInfo from './BudgetOutcomeInfo';
 import { 
   Calculator,
   Save,
@@ -860,48 +861,51 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
           {/* CI Information Panel */}
           <div className="lg:col-span-1">
             {selectedCI ? (
-              <Card className="sticky top-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Server className="h-5 w-5 text-primary" />
-                    CI-information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">CI nummer</p>
-                    <p className="font-medium">{selectedCI.ci_number}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Systemnamn</p>
-                    <p className="font-medium">{selectedCI.system_name}</p>
-                  </div>
-                  {selectedCI.system_owner && (
+              <>
+                <Card className="sticky top-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Server className="h-5 w-5 text-primary" />
+                      CI-information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Systemägare</p>
-                      <p className="font-medium">{selectedCI.system_owner}</p>
+                      <p className="text-sm font-medium text-muted-foreground">CI nummer</p>
+                      <p className="font-medium">{selectedCI.ci_number}</p>
                     </div>
-                  )}
-                  {selectedCI.system_administrator && (
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Systemförvaltare</p>
-                      <p className="font-medium">{selectedCI.system_administrator}</p>
+                      <p className="text-sm font-medium text-muted-foreground">Systemnamn</p>
+                      <p className="font-medium">{selectedCI.system_name}</p>
                     </div>
-                  )}
-                  {selectedCI.organization && (
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Organisation</p>
-                      <p className="font-medium">{selectedCI.organization}</p>
-                    </div>
-                  )}
-                  {selectedCI.object_number && (
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Objektnummer</p>
-                      <p className="font-medium">{selectedCI.object_number}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                    {selectedCI.system_owner && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Systemägare</p>
+                        <p className="font-medium">{selectedCI.system_owner}</p>
+                      </div>
+                    )}
+                    {selectedCI.system_administrator && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Systemförvaltare</p>
+                        <p className="font-medium">{selectedCI.system_administrator}</p>
+                      </div>
+                    )}
+                    {selectedCI.organization && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Organisation</p>
+                        <p className="font-medium">{selectedCI.organization}</p>
+                      </div>
+                    )}
+                    {selectedCI.object_number && (
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Objektnummer</p>
+                        <p className="font-medium">{selectedCI.object_number}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                <BudgetOutcomeInfo objectNumber={selectedCI.object_number || null} />
+              </>
             ) : (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center">
