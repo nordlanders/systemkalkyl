@@ -15,7 +15,10 @@ import {
   Pencil,
   Eye,
   Edit3,
-  Crown
+  Crown,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -40,6 +43,8 @@ export default function UsersManagement() {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [sortColumn, setSortColumn] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
@@ -95,6 +100,53 @@ export default function UsersManagement() {
     setEditingUser(u);
     setEditDialogOpen(true);
   }
+
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  }
+
+  function SortIcon({ column }: { column: string }) {
+    if (sortColumn !== column) return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />;
+    return sortDirection === 'asc' ? <ArrowUp className="h-4 w-4 ml-1" /> : <ArrowDown className="h-4 w-4 ml-1" />;
+  }
+
+  const sortedUsers = [...users].sort((a, b) => {
+    let aVal: any;
+    let bVal: any;
+    switch (sortColumn) {
+      case 'name':
+        aVal = (a.full_name || a.email).toLowerCase();
+        bVal = (b.full_name || b.email).toLowerCase();
+        break;
+      case 'role':
+        const roleOrder = { superadmin: 0, admin: 1, user: 2 };
+        aVal = roleOrder[a.role] ?? 3;
+        bVal = roleOrder[b.role] ?? 3;
+        break;
+      case 'permission':
+        aVal = a.permission_level;
+        bVal = b.permission_level;
+        break;
+      case 'last_login':
+        aVal = a.last_login_at ? new Date(a.last_login_at).getTime() : 0;
+        bVal = b.last_login_at ? new Date(b.last_login_at).getTime() : 0;
+        break;
+      case 'created_at':
+        aVal = new Date(a.created_at).getTime();
+        bVal = new Date(b.created_at).getTime();
+        break;
+      default:
+        return 0;
+    }
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   if (loading) {
     return (
@@ -217,11 +269,21 @@ export default function UsersManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead>Användare</TableHead>
-                  <TableHead>Roll</TableHead>
-                  <TableHead>Behörighet</TableHead>
-                  <TableHead>Senast inloggad</TableHead>
-                  <TableHead>Registrerad</TableHead>
+                  <TableHead className="cursor-pointer hover:bg-muted select-none" onClick={() => handleSort('name')}>
+                    <div className="flex items-center">Användare<SortIcon column="name" /></div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer hover:bg-muted select-none" onClick={() => handleSort('role')}>
+                    <div className="flex items-center">Roll<SortIcon column="role" /></div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer hover:bg-muted select-none" onClick={() => handleSort('permission')}>
+                    <div className="flex items-center">Behörighet<SortIcon column="permission" /></div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer hover:bg-muted select-none" onClick={() => handleSort('last_login')}>
+                    <div className="flex items-center">Senast inloggad<SortIcon column="last_login" /></div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer hover:bg-muted select-none" onClick={() => handleSort('created_at')}>
+                    <div className="flex items-center">Registrerad<SortIcon column="created_at" /></div>
+                  </TableHead>
                   <TableHead className="text-right">Åtgärder</TableHead>
                 </TableRow>
               </TableHeader>
@@ -233,7 +295,7 @@ export default function UsersManagement() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((u) => (
+                  sortedUsers.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell>
                         <div>
