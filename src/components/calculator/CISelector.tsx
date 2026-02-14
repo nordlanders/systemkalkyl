@@ -98,7 +98,10 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
             <span className="flex items-center gap-2 truncate">
               <Server className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="truncate">
-                {selectedItem.ci_number} - {selectedItem.system_name}
+                {selectedItem.system_name}
+                <span className="text-muted-foreground ml-1 text-xs">
+                  (CI: {selectedItem.ci_number}{selectedItem.object_number ? ` • Objekt: ${selectedItem.object_number}` : ''})
+                </span>
               </span>
             </span>
           ) : value ? (
@@ -144,13 +147,12 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">
-                        {item.ci_number} - {item.system_name}
+                        {item.system_name}
                       </div>
-                      {(item.system_owner || item.organization) && (
-                        <div className="text-sm text-muted-foreground truncate">
-                          {[item.system_owner, item.organization].filter(Boolean).join(' • ')}
-                        </div>
-                      )}
+                      <div className="text-sm text-muted-foreground truncate">
+                        CI: {item.ci_number}{item.object_number ? ` • Objekt: ${item.object_number}` : ''}
+                        {(item.system_owner || item.organization) ? ` • ${[item.system_owner, item.organization].filter(Boolean).join(' • ')}` : ''}
+                      </div>
                     </div>
                   </div>
                 </CommandItem>
