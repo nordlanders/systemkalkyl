@@ -16,7 +16,10 @@ import {
   AlertCircle,
   CheckCircle2,
   Download,
-  Search } from
+  Search,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown } from
 'lucide-react';
 
 interface ConfigurationItem {
@@ -37,12 +40,17 @@ interface ImportResult {
   errors: string[];
 }
 
+type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'is_active';
+type SortDir = 'asc' | 'desc';
+
 export default function ConfigurationItemsManagement() {
   const [items, setItems] = useState<ConfigurationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user, isAdmin } = useAuth();
@@ -254,12 +262,42 @@ export default function ConfigurationItemsManagement() {
     URL.revokeObjectURL(url);
   }
 
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
+
+  function SortIcon({ column }: { column: SortKey }) {
+    if (sortKey !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  }
+
   const filteredItems = items.filter((item) =>
   item.ci_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
   item.system_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
   item.system_owner?.toLowerCase().includes(searchTerm.toLowerCase()) ||
   item.organization?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    if (!sortKey) return 0;
+    let aVal: string | boolean = '';
+    let bVal: string | boolean = '';
+    if (sortKey === 'is_active') {
+      aVal = a.is_active;
+      bVal = b.is_active;
+      if (aVal === bVal) return 0;
+      return sortDir === 'asc' ? (aVal ? -1 : 1) : (aVal ? 1 : -1);
+    }
+    aVal = (a[sortKey] || '').toLowerCase();
+    bVal = (b[sortKey] || '').toLowerCase();
+    const cmp = aVal.localeCompare(bVal, 'sv');
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
 
   if (loading) {
     return (
@@ -391,19 +429,33 @@ export default function ConfigurationItemsManagement() {
           <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                     <TableHead>CI nummer</TableHead>
-                    <TableHead>Systemnamn</TableHead>
-                    <TableHead>Systemägare</TableHead>
-                    <TableHead>Systemförvaltare</TableHead>
-                    <TableHead>Organisation</TableHead>
-                    <TableHead>Objektnummer</TableHead>
-                    <TableHead>Status</TableHead>
-                    {isAdmin && <TableHead className="w-[80px]">Åtgärder</TableHead>}
-                  </TableRow>
+                   <TableRow>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('ci_number')}>
+                       <span className="flex items-center">CI nummer<SortIcon column="ci_number" /></span>
+                     </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('system_name')}>
+                       <span className="flex items-center">Systemnamn<SortIcon column="system_name" /></span>
+                     </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('system_owner')}>
+                       <span className="flex items-center">Systemägare<SortIcon column="system_owner" /></span>
+                     </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('system_administrator')}>
+                       <span className="flex items-center">Systemförvaltare<SortIcon column="system_administrator" /></span>
+                     </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('organization')}>
+                       <span className="flex items-center">Organisation<SortIcon column="organization" /></span>
+                     </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('object_number')}>
+                       <span className="flex items-center">Objektnummer<SortIcon column="object_number" /></span>
+                     </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('is_active')}>
+                       <span className="flex items-center">Status<SortIcon column="is_active" /></span>
+                     </TableHead>
+                     {isAdmin && <TableHead className="w-[80px]">Åtgärder</TableHead>}
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredItems.map((item) =>
+                  {sortedItems.map((item) =>
                 <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.ci_number}</TableCell>
                       <TableCell>{item.system_name}</TableCell>
