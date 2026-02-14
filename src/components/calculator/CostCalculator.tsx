@@ -862,7 +862,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
           <div className="lg:col-span-1">
             {selectedCI ? (
               <>
-                <Card className="sticky top-4">
+                <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <Server className="h-5 w-5 text-primary" />
