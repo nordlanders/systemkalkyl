@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Search, GitCompareArrows } from 'lucide-react';
+import { Loader2, Search, GitCompareArrows, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 
 interface CalculationOption {
@@ -342,45 +343,42 @@ export default function BudgetComparisonTab() {
                   </div>
                 </div>
 
-                {/* Detail table */}
-                <div>
-                  <h3 className="text-sm font-medium mb-3">Budgetrader för objekt {selectedCI.object_number}</h3>
-                  <div className="rounded-md border overflow-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Ansvar</TableHead>
-                          <TableHead>Ukonto</TableHead>
-                          <TableHead className="text-right">Budget 2025</TableHead>
-                          <TableHead className="text-right">Budget 2026</TableHead>
-                          <TableHead className="text-right">Utfall ack.</TableHead>
-                          <TableHead className="text-right">Diff</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {budgetData.map(row => (
-                          <TableRow key={row.id}>
-                            <TableCell className="font-mono text-sm">{row.ansvar || '-'}</TableCell>
-                            <TableCell className="font-mono text-sm">{row.ukonto || '-'}</TableCell>
-                            <TableCell className="text-right font-mono text-sm">{formatCurrency(Number(row.budget_2025 || 0))}</TableCell>
-                            <TableCell className="text-right font-mono text-sm">{formatCurrency(Number(row.budget_2026 || 0))}</TableCell>
-                            <TableCell className="text-right font-mono text-sm">{formatCurrency(Number(row.utfall_ack || 0))}</TableCell>
-                            <TableCell className={`text-right font-mono text-sm ${Number(row.diff || 0) < 0 ? 'text-destructive' : ''}`}>
-                              {formatCurrency(Number(row.diff || 0))}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        <TableRow className="bg-muted/50 font-semibold">
-                          <TableCell colSpan={2}>Totalt</TableCell>
-                          <TableCell className="text-right font-mono">{formatCurrency(budgetTotal2025)}</TableCell>
-                          <TableCell className="text-right font-mono">{formatCurrency(budgetTotal2026)}</TableCell>
-                          <TableCell className="text-right font-mono">{formatCurrency(utfallTotal)}</TableCell>
-                          <TableCell className="text-right font-mono">{formatCurrency(budgetData.reduce((s, r) => s + Number(r.diff || 0), 0))}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
+                {/* Button to open budget detail in popup */}
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    const objNr = selectedCI.object_number;
+                    const popup = window.open('', '_blank', 'width=900,height=600,scrollbars=yes,resizable=yes');
+                    if (!popup) return;
+                    const fmt = (n: number) => new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(n);
+                    let html = '<html><head><title>Budgetrader – Objekt ' + objNr + '</title>';
+                    html += '<style>body{font-family:system-ui,sans-serif;margin:20px;color:#333}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}th{background:#f3f4f6;font-weight:600;font-size:13px}.right{text-align:right}.total{font-weight:600;background:#f9fafb;border-top:2px solid #d1d5db}.neg{color:#dc2626}</style>';
+                    html += '</head><body>';
+                    html += '<h2>Budgetrader – Objekt ' + objNr + '</h2>';
+                    html += '<table><thead><tr><th>Ansvar</th><th>Ukonto</th><th class="right">Budget 2025</th><th class="right">Budget 2026</th><th class="right">Utfall ack.</th><th class="right">Diff</th></tr></thead><tbody>';
+                    budgetData.forEach(row => {
+                      const diff = Number(row.diff || 0);
+                      html += '<tr><td>' + (row.ansvar || '-') + '</td><td>' + (row.ukonto || '-') + '</td>';
+                      html += '<td class="right">' + fmt(Number(row.budget_2025 || 0)) + '</td>';
+                      html += '<td class="right">' + fmt(Number(row.budget_2026 || 0)) + '</td>';
+                      html += '<td class="right">' + fmt(Number(row.utfall_ack || 0)) + '</td>';
+                      html += '<td class="right' + (diff < 0 ? ' neg' : '') + '">' + fmt(diff) + '</td></tr>';
+                    });
+                    const diffTotal = budgetData.reduce((s, r) => s + Number(r.diff || 0), 0);
+                    html += '<tr class="total"><td colspan="2">Totalt</td>';
+                    html += '<td class="right">' + fmt(budgetTotal2025) + '</td>';
+                    html += '<td class="right">' + fmt(budgetTotal2026) + '</td>';
+                    html += '<td class="right">' + fmt(utfallTotal) + '</td>';
+                    html += '<td class="right">' + fmt(diffTotal) + '</td></tr>';
+                    html += '</tbody></table></body></html>';
+                    popup.document.write(html);
+                    popup.document.close();
+                  }}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Visa budgetrader (öppnas i eget fönster)
+                </Button>
               </>
             )}
           </>
