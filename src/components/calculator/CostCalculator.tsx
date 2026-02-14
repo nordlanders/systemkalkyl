@@ -866,7 +866,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-lg">
                       <Server className="h-5 w-5 text-primary" />
-                      CI-information
+                      Objekt och CI-information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
