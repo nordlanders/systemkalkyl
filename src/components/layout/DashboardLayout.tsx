@@ -47,7 +47,7 @@ const adminNavItems = [
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/customers', icon: Building2, label: 'Kunder' },
   { href: '/owning-organizations', icon: Building, label: 'Ägande organisation' },
-  { href: '/configuration-items', icon: Server, label: 'Configuration Items' },
+  { href: '/configuration-items', icon: Server, label: 'Objekt och CI info' },
   { href: '/budget-outcome', icon: FileSpreadsheet, label: 'Budget & Utfall' },
   { href: '/users', icon: Users, label: 'Användare' },
 ];
