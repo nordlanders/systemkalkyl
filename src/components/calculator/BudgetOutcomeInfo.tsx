@@ -32,7 +32,7 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
     try {
       const { data, error } = await supabase
         .from('budget_outcomes')
-        .select('ukonto, budget_2025, budget_2026, utfall_ack, mot')
+        .select('vht, budget_2025, budget_2026, utfall_ack, mot')
         .not('mot', 'is', null);
 
       if (error) throw error;
@@ -54,10 +54,10 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
         return;
       }
 
-      // Group by ukonto and sum values
+      // Group by vht (verksamhetskonto) and sum values
       const map = new Map<string, UkontoRow>();
       matched.forEach((row) => {
-        const key = row.ukonto || '(tomt)';
+        const key = row.vht || '(tomt)';
         const existing = map.get(key);
         if (existing) {
           existing.utfall_ack += row.utfall_ack || 0;
