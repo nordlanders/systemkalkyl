@@ -1294,7 +1294,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 }}
               >
                 <ExternalLink className="h-4 w-4" />
-                Budget & Utfall
+                Visa budget och utfall (öppnas i eget fönster)
               </Button>
             )}
 
