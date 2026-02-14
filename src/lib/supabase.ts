@@ -38,7 +38,7 @@ export interface PricingConfig {
   service_types: string[] | null;
 }
 
-export type CalculationStatus = 'draft' | 'pending_approval' | 'approved';
+export type CalculationStatus = 'draft' | 'pending_approval' | 'approved' | 'closed';
 
 export interface Calculation {
   id: string;

@@ -103,14 +103,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(readOnly ? 3 : editCalculation ? 2 : 1);
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>(editCalculation?.status === 'approved' ? 'pending_approval' : editCalculation?.status ?? 'draft');
+  const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>(editCalculation?.status === 'approved' || editCalculation?.status === 'closed' ? 'pending_approval' : (editCalculation?.status as 'draft' | 'pending_approval') ?? 'draft');
   
   const { user, fullName } = useAuth();
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
-  const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | undefined;
-  const isApproved = currentStatus === 'approved';
+  const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | 'closed' | undefined;
+  const isApproved = currentStatus === 'approved' || currentStatus === 'closed';
   const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 

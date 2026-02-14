@@ -27,7 +27,8 @@ import {
   Clock,
   CheckCircle2,
   FileEdit,
-  History
+  History,
+  Archive
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -230,6 +231,34 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     } finally {
       setDeleting(false);
       setDeleteId(null);
+    }
+  }
+
+  async function handleClose(calcId: string) {
+    try {
+      const { error } = await supabase
+        .from('calculations')
+        .update({ status: 'closed' as any })
+        .eq('id', calcId);
+
+      if (error) throw error;
+
+      await logAudit('close', 'calculations', calcId);
+
+      setCalculations(calculations.map(c => 
+        c.id === calcId ? { ...c, status: 'closed' as any } : c
+      ));
+      toast({
+        title: 'Kalkyl avslutad',
+        description: 'Kalkylen har markerats som avslutad.',
+      });
+    } catch (error) {
+      console.error('Error closing calculation:', error);
+      toast({
+        title: 'Fel',
+        description: 'Kunde inte avsluta kalkylen.',
+        variant: 'destructive',
+      });
     }
   }
 
@@ -508,6 +537,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   <SelectItem value="draft">Ej klar</SelectItem>
                   <SelectItem value="pending_approval">Väntar godkännande</SelectItem>
                   <SelectItem value="approved">Godkänd</SelectItem>
+                  <SelectItem value="closed">Avslutad</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -660,6 +690,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                     draft: { label: 'Ej klar', icon: FileEdit, variant: 'secondary' as const, className: '' },
                     pending_approval: { label: 'Väntar godkännande', icon: Clock, variant: 'outline' as const, className: 'border-amber-500 text-amber-600' },
                     approved: { label: 'Godkänd', icon: CheckCircle2, variant: 'default' as const, className: 'bg-green-600 hover:bg-green-700' },
+                    closed: { label: 'Avslutad', icon: Archive, variant: 'outline' as const, className: 'border-muted-foreground text-muted-foreground' },
                   };
                   const currentStatus = statusConfig[status || 'draft'];
                   const StatusIcon = currentStatus.icon;
@@ -774,7 +805,17 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             )}
-                            {isAdmin && (
+                            {canWrite && status === 'approved' && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleClose(calc.id)}
+                                title="Avsluta kalkyl"
+                              >
+                                <Archive className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {isAdmin && status !== 'approved' && status !== 'closed' && (
                               <Button
                                 variant="ghost"
                                 size="icon"
