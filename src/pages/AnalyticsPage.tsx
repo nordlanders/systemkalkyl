@@ -523,6 +523,7 @@ export default function AnalyticsPage() {
                 <SelectItem value="draft">Ej klar</SelectItem>
                 <SelectItem value="pending_approval">Väntar godkännande</SelectItem>
                 <SelectItem value="approved">Godkänd</SelectItem>
+                <SelectItem value="closed">Avslutad</SelectItem>
               </SelectContent>
             </Select>
             <Select value={selectedYear} onValueChange={setSelectedYear}>
