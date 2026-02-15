@@ -320,6 +320,15 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
       });
     };
 
+    // Helper to replace Swedish characters for jsPDF (helvetica doesn't support them)
+    function swed(text: string): string {
+      return text
+        .replace(/å/g, 'a').replace(/Å/g, 'A')
+        .replace(/ä/g, 'a').replace(/Ä/g, 'A')
+        .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+        .replace(/é/g, 'e').replace(/É/g, 'E');
+    }
+
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     let yPos = 15;
@@ -328,8 +337,6 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     // Add logo at the top
     try {
       const sundsvallsBase64 = await loadImageAsBase64(sundsvallsKommunLogo);
-      
-      // Sundsvalls kommun logo on the left
       doc.addImage(sundsvallsBase64, 'PNG', 14, yPos, 40, 16);
     } catch (e) {
       console.error('Could not load logo:', e);
@@ -346,20 +353,46 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     // Basic info section
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Grundlaggande information', 14, yPos);
+    doc.text(swed('Grundläggande information'), 14, yPos);
     yPos += 8;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Namn: ${calc.name || 'Ej angivet'}`, 14, yPos);
+    doc.text(swed(`Namn: ${calc.name || 'Ej angivet'}`), 14, yPos);
     yPos += 6;
-    doc.text(`CI-identitet: ${calc.ci_identity}`, 14, yPos);
+
+    // Look up object_number from configuration_items if ci_identity is a UUID
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(calc.ci_identity);
+    let objectNumber = '';
+    let ciDisplay = '';
+
+    if (isUuid) {
+      // ci_identity is a UUID reference to configuration_items
+      const { data: ciData } = await supabase
+        .from('configuration_items')
+        .select('object_number, ci_number')
+        .eq('id', calc.ci_identity)
+        .maybeSingle();
+      objectNumber = ciData?.object_number || '';
+      ciDisplay = ciData?.ci_number || '';
+    } else {
+      ciDisplay = calc.ci_identity;
+    }
+
+    if (objectNumber) {
+      doc.text(swed(`Objektnummer: ${objectNumber}`), 14, yPos);
+      yPos += 6;
+    }
+    if (ciDisplay) {
+      doc.text(swed(`CI-identitet: ${ciDisplay}`), 14, yPos);
+      yPos += 6;
+    }
+
+    doc.text(swed(`Tjänstetyp: ${calc.service_type}`), 14, yPos);
     yPos += 6;
-    doc.text(`Tjanstetyp: ${calc.service_type}`, 14, yPos);
+    doc.text(swed(`Kalkylår: ${calculationYear || '-'}`), 14, yPos);
     yPos += 6;
-    doc.text(`Kalkyl ar: ${calculationYear || '-'}`, 14, yPos);
-    yPos += 6;
-    doc.text(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`, 14, yPos);
+    doc.text(swed(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`), 14, yPos);
     yPos += 15;
 
     // Price rows header
@@ -384,23 +417,21 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     
     if (items && items.length > 0) {
       items.forEach((item: any) => {
-        // Check if we need a new page
         if (yPos > 270) {
           doc.addPage();
           yPos = 20;
         }
 
-        doc.text((item.price_type || '').substring(0, 40), 14, yPos);
+        doc.text(swed((item.price_type || '').substring(0, 40)), 14, yPos);
         doc.text(`${item.quantity}`, 100, yPos);
         doc.text(formatCurrencyForPdf(Number(item.unit_price)), 130, yPos);
         doc.text(formatCurrencyForPdf(Number(item.total_price)), 170, yPos);
         yPos += 7;
 
-        // Add comment if exists
         if (item.comment) {
           doc.setFontSize(8);
           doc.setTextColor(100);
-          doc.text(`  Kommentar: ${item.comment.substring(0, 60)}`, 14, yPos);
+          doc.text(swed(`  Kommentar: ${item.comment.substring(0, 60)}`), 14, yPos);
           doc.setTextColor(0);
           doc.setFontSize(9);
           yPos += 6;
@@ -420,16 +451,17 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     yPos += 6;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('per manad', 170, yPos);
+    doc.text(swed('per månad'), 170, yPos);
 
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20;
     doc.setFontSize(8);
     doc.setTextColor(128);
-    doc.text(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`, 14, yPos);
+    doc.text(swed(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`), 14, yPos);
 
     // Download
-    const fileName = `kalkyl-${calc.ci_identity || 'utan-ci'}-${calculationYear || 'utan-ar'}.pdf`;
+    const fileIdentifier = objectNumber || ciDisplay || 'utan-id';
+    const fileName = `kalkyl-${fileIdentifier}-${calculationYear || 'utan-ar'}.pdf`;
     doc.save(fileName);
 
     toast({
