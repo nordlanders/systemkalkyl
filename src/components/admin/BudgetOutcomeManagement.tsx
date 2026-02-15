@@ -298,7 +298,7 @@ export default function BudgetOutcomeManagement() {
           </div>
 
           <div className="flex gap-3 flex-wrap">
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="gap-2">
+            <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="gap-2" disabled={!extractionDate || !importLabel.trim()}>
               <Upload className="h-4 w-4" />
               Välj CSV-fil
             </Button>
