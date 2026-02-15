@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, TrendingUp, ExternalLink } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -256,78 +255,74 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     });
   }
 
+  const renderSummarySection = (title: string, totals: { utfall_ack: number; budget_2025: number; budget_2026: number; kalkyl: number }) => (
+    <div className="space-y-1">
+      <p className="text-xs font-semibold text-muted-foreground">{title}</p>
+      <div className="space-y-0.5 pl-2">
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Utfall ack.</span>
+          <span className="font-mono">{formatNumber(totals.utfall_ack)}</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Budget 2025</span>
+          <span className="font-mono">{formatNumber(totals.budget_2025)}</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Budget 2026</span>
+          <span className="font-mono">{formatNumber(totals.budget_2026)}</span>
+        </div>
+        {hasKalkylData && (
+          <div className="flex justify-between text-xs">
+            <span className="text-primary font-medium">Kalkyl</span>
+            <span className="font-mono text-primary font-medium">
+              {totals.kalkyl !== 0 ? formatNumber(totals.kalkyl) : '–'}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
-          Budget, utfall och kalkyler – Objekt {objectNumber}
+          Budget, utfall och kalkyler
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Summary table */}
-        <div className="overflow-auto border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-xs"></TableHead>
-                <TableHead className="text-xs text-right">Utfall ack.</TableHead>
-                <TableHead className="text-xs text-right">Budget 2025</TableHead>
-                <TableHead className="text-xs text-right">Budget 2026</TableHead>
+        {rows.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-2">Inga ansvar valda</p>
+        ) : (
+          <div className="space-y-3">
+            {incomeRows.length > 0 && renderSummarySection('Intäkter', incomeTotals)}
+            {costRows.length > 0 && renderSummarySection('Kostnader', costTotals)}
+            <div className="border-t-2 border-border pt-2 space-y-0.5">
+              <p className="text-xs font-semibold">Netto</p>
+              <div className="space-y-0.5 pl-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Utfall ack.</span>
+                  <span className="font-mono font-medium">{formatNumber(grandTotals.utfall_ack)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Budget 2025</span>
+                  <span className="font-mono font-medium">{formatNumber(grandTotals.budget_2025)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Budget 2026</span>
+                  <span className="font-mono font-medium">{formatNumber(grandTotals.budget_2026)}</span>
+                </div>
                 {hasKalkylData && (
-                  <TableHead className="text-xs text-right text-primary font-semibold">Kalkyl</TableHead>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-primary font-semibold">Kalkyl</span>
+                    <span className="font-mono text-primary font-semibold">{formatNumber(grandTotals.kalkyl)}</span>
+                  </div>
                 )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={hasKalkylData ? 5 : 4} className="text-xs text-center text-muted-foreground py-4">
-                    Inga ansvar valda
-                  </TableCell>
-                </TableRow>
-              ) : (
-                <>
-                  {incomeRows.length > 0 && (
-                    <TableRow>
-                      <TableCell className="text-xs font-semibold">Intäkter</TableCell>
-                      <TableCell className="text-xs text-right font-semibold">{formatNumber(incomeTotals.utfall_ack)}</TableCell>
-                      <TableCell className="text-xs text-right font-semibold">{formatNumber(incomeTotals.budget_2025)}</TableCell>
-                      <TableCell className="text-xs text-right font-semibold">{formatNumber(incomeTotals.budget_2026)}</TableCell>
-                      {hasKalkylData && (
-                        <TableCell className="text-xs text-right font-semibold text-primary">
-                          {incomeTotals.kalkyl !== 0 ? formatNumber(incomeTotals.kalkyl) : '–'}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  )}
-                  {costRows.length > 0 && (
-                    <TableRow>
-                      <TableCell className="text-xs font-semibold">Kostnader</TableCell>
-                      <TableCell className="text-xs text-right font-semibold">{formatNumber(costTotals.utfall_ack)}</TableCell>
-                      <TableCell className="text-xs text-right font-semibold">{formatNumber(costTotals.budget_2025)}</TableCell>
-                      <TableCell className="text-xs text-right font-semibold">{formatNumber(costTotals.budget_2026)}</TableCell>
-                      {hasKalkylData && (
-                        <TableCell className="text-xs text-right font-semibold text-primary">
-                          {costTotals.kalkyl !== 0 ? formatNumber(costTotals.kalkyl) : '–'}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  )}
-                  <TableRow className="font-semibold border-t-2">
-                    <TableCell className="text-xs">Netto</TableCell>
-                    <TableCell className="text-xs text-right">{formatNumber(grandTotals.utfall_ack)}</TableCell>
-                    <TableCell className="text-xs text-right">{formatNumber(grandTotals.budget_2025)}</TableCell>
-                    <TableCell className="text-xs text-right">{formatNumber(grandTotals.budget_2026)}</TableCell>
-                    {hasKalkylData && (
-                      <TableCell className="text-xs text-right text-primary">{formatNumber(grandTotals.kalkyl)}</TableCell>
-                    )}
-                  </TableRow>
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Button
           variant="outline"
