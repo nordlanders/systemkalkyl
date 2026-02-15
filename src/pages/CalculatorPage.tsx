@@ -33,9 +33,11 @@ export default function CalculatorPage() {
   }
 
   const handleEdit = (calculation: Calculation) => {
+    const isOwner = calculation.user_id === user?.id;
     const isApproved = calculation.status === 'approved';
     setEditingCalculation(calculation);
-    setReadOnly(isApproved);
+    // Read-only if: approved OR not the owner
+    setReadOnly(isApproved || !isOwner);
     setView('calculator');
   };
 
