@@ -57,11 +57,35 @@ Deno.serve(async (req) => {
       });
     }
 
+    const requestingUserRole = roleData.role;
+
     const { userId, role, permissionLevel, canApprove, approvalOrganizations } = await req.json();
 
     if (!userId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check if target user is superadmin - only superadmins can modify superadmins
+    const { data: targetRoleData } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (targetRoleData?.role === "superadmin" && requestingUserRole !== "superadmin") {
+      return new Response(JSON.stringify({ error: "Endast superadmin kan ändra en superadmin-användare" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Non-superadmins cannot promote anyone to superadmin
+    if (role === "superadmin" && requestingUserRole !== "superadmin") {
+      return new Response(JSON.stringify({ error: "Endast superadmin kan tilldela superadmin-rollen" }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

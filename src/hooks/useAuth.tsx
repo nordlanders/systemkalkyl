@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   permissionLevel: PermissionLevel;
   canWrite: boolean;
   canApprove: boolean;
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [permissionLevel, setPermissionLevel] = useState<PermissionLevel>('read_only');
   const [canApprove, setCanApprove] = useState(false);
   const [approvalOrganizations, setApprovalOrganizations] = useState<string[]>([]);
@@ -50,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsSuperAdmin(false);
           setPermissionLevel('read_only');
           setFullName(null);
           setCanApprove(false);
@@ -84,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .maybeSingle();
     
     setIsAdmin(!!data);
+    setIsSuperAdmin(data?.role === 'superadmin');
   }
 
   async function checkPermissionLevel(userId: string) {
@@ -150,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setIsAdmin(false);
+    setIsSuperAdmin(false);
     setPermissionLevel('read_only');
     setFullName(null);
     setCanApprove(false);
@@ -160,7 +165,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{ 
       user, 
       session, 
-      isAdmin, 
+      isAdmin,
+      isSuperAdmin,
       permissionLevel, 
       canWrite, 
       canApprove, 
