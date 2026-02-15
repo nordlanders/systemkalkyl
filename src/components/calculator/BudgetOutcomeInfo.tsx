@@ -14,6 +14,7 @@ interface RawRow {
   vht: string;
   ansvar: string;
   ukonto: string;
+  ukontoCode: string;
   utfall_ack: number;
   budget_2025: number;
   budget_2026: number;
@@ -61,14 +62,19 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
         return row.objekt.split(' ')[0].trim() === objNr;
       });
 
-      const rows: RawRow[] = matched.map((row) => ({
-        vht: row.vht || '(tomt)',
-        ansvar: row.ansvar || '(tomt)',
-        ukonto: row.ukonto || '(tomt)',
-        utfall_ack: row.utfall_ack || 0,
-        budget_2025: row.budget_2025 || 0,
-        budget_2026: row.budget_2026 || 0,
-      }));
+      const rows: RawRow[] = matched.map((row) => {
+        const ukontoRaw = row.ukonto || '(tomt)';
+        const codeMatch = ukontoRaw.match(/^(\d{4,6})/);
+        return {
+          vht: row.vht || '(tomt)',
+          ansvar: row.ansvar || '(tomt)',
+          ukonto: ukontoRaw,
+          ukontoCode: codeMatch ? codeMatch[1] : ukontoRaw,
+          utfall_ack: row.utfall_ack || 0,
+          budget_2025: row.budget_2025 || 0,
+          budget_2026: row.budget_2026 || 0,
+        };
+      });
 
       setRawRows(rows);
       setSelectedAnsvar(new Set(rows.map(r => r.ansvar)));
@@ -100,29 +106,35 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
         existing.utfall_ack += row.utfall_ack;
         existing.budget_2025 += row.budget_2025;
         existing.budget_2026 += row.budget_2026;
+        // Accumulate kalkyl cost from each row's ukonto match
+        const rowKalkyl = getKalkylCostForUkonto(row.ukontoCode);
+        existing.kalkyl += rowKalkyl;
       } else {
-        const vhtCode = extractVhtCode(key);
-        // Match against pricing_config ukonto: try exact match first, then prefix match
-        let kalkylCost = calculationCostsByUkonto[vhtCode] || 0;
-        if (kalkylCost === 0) {
-          // Try prefix matching (pricing_config may have 4-5 digit ukonto that matches start of 6-digit vht code)
-          for (const [ukonto, cost] of Object.entries(calculationCostsByUkonto)) {
-            if (vhtCode.startsWith(ukonto) || ukonto.startsWith(vhtCode)) {
-              kalkylCost += cost;
-            }
-          }
-        }
+        const rowKalkyl = getKalkylCostForUkonto(row.ukontoCode);
         map.set(key, {
           ukonto: key,
           utfall_ack: row.utfall_ack,
           budget_2025: row.budget_2025,
           budget_2026: row.budget_2026,
-          kalkyl: kalkylCost,
+          kalkyl: rowKalkyl,
         });
       }
     });
     return Array.from(map.values()).sort((a, b) => a.ukonto.localeCompare(b.ukonto, 'sv'));
   }, [rawRows, selectedAnsvar, calculationCostsByUkonto]);
+
+  function getKalkylCostForUkonto(ukontoCode: string): number {
+    // Exact match first
+    let cost = calculationCostsByUkonto[ukontoCode] || 0;
+    if (cost !== 0) return cost;
+    // Prefix matching (pricing_config may have 4-5 digit ukonto that matches start of 6-digit budget ukonto)
+    for (const [pricingUkonto, pCost] of Object.entries(calculationCostsByUkonto)) {
+      if (ukontoCode.startsWith(pricingUkonto) || pricingUkonto.startsWith(ukontoCode)) {
+        cost += pCost;
+      }
+    }
+    return cost;
+  }
 
   function toggleAnsvar(ansvar: string) {
     setSelectedAnsvar(prev => {
@@ -225,17 +237,17 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     const hasKalkyl = Object.keys(kalkylMap).length > 0;
 
     html += '<script>';
-    html += 'var allRows = ' + JSON.stringify(filteredRows.length > 0 ? rawRows.map(r => ({ vht: r.vht, ansvar: r.ansvar, utfall_ack: r.utfall_ack, budget_2025: r.budget_2025, budget_2026: r.budget_2026 })) : []) + ';';
+    html += 'var allRows = ' + JSON.stringify(filteredRows.length > 0 ? rawRows.map(r => ({ vht: r.vht, ansvar: r.ansvar, ukonto: r.ukonto, ukontoCode: r.ukontoCode, utfall_ack: r.utfall_ack, budget_2025: r.budget_2025, budget_2026: r.budget_2026 })) : []) + ';';
     html += 'var kalkylMap = ' + JSON.stringify(kalkylMap) + ';';
     html += 'var hasKalkyl = ' + JSON.stringify(hasKalkyl) + ';';
     html += 'function fmt(n) { return new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(n); }';
-    html += 'function extractCode(vht) { var m = vht.match(/^(\\d{4,6})/); return m ? m[1] : vht; }';
     html += 'function toggleAll(state) { document.querySelectorAll("[data-ansvar]").forEach(function(cb) { cb.checked = state; }); filterRows(); }';
+    html += 'function getKalkylForUkonto(code) { var c = kalkylMap[code] || 0; if (c !== 0) return c; for (var u in kalkylMap) { if (code.indexOf(u) === 0 || u.indexOf(code) === 0) c += kalkylMap[u]; } return c; }';
     html += 'function filterRows() {';
     html += '  var checked = []; document.querySelectorAll("[data-ansvar]:checked").forEach(function(cb) { checked.push(cb.getAttribute("data-ansvar")); });';
     html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
     html += '  var map = {};';
-    html += '  filtered.forEach(function(r) { var k = r.vht; if (!map[k]) { var code = extractCode(k); var kCost = kalkylMap[code] || 0; if (kCost === 0) { for (var u in kalkylMap) { if (code.indexOf(u) === 0 || u.indexOf(code) === 0) kCost += kalkylMap[u]; } } map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kCost }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
+    html += '  filtered.forEach(function(r) { var k = r.vht; if (!map[k]) { map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: 0 }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; map[k].kalkyl += getKalkylForUkonto(r.ukontoCode); });';
     html += '  var grouped = Object.values(map).sort(function(a, b) { return a.ukonto.localeCompare(b.ukonto, "sv"); });';
     html += '  var incomeRows = grouped.filter(function(r) { return r.budget_2026 >= 0; });';
     html += '  var costRows = grouped.filter(function(r) { return r.budget_2026 < 0; });';
