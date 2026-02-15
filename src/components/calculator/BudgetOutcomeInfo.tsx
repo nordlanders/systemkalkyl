@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface BudgetOutcomeInfoProps {
   objectNumber: string | null;
+  calculationCostsByUkonto?: Record<string, number>;
 }
 
 interface RawRow {
@@ -23,9 +24,10 @@ interface UkontoRow {
   utfall_ack: number;
   budget_2025: number;
   budget_2026: number;
+  kalkyl: number;
 }
 
-export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoProps) {
+export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkonto = {} }: BudgetOutcomeInfoProps) {
   const [loading, setLoading] = useState(false);
   const [rawRows, setRawRows] = useState<RawRow[]>([]);
   const [selectedAnsvar, setSelectedAnsvar] = useState<Set<string>>(new Set());
@@ -68,7 +70,6 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
       }));
 
       setRawRows(rows);
-      // Default: all ansvar selected
       setSelectedAnsvar(new Set(rows.map(r => r.ansvar)));
     } catch (error) {
       console.error('Error loading budget data:', error);
@@ -83,6 +84,12 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
     [rawRows]
   );
 
+  // Extract the 6-digit code prefix from vht for matching with ukonto
+  function extractVhtCode(vht: string): string {
+    const match = vht.match(/^(\d{6})/);
+    return match ? match[1] : vht;
+  }
+
   const rows = useMemo(() => {
     const filtered = rawRows.filter(r => selectedAnsvar.has(r.ansvar));
     const map = new Map<string, UkontoRow>();
@@ -94,16 +101,19 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
         existing.budget_2025 += row.budget_2025;
         existing.budget_2026 += row.budget_2026;
       } else {
+        const vhtCode = extractVhtCode(key);
+        const kalkylCost = calculationCostsByUkonto[vhtCode] || 0;
         map.set(key, {
           ukonto: key,
           utfall_ack: row.utfall_ack,
           budget_2025: row.budget_2025,
           budget_2026: row.budget_2026,
+          kalkyl: kalkylCost,
         });
       }
     });
     return Array.from(map.values()).sort((a, b) => a.ukonto.localeCompare(b.ukonto, 'sv'));
-  }, [rawRows, selectedAnsvar]);
+  }, [rawRows, selectedAnsvar, calculationCostsByUkonto]);
 
   function toggleAnsvar(ansvar: string) {
     setSelectedAnsvar(prev => {
@@ -142,6 +152,8 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
     );
   }
 
+  const hasKalkylData = Object.keys(calculationCostsByUkonto).length > 0;
+
   const incomeRows = rows.filter(r => r.budget_2026 >= 0);
   const costRows = rows.filter(r => r.budget_2026 < 0);
 
@@ -150,18 +162,19 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
       utfall_ack: acc.utfall_ack + r.utfall_ack,
       budget_2025: acc.budget_2025 + r.budget_2025,
       budget_2026: acc.budget_2026 + r.budget_2026,
+      kalkyl: acc.kalkyl + r.kalkyl,
     }),
-    { utfall_ack: 0, budget_2025: 0, budget_2026: 0 }
+    { utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: 0 }
   );
 
   const incomeTotals = sumRows(incomeRows);
   const costTotals = sumRows(costRows);
   const grandTotals = sumRows(rows);
 
-  const renderSection = (title: string, sectionRows: UkontoRow[], sectionTotals: { utfall_ack: number; budget_2025: number; budget_2026: number }) => (
+  const renderSection = (title: string, sectionRows: UkontoRow[], sectionTotals: { utfall_ack: number; budget_2025: number; budget_2026: number; kalkyl: number }) => (
     <>
       <TableRow className="bg-muted/30">
-        <TableCell colSpan={4} className="text-xs font-semibold py-1.5">{title}</TableCell>
+        <TableCell colSpan={hasKalkylData ? 5 : 4} className="text-xs font-semibold py-1.5">{title}</TableCell>
       </TableRow>
       {sectionRows.map((row) => (
         <TableRow key={row.ukonto}>
@@ -169,6 +182,11 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
           <TableCell className="text-xs text-right">{formatNumber(row.utfall_ack)}</TableCell>
           <TableCell className="text-xs text-right">{formatNumber(row.budget_2025)}</TableCell>
           <TableCell className="text-xs text-right">{formatNumber(row.budget_2026)}</TableCell>
+          {hasKalkylData && (
+            <TableCell className="text-xs text-right font-medium text-primary">
+              {row.kalkyl !== 0 ? formatNumber(row.kalkyl) : '–'}
+            </TableCell>
+          )}
         </TableRow>
       ))}
       <TableRow className="border-t">
@@ -176,6 +194,11 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
         <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.utfall_ack)}</TableCell>
         <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.budget_2025)}</TableCell>
         <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.budget_2026)}</TableCell>
+        {hasKalkylData && (
+          <TableCell className="text-xs text-right font-semibold text-primary">
+            {sectionTotals.kalkyl !== 0 ? formatNumber(sectionTotals.kalkyl) : '–'}
+          </TableCell>
+        )}
       </TableRow>
     </>
   );
@@ -223,12 +246,15 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
                 <TableHead className="text-xs text-right">Utfall ack.</TableHead>
                 <TableHead className="text-xs text-right">Budget 2025</TableHead>
                 <TableHead className="text-xs text-right">Budget 2026</TableHead>
+                {hasKalkylData && (
+                  <TableHead className="text-xs text-right text-primary font-semibold">Kalkyl</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-xs text-center text-muted-foreground py-4">
+                  <TableCell colSpan={hasKalkylData ? 5 : 4} className="text-xs text-center text-muted-foreground py-4">
                     Inga ansvar valda
                   </TableCell>
                 </TableRow>
@@ -241,6 +267,9 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
                     <TableCell className="text-xs text-right">{formatNumber(grandTotals.utfall_ack)}</TableCell>
                     <TableCell className="text-xs text-right">{formatNumber(grandTotals.budget_2025)}</TableCell>
                     <TableCell className="text-xs text-right">{formatNumber(grandTotals.budget_2026)}</TableCell>
+                    {hasKalkylData && (
+                      <TableCell className="text-xs text-right text-primary">{formatNumber(grandTotals.kalkyl)}</TableCell>
+                    )}
                   </TableRow>
                 </>
               )}
