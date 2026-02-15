@@ -190,7 +190,7 @@ export default function BudgetOutcomeInfo({ objectNumber }: BudgetOutcomeInfoPro
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Ansvar filter */}
-        {uniqueAnsvar.length > 1 && (
+        {uniqueAnsvar.length > 0 && (
           <div className="rounded-md border p-3 bg-muted/30 space-y-2">
             <p className="text-xs font-medium text-muted-foreground">Inkluderade ansvar</p>
             <div className="flex flex-wrap gap-3">
