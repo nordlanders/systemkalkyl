@@ -54,6 +54,7 @@ export default function ApprovalsPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [calculationItems, setCalculationItems] = useState<any[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedObjectNumber, setSelectedObjectNumber] = useState<string | null>(null);
   const [calculationCostsByUkonto, setCalculationCostsByUkonto] = useState<Record<string, number>>({});
   const [ciInfoMap, setCiInfoMap] = useState<Record<string, { objectNumber: string; ciDisplay: string }>>({});
@@ -520,7 +521,36 @@ export default function ApprovalsPage() {
                 Stäng
               </Button>
               <Button
-                onClick={() => selectedCalc && handleApprove(selectedCalc.id)}
+                onClick={() => setConfirmOpen(true)}
+                disabled={approving === selectedCalc?.id}
+                className="gap-1"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Godkänn kalkyl
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Confirmation Dialog */}
+        <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Bekräfta godkännande</DialogTitle>
+              <DialogDescription>
+                Är du säker på att du vill godkänna kalkylen "{selectedCalc?.name || 'Namnlös kalkyl'}"? Denna åtgärd kan inte ångras.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+                Avbryt
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedCalc) {
+                    handleApprove(selectedCalc.id).then(() => setConfirmOpen(false));
+                  }
+                }}
                 disabled={approving === selectedCalc?.id}
                 className="gap-1"
               >
@@ -529,7 +559,7 @@ export default function ApprovalsPage() {
                 ) : (
                   <CheckCircle2 className="h-4 w-4" />
                 )}
-                Godkänn kalkyl
+                Ja, godkänn
               </Button>
             </DialogFooter>
           </DialogContent>
