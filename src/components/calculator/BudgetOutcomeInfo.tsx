@@ -85,24 +85,33 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     [rawRows]
   );
 
-  function extractUkontoCode(ukonto: string): string {
-    const match = ukonto.match(/^(\d{6})/);
-    return match ? match[1] : ukonto;
+  function extractVhtCode(vht: string): string {
+    const match = vht.match(/^(\d{4,6})/);
+    return match ? match[1] : vht;
   }
 
   const rows = useMemo(() => {
     const filtered = rawRows.filter(r => selectedAnsvar.has(r.ansvar));
     const map = new Map<string, UkontoRow>();
     filtered.forEach((row) => {
-      const key = row.ukonto;
+      const key = row.vht;
       const existing = map.get(key);
       if (existing) {
         existing.utfall_ack += row.utfall_ack;
         existing.budget_2025 += row.budget_2025;
         existing.budget_2026 += row.budget_2026;
       } else {
-        const ukontoCode = extractUkontoCode(key);
-        const kalkylCost = calculationCostsByUkonto[ukontoCode] || 0;
+        const vhtCode = extractVhtCode(key);
+        // Match against pricing_config ukonto: try exact match first, then prefix match
+        let kalkylCost = calculationCostsByUkonto[vhtCode] || 0;
+        if (kalkylCost === 0) {
+          // Try prefix matching (pricing_config may have 4-5 digit ukonto that matches start of 6-digit vht code)
+          for (const [ukonto, cost] of Object.entries(calculationCostsByUkonto)) {
+            if (vhtCode.startsWith(ukonto) || ukonto.startsWith(vhtCode)) {
+              kalkylCost += cost;
+            }
+          }
+        }
         map.set(key, {
           ukonto: key,
           utfall_ack: row.utfall_ack,
@@ -216,17 +225,17 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     const hasKalkyl = Object.keys(kalkylMap).length > 0;
 
     html += '<script>';
-    html += 'var allRows = ' + JSON.stringify(filteredRows.length > 0 ? rawRows.map(r => ({ ukonto: r.ukonto, ansvar: r.ansvar, utfall_ack: r.utfall_ack, budget_2025: r.budget_2025, budget_2026: r.budget_2026 })) : []) + ';';
+    html += 'var allRows = ' + JSON.stringify(filteredRows.length > 0 ? rawRows.map(r => ({ vht: r.vht, ansvar: r.ansvar, utfall_ack: r.utfall_ack, budget_2025: r.budget_2025, budget_2026: r.budget_2026 })) : []) + ';';
     html += 'var kalkylMap = ' + JSON.stringify(kalkylMap) + ';';
     html += 'var hasKalkyl = ' + JSON.stringify(hasKalkyl) + ';';
     html += 'function fmt(n) { return new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(n); }';
-    html += 'function extractCode(ukonto) { var m = ukonto.match(/^(\\d{6})/); return m ? m[1] : ukonto; }';
+    html += 'function extractCode(vht) { var m = vht.match(/^(\\d{4,6})/); return m ? m[1] : vht; }';
     html += 'function toggleAll(state) { document.querySelectorAll("[data-ansvar]").forEach(function(cb) { cb.checked = state; }); filterRows(); }';
     html += 'function filterRows() {';
     html += '  var checked = []; document.querySelectorAll("[data-ansvar]:checked").forEach(function(cb) { checked.push(cb.getAttribute("data-ansvar")); });';
     html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
     html += '  var map = {};';
-    html += '  filtered.forEach(function(r) { var k = r.ukonto; if (!map[k]) { var code = extractCode(k); map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[code] || 0 }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
+    html += '  filtered.forEach(function(r) { var k = r.vht; if (!map[k]) { var code = extractCode(k); var kCost = kalkylMap[code] || 0; if (kCost === 0) { for (var u in kalkylMap) { if (code.indexOf(u) === 0 || u.indexOf(code) === 0) kCost += kalkylMap[u]; } } map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kCost }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
     html += '  var grouped = Object.values(map).sort(function(a, b) { return a.ukonto.localeCompare(b.ukonto, "sv"); });';
     html += '  var incomeRows = grouped.filter(function(r) { return r.budget_2026 >= 0; });';
     html += '  var costRows = grouped.filter(function(r) { return r.budget_2026 < 0; });';
