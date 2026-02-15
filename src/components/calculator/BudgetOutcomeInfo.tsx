@@ -26,6 +26,7 @@ interface UkontoRow {
   budget_2025: number;
   budget_2026: number;
   kalkyl: number;
+  onlyKalkyl?: boolean;
 }
 
 export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkonto = {} }: BudgetOutcomeInfoProps) {
@@ -140,6 +141,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
           budget_2025: 0,
           budget_2026: 0,
           kalkyl: cost,
+          onlyKalkyl: true,
         });
       }
     }
@@ -203,8 +205,8 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
 
   const hasKalkylData = Object.keys(calculationCostsByUkonto).length > 0;
 
-  const costRows = rows.filter(r => isExpenseUkonto(r.ukonto));
-  const incomeRows = rows.filter(r => !isExpenseUkonto(r.ukonto));
+  const costRows = rows.filter(r => r.onlyKalkyl || isExpenseUkonto(r.ukonto));
+  const incomeRows = rows.filter(r => !r.onlyKalkyl && !isExpenseUkonto(r.ukonto));
 
   const sumRows = (arr: UkontoRow[]) => arr.reduce(
     (acc, r) => ({
@@ -276,11 +278,11 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
     html += '  var map = {}; var matched = {};';
     html += '  filtered.forEach(function(r) { var k = r.ukonto; if (!map[k]) { map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: getKalkylForUkonto(r.ukontoCode, matched) }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
-    html += '  for (var u in kalkylMap) { if (kalkylMap[u] !== 0 && !matched[u]) { var label = u + " (enbart kalkyl)"; map[label] = { ukonto: label, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[u] }; } }';
+    html += '  for (var u in kalkylMap) { if (kalkylMap[u] !== 0 && !matched[u]) { var label = u + " (enbart kalkyl)"; map[label] = { ukonto: label, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[u], onlyKalkyl: true }; } }';
     html += '  var grouped = Object.values(map).sort(function(a, b) { return a.ukonto.localeCompare(b.ukonto, "sv"); });';
     html += '  function isExpense(u) { var m = u.match(/^(\\d+)/); var c = m ? m[1] : ""; return c.charAt(0)==="6"||c.charAt(0)==="7"||c.charAt(0)==="8"; }';
-    html += '  var costRows = grouped.filter(function(r) { return isExpense(r.ukonto); });';
-    html += '  var incomeRows = grouped.filter(function(r) { return !isExpense(r.ukonto); });';
+    html += '  var costRows = grouped.filter(function(r) { return r.onlyKalkyl || isExpense(r.ukonto); });';
+    html += '  var incomeRows = grouped.filter(function(r) { return !r.onlyKalkyl && !isExpense(r.ukonto); });';
     html += '  var cols = hasKalkyl ? 5 : 4;';
     html += '  var h = "<table><thead><tr><th>Konto</th><th class=\\"right\\">Utfall ack.</th><th class=\\"right\\">Budget 2025</th><th class=\\"right\\">Budget 2026</th>";';
     html += '  if (hasKalkyl) h += "<th class=\\"right primary\\">Denna kalkyl</th>";';
