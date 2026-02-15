@@ -613,6 +613,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     }).format(value) + ' kr';
   };
 
+  // Helper to replace Swedish characters for jsPDF (helvetica doesn't support them)
+  function swed(text: string): string {
+    return text
+      .replace(/å/g, 'a').replace(/Å/g, 'A')
+      .replace(/ä/g, 'a').replace(/Ä/g, 'A')
+      .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+      .replace(/é/g, 'e').replace(/É/g, 'E');
+  }
+
   function generatePdf() {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -627,20 +636,33 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     // Basic info section
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Grundlaggande information', 14, yPos);
+    doc.text(swed('Grundläggande information'), 14, yPos);
     yPos += 8;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Namn: ${calculationName || 'Ej angivet'}`, 14, yPos);
+    doc.text(swed(`Namn: ${calculationName || 'Ej angivet'}`), 14, yPos);
     yPos += 6;
-    doc.text(`CI-identitet: ${ciIdentity}`, 14, yPos);
+
+    // Show object number
+    const objectNumber = selectedCI?.object_number || '';
+    if (objectNumber) {
+      doc.text(swed(`Objektnummer: ${objectNumber}`), 14, yPos);
+      yPos += 6;
+    }
+
+    // Show CI-identitet only if it's a real CI number (not a UUID)
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ciIdentity);
+    if (ciIdentity && !isUuid) {
+      doc.text(swed(`CI-identitet: ${ciIdentity}`), 14, yPos);
+      yPos += 6;
+    }
+
+    doc.text(swed(`Tjänstetyp: ${serviceType}`), 14, yPos);
     yPos += 6;
-    doc.text(`Tjanstetyp: ${serviceType}`, 14, yPos);
+    doc.text(swed(`Kalkylår: ${calculationYear}`), 14, yPos);
     yPos += 6;
-    doc.text(`Kalkyl ar: ${calculationYear}`, 14, yPos);
-    yPos += 6;
-    doc.text(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`, 14, yPos);
+    doc.text(swed(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`), 14, yPos);
     yPos += 15;
 
     // Price rows header
@@ -673,7 +695,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
       const displayUnit = row.unit?.toLowerCase() === 'kr/timme' ? 'timmar' : row.unit;
       
-      doc.text(row.priceType.substring(0, 40), 14, yPos);
+      doc.text(swed(row.priceType.substring(0, 40)), 14, yPos);
       doc.text(`${row.quantity} ${displayUnit || ''}`, 100, yPos);
       doc.text(formatCurrencyForPdf(row.unitPrice), 130, yPos);
       doc.text(formatCurrencyForPdf(calculateRowTotal(row)), 170, yPos);
@@ -683,7 +705,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       if (row.comment) {
         doc.setFontSize(8);
         doc.setTextColor(100);
-        doc.text(`  Kommentar: ${row.comment.substring(0, 60)}`, 14, yPos);
+        doc.text(swed(`  Kommentar: ${row.comment.substring(0, 60)}`), 14, yPos);
         doc.setTextColor(0);
         doc.setFontSize(9);
         yPos += 6;
@@ -702,16 +724,17 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     yPos += 6;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('per manad', 170, yPos);
+    doc.text(swed('per månad'), 170, yPos);
 
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20;
     doc.setFontSize(8);
     doc.setTextColor(128);
-    doc.text(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`, 14, yPos);
+    doc.text(swed(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`), 14, yPos);
 
     // Download
-    const fileName = `kalkyl-${ciIdentity || 'utan-ci'}-${calculationYear}.pdf`;
+    const fileIdentifier = objectNumber || (isUuid ? '' : ciIdentity) || 'utan-id';
+    const fileName = `kalkyl-${fileIdentifier}-${calculationYear}.pdf`;
     doc.save(fileName);
 
     toast({
