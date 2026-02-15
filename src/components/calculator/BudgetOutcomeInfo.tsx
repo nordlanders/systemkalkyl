@@ -98,7 +98,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
 
   function isExpenseUkonto(ukonto: string): boolean {
     const code = extractUkontoDigits(ukonto);
-    return code.startsWith('6') || code.startsWith('7') || code.startsWith('8') || code.startsWith('9');
+    return code.startsWith('6') || code.startsWith('7') || code.startsWith('8');
   }
 
   function extractVhtCode(vht: string): string {
@@ -278,7 +278,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  filtered.forEach(function(r) { var k = r.ukonto; if (!map[k]) { map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: getKalkylForUkonto(r.ukontoCode, matched) }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
     html += '  for (var u in kalkylMap) { if (kalkylMap[u] !== 0 && !matched[u]) { var label = u + " (enbart kalkyl)"; map[label] = { ukonto: label, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[u] }; } }';
     html += '  var grouped = Object.values(map).sort(function(a, b) { return a.ukonto.localeCompare(b.ukonto, "sv"); });';
-    html += '  function isExpense(u) { var m = u.match(/^(\\d+)/); var c = m ? m[1] : ""; return c.charAt(0)==="6"||c.charAt(0)==="7"||c.charAt(0)==="8"||c.charAt(0)==="9"; }';
+    html += '  function isExpense(u) { var m = u.match(/^(\\d+)/); var c = m ? m[1] : ""; return c.charAt(0)==="6"||c.charAt(0)==="7"||c.charAt(0)==="8"; }';
     html += '  var costRows = grouped.filter(function(r) { return isExpense(r.ukonto); });';
     html += '  var incomeRows = grouped.filter(function(r) { return !isExpense(r.ukonto); });';
     html += '  var cols = hasKalkyl ? 5 : 4;';
