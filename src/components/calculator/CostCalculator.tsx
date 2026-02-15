@@ -379,13 +379,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
         calculation_year: calculationYear,
         total_cost: totalCost,
         updated_by_name: userName,
-        // When editing an approved calculation, reset to draft status
-        status: isApproved ? 'draft' : selectedStatus,
+        status: selectedStatus,
         version: newVersion,
-        // Clear approval fields when creating new version from approved
-        approved_by: isApproved ? null : undefined,
-        approved_by_name: isApproved ? null : undefined,
-        approved_at: isApproved ? null : undefined,
         // Keep legacy fields for backwards compatibility
         cpu_count: 0,
         storage_gb: 0,
@@ -400,63 +395,117 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       let calculationId: string;
 
       if (isEditing && editCalculation) {
-        // Save current version to history before updating
-        const { data: currentItems } = await supabase
-          .from('calculation_items')
-          .select('*')
-          .eq('calculation_id', editCalculation.id);
+        if (isApproved) {
+          // When creating a new version from an approved calculation,
+          // keep the approved record intact and create a NEW calculation record
+          const { data, error } = await supabase
+            .from('calculations')
+            .insert({
+              user_id: user.id,
+              created_by_name: userName,
+              ...calculationData,
+              status: selectedStatus,
+              version: newVersion,
+            })
+            .select()
+            .single();
 
-        await supabase.from('calculation_versions').insert({
-          calculation_id: editCalculation.id,
-          version: currentVersion,
-          name: editCalculation.name,
-          ci_identity: editCalculation.ci_identity,
-          service_type: editCalculation.service_type,
-          municipality: editCalculation.municipality,
-          owning_organization: editCalculation.owning_organization,
-          customer_id: editCalculation.customer_id,
-          organization_id: editCalculation.organization_id,
-          calculation_year: editCalculation.calculation_year,
-          total_cost: editCalculation.total_cost,
-          status: currentStatus || 'draft',
-          items: currentItems || [],
-          created_by: user.id,
-          created_by_name: userName,
-        });
+          if (error) throw error;
+          calculationId = data.id;
 
-        // Update existing calculation
-        const { error } = await supabase
-          .from('calculations')
-          .update(calculationData)
-          .eq('id', editCalculation.id);
+          // Save a reference to the approved version in calculation_versions for the new calc
+          const { data: currentItems } = await supabase
+            .from('calculation_items')
+            .select('*')
+            .eq('calculation_id', editCalculation.id);
 
-        if (error) throw error;
-        calculationId = editCalculation.id;
+          await supabase.from('calculation_versions').insert({
+            calculation_id: calculationId,
+            version: currentVersion,
+            name: editCalculation.name,
+            ci_identity: editCalculation.ci_identity,
+            service_type: editCalculation.service_type,
+            municipality: editCalculation.municipality,
+            owning_organization: editCalculation.owning_organization,
+            customer_id: editCalculation.customer_id,
+            organization_id: editCalculation.organization_id,
+            calculation_year: editCalculation.calculation_year,
+            total_cost: editCalculation.total_cost,
+            status: currentStatus || 'approved',
+            items: currentItems || [],
+            created_by: user.id,
+            created_by_name: userName,
+          });
 
-        // Delete existing items
-        await supabase
-          .from('calculation_items')
-          .delete()
-          .eq('calculation_id', calculationId);
+          await logAudit('create', 'calculations', calculationId, undefined, {
+            name: calculationData.name,
+            total_cost: calculationData.total_cost,
+            status: selectedStatus,
+            version: newVersion,
+            based_on: editCalculation.id,
+          });
 
-        await logAudit('update', 'calculations', calculationId, {
-          name: editCalculation.name,
-          total_cost: editCalculation.total_cost,
-          status: currentStatus,
-          version: currentVersion,
-        }, {
-          name: calculationData.name,
-          total_cost: calculationData.total_cost,
-          status: selectedStatus,
-          version: newVersion,
-        });
+          toast({
+            title: 'Ny version skapad',
+            description: `En ny version (v${newVersion}) har skapats som utkast. Den godkända versionen är bevarad.`,
+          });
+        } else {
+          // Save current version to history before updating
+          const { data: currentItems } = await supabase
+            .from('calculation_items')
+            .select('*')
+            .eq('calculation_id', editCalculation.id);
 
-        toast({
-          title: isApproved ? 'Ny version skapad' : 'Kalkyl uppdaterad',
-          description: isApproved 
-            ? `En ny version (v${newVersion}) har skapats som utkast.`
-            : `Kalkylen har sparats som version ${newVersion}.`,
-        });
+          await supabase.from('calculation_versions').insert({
+            calculation_id: editCalculation.id,
+            version: currentVersion,
+            name: editCalculation.name,
+            ci_identity: editCalculation.ci_identity,
+            service_type: editCalculation.service_type,
+            municipality: editCalculation.municipality,
+            owning_organization: editCalculation.owning_organization,
+            customer_id: editCalculation.customer_id,
+            organization_id: editCalculation.organization_id,
+            calculation_year: editCalculation.calculation_year,
+            total_cost: editCalculation.total_cost,
+            status: currentStatus || 'draft',
+            items: currentItems || [],
+            created_by: user.id,
+            created_by_name: userName,
+          });
+
+          // Update existing calculation
+          const { error } = await supabase
+            .from('calculations')
+            .update(calculationData)
+            .eq('id', editCalculation.id);
+
+          if (error) throw error;
+          calculationId = editCalculation.id;
+
+          // Delete existing items
+          await supabase
+            .from('calculation_items')
+            .delete()
+            .eq('calculation_id', calculationId);
+
+          await logAudit('update', 'calculations', calculationId, {
+            name: editCalculation.name,
+            total_cost: editCalculation.total_cost,
+            status: currentStatus,
+            version: currentVersion,
+          }, {
+            name: calculationData.name,
+            total_cost: calculationData.total_cost,
+            status: selectedStatus,
+            version: newVersion,
+          });
+
+          toast({
+            title: 'Kalkyl uppdaterad',
+            description: `Kalkylen har sparats som version ${newVersion}.`,
+          });
+        }
       } else {
         // Create new calculation
         const { data, error } = await supabase
