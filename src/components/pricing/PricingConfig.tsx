@@ -153,6 +153,15 @@ export default function PricingConfig() {
       return;
     }
 
+    if (ukonto && ukonto.length < 4) {
+      toast({
+        title: 'Valideringsfel',
+        description: 'Ukonto måste vara minst 4 siffror.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setSaving(true);
     try {
       const priceData = {
@@ -374,8 +383,11 @@ export default function PricingConfig() {
                     }}
                     maxLength={6}
                   />
-                  {ukonto && ukonto.length !== 6 && (
-                    <p className="text-xs text-destructive">Ukonto måste vara exakt 6 siffror</p>
+                  {ukonto && ukonto.length < 4 && (
+                    <p className="text-xs text-destructive">Ukonto måste vara minst 4 siffror</p>
+                  )}
+                  {ukonto && ukonto.length >= 4 && ukonto.length < 6 && (
+                    <p className="text-xs text-muted-foreground">Position {ukonto.length + 1}–6 matchar valfri siffra (prefixmatchning)</p>
                   )}
                 </div>
 
