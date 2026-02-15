@@ -538,6 +538,7 @@ export type Database = {
       }
       pricing_config: {
         Row: {
+          account_type: string
           category: string | null
           comment: string | null
           cost_owner: string | null
@@ -557,6 +558,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_type?: string
           category?: string | null
           comment?: string | null
           cost_owner?: string | null
@@ -576,6 +578,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_type?: string
           category?: string | null
           comment?: string | null
           cost_owner?: string | null
