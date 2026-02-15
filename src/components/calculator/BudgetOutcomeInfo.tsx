@@ -46,8 +46,8 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     try {
       const { data, error } = await supabase
         .from('budget_outcomes')
-        .select('vht, ansvar, ukonto, budget_2025, budget_2026, utfall_ack, mot')
-        .not('mot', 'is', null);
+        .select('vht, ansvar, ukonto, budget_2025, budget_2026, utfall_ack, mot, objekt')
+        .not('objekt', 'is', null);
 
       if (error) throw error;
 
@@ -57,8 +57,8 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
       }
 
       const matched = data.filter((row) => {
-        if (!row.mot) return false;
-        return row.mot.split(' ')[0].trim() === objNr;
+        if (!row.objekt) return false;
+        return row.objekt.split(' ')[0].trim() === objNr;
       });
 
       const rows: RawRow[] = matched.map((row) => ({
