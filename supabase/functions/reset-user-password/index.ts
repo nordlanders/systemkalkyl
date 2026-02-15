@@ -12,6 +12,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { email, newPassword } = await req.json();
 
     if (!email || !newPassword) {
@@ -41,6 +49,38 @@ Deno.serve(async (req) => {
       }
     );
 
+    // Verify requesting user is admin
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      {
+        global: { headers: { Authorization: authHeader } },
+        auth: { autoRefreshToken: false, persistSession: false },
+      }
+    );
+
+    const { data: { user: requestingUser }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !requestingUser) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: reqRoleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', requestingUser.id)
+      .in('role', ['admin', 'superadmin'])
+      .maybeSingle();
+
+    if (!reqRoleData) {
+      return new Response(
+        JSON.stringify({ error: 'Only admins can reset passwords' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get user by email
     const { data: usersData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
     
@@ -58,6 +98,20 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'User not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if target user is superadmin - only superadmins can reset superadmin passwords
+    const { data: targetRoleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (targetRoleData?.role === 'superadmin' && reqRoleData.role !== 'superadmin') {
+      return new Response(
+        JSON.stringify({ error: 'Endast superadmin kan återställa lösenord för en superadmin-användare' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

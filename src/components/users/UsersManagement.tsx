@@ -48,7 +48,7 @@ export default function UsersManagement() {
   const [sortColumn, setSortColumn] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -387,15 +387,19 @@ export default function UsersManagement() {
                         {format(new Date(u.created_at), 'd MMM yyyy', { locale: sv })}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditUser(u)}
-                          className="gap-2"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Redigera
-                        </Button>
+                        {u.role === 'superadmin' && !isSuperAdmin ? (
+                          <span className="text-xs text-muted-foreground italic">Skyddad</span>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditUser(u)}
+                            className="gap-2"
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Redigera
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
