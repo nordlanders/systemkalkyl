@@ -39,6 +39,7 @@ import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import jsPDF from 'jspdf';
+import { registerSwedishFont } from '@/lib/pdf-font';
 import sundsvallsKommunLogo from '@/assets/sundsvalls-kommun-logo.png';
 import {
   AlertDialog,
@@ -320,16 +321,8 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
       });
     };
 
-    // Helper to replace Swedish characters for jsPDF (helvetica doesn't support them)
-    function swed(text: string): string {
-      return text
-        .replace(/å/g, 'a').replace(/Å/g, 'A')
-        .replace(/ä/g, 'a').replace(/Ä/g, 'A')
-        .replace(/ö/g, 'o').replace(/Ö/g, 'O')
-        .replace(/é/g, 'e').replace(/É/g, 'E');
-    }
-
     const doc = new jsPDF();
+    await registerSwedishFont(doc);
     const pageWidth = doc.internal.pageSize.getWidth();
     let yPos = 15;
     const calculationYear = (calc as any).calculation_year;
@@ -346,19 +339,19 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
 
     // Title
     doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Roboto', 'bold');
     doc.text('Kostnadskalkyl', pageWidth / 2, yPos, { align: 'center' });
     yPos += 15;
 
     // Basic info section
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(swed('Grundläggande information'), 14, yPos);
+    doc.setFont('Roboto', 'bold');
+    doc.text('Grundläggande information', 14, yPos);
     yPos += 8;
 
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(swed(`Namn: ${calc.name || 'Ej angivet'}`), 14, yPos);
+    doc.setFont('Roboto', 'normal');
+    doc.text(`Namn: ${calc.name || 'Ej angivet'}`, 14, yPos);
     yPos += 6;
 
     // Look up object_number from configuration_items if ci_identity is a UUID
@@ -367,7 +360,6 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     let ciDisplay = '';
 
     if (isUuid) {
-      // ci_identity is a UUID reference to configuration_items
       const { data: ciData } = await supabase
         .from('configuration_items')
         .select('object_number, ci_number')
@@ -380,30 +372,30 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     }
 
     if (objectNumber) {
-      doc.text(swed(`Objektnummer: ${objectNumber}`), 14, yPos);
+      doc.text(`Objektnummer: ${objectNumber}`, 14, yPos);
       yPos += 6;
     }
     if (ciDisplay) {
-      doc.text(swed(`CI-identitet: ${ciDisplay}`), 14, yPos);
+      doc.text(`CI-identitet: ${ciDisplay}`, 14, yPos);
       yPos += 6;
     }
 
-    doc.text(swed(`Tjänstetyp: ${calc.service_type}`), 14, yPos);
+    doc.text(`Tjänstetyp: ${calc.service_type}`, 14, yPos);
     yPos += 6;
-    doc.text(swed(`Kalkylår: ${calculationYear || '-'}`), 14, yPos);
+    doc.text(`Kalkylår: ${calculationYear || '-'}`, 14, yPos);
     yPos += 6;
-    doc.text(swed(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`), 14, yPos);
+    doc.text(`Datum: ${format(new Date(), 'd MMMM yyyy', { locale: sv })}`, 14, yPos);
     yPos += 15;
 
     // Price rows header
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Roboto', 'bold');
     doc.text('Prisrader', 14, yPos);
     yPos += 10;
 
     // Table header
     doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Roboto', 'bold');
     doc.text('Pristyp', 14, yPos);
     doc.text('Antal', 100, yPos);
     doc.text('Enhetspris', 130, yPos);
@@ -413,7 +405,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     yPos += 6;
 
     // Table rows
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('Roboto', 'normal');
     
     if (items && items.length > 0) {
       items.forEach((item: any) => {
@@ -422,7 +414,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
           yPos = 20;
         }
 
-        doc.text(swed((item.price_type || '').substring(0, 40)), 14, yPos);
+        doc.text((item.price_type || '').substring(0, 40), 14, yPos);
         doc.text(`${item.quantity}`, 100, yPos);
         doc.text(formatCurrencyForPdf(Number(item.unit_price)), 130, yPos);
         doc.text(formatCurrencyForPdf(Number(item.total_price)), 170, yPos);
@@ -431,7 +423,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
         if (item.comment) {
           doc.setFontSize(8);
           doc.setTextColor(100);
-          doc.text(swed(`  Kommentar: ${item.comment.substring(0, 60)}`), 14, yPos);
+          doc.text(`  Kommentar: ${item.comment.substring(0, 60)}`, 14, yPos);
           doc.setTextColor(0);
           doc.setFontSize(9);
           yPos += 6;
@@ -445,19 +437,19 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
 
     // Total
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('Roboto', 'bold');
     doc.text('Total kostnad:', 14, yPos);
     doc.text(formatCurrencyForPdf(Number(calc.total_cost)), 170, yPos);
     yPos += 6;
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(swed('per månad'), 170, yPos);
+    doc.setFont('Roboto', 'normal');
+    doc.text('per månad', 170, yPos);
 
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20;
     doc.setFontSize(8);
     doc.setTextColor(128);
-    doc.text(swed(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`), 14, yPos);
+    doc.text(`Genererad: ${format(new Date(), 'd MMMM yyyy HH:mm', { locale: sv })}`, 14, yPos);
 
     // Download
     const fileIdentifier = objectNumber || ciDisplay || 'utan-id';
