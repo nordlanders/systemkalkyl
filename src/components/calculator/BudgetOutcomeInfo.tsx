@@ -106,9 +106,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
         existing.utfall_ack += row.utfall_ack;
         existing.budget_2025 += row.budget_2025;
         existing.budget_2026 += row.budget_2026;
-        // Accumulate kalkyl cost from each row's ukonto match
-        const rowKalkyl = getKalkylCostForUkonto(row.ukontoCode);
-        existing.kalkyl += rowKalkyl;
+        // kalkyl already set once for this ukonto group - don't add again
       } else {
         const rowKalkyl = getKalkylCostForUkonto(row.ukontoCode);
         map.set(key, {
@@ -247,7 +245,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  var checked = []; document.querySelectorAll("[data-ansvar]:checked").forEach(function(cb) { checked.push(cb.getAttribute("data-ansvar")); });';
     html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
     html += '  var map = {};';
-    html += '  filtered.forEach(function(r) { var k = r.ukonto; if (!map[k]) { map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: 0 }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; map[k].kalkyl += getKalkylForUkonto(r.ukontoCode); });';
+    html += '  filtered.forEach(function(r) { var k = r.ukonto; if (!map[k]) { map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: getKalkylForUkonto(r.ukontoCode) }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
     html += '  var grouped = Object.values(map).sort(function(a, b) { return a.ukonto.localeCompare(b.ukonto, "sv"); });';
     html += '  var incomeRows = grouped.filter(function(r) { return r.budget_2026 >= 0; });';
     html += '  var costRows = grouped.filter(function(r) { return r.budget_2026 < 0; });';
