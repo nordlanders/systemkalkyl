@@ -28,10 +28,14 @@ import {
   CheckCircle2,
   FileEdit,
   History,
-  Archive
+  Archive,
+  Users,
+  Eye,
+  Copy
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import jsPDF from 'jspdf';
@@ -59,6 +63,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showAllUsers, setShowAllUsers] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number | 'all'>(currentYear);
   const [selectedMunicipality, setSelectedMunicipality] = useState<string>('all');
   const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
@@ -168,7 +173,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
 
   useEffect(() => {
     loadCalculations();
-  }, [isAdmin, user?.id]);
+  }, [isAdmin, user?.id, showAllUsers]);
 
   async function loadCalculations() {
     try {
@@ -177,9 +182,13 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!isAdmin) {
+      if (!showAllUsers && !isAdmin) {
+        query = query.eq('user_id', user?.id);
+      } else if (!showAllUsers && isAdmin) {
+        // Admin but not showing all - show own only
         query = query.eq('user_id', user?.id);
       }
+      // If showAllUsers is true, no filter - show all (RLS allows it)
 
       const { data, error } = await query;
 
@@ -441,17 +450,32 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     <div className="space-y-8 fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Mina kalkyler</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            {showAllUsers ? 'Alla kalkyler' : 'Mina kalkyler'}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Hantera dina sparade kostnadskalkyler
+            {showAllUsers ? 'Visa kalkyler från alla användare' : 'Hantera dina sparade kostnadskalkyler'}
           </p>
         </div>
-        {canWrite && (
-          <Button onClick={onCreateNew} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Skapa ny kalkyl
-          </Button>
-        )}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="showAllUsers"
+              checked={showAllUsers}
+              onCheckedChange={setShowAllUsers}
+            />
+            <label htmlFor="showAllUsers" className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              Visa alla
+            </label>
+          </div>
+          {canWrite && (
+            <Button onClick={onCreateNew} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Skapa ny kalkyl
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -685,6 +709,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   const calculationYear = calc.calculation_year;
                   const municipality = calc.municipality;
                   const status = calc.status;
+                  const isOwner = calc.user_id === user?.id;
                   
                   const statusConfig = {
                     draft: { label: 'Ej klar', icon: FileEdit, variant: 'secondary' as const, className: '' },
@@ -695,14 +720,25 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                   const currentStatus = statusConfig[status || 'draft'];
                   const StatusIcon = currentStatus.icon;
                   
+                  // Anyone can click to view; only owner with write permission can edit
+                  const canClick = true;
+                  
                   return (
                     <TableRow 
                       key={calc.id} 
-                      className={(canWrite || status === 'approved') ? "cursor-pointer hover:bg-muted/50" : ""}
-                      onClick={() => (canWrite || status === 'approved') && onEdit(calc)}
+                      className={canClick ? "cursor-pointer hover:bg-muted/50" : ""}
+                      onClick={() => canClick && onEdit(calc)}
                     >
                       <TableCell className="font-medium">
-                        {calc.name || 'Namnlös'}
+                        <div className="flex flex-col">
+                          <span>{calc.name || 'Namnlös'}</span>
+                          {!isOwner && showAllUsers && createdByName && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              {createdByName}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -795,27 +831,45 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                             >
                               <Download className="h-4 w-4" />
                             </Button>
-                            {canWrite && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => onEdit(calc)}
-                                title={status === 'approved' ? 'Skapa ny version' : 'Redigera'}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
+                            {!isOwner ? (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onEdit(calc)}
+                                    title="Visa kalkyl"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Visa kalkyl (skrivskyddad)</TooltipContent>
+                              </Tooltip>
+                            ) : (
+                              <>
+                                {canWrite && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => onEdit(calc)}
+                                    title={status === 'approved' ? 'Skapa ny version' : 'Redigera'}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {canWrite && status === 'approved' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleClose(calc.id)}
+                                    title="Avsluta kalkyl"
+                                  >
+                                    <Archive className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </>
                             )}
-                            {canWrite && status === 'approved' && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleClose(calc.id)}
-                                title="Avsluta kalkyl"
-                              >
-                                <Archive className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {isAdmin && status !== 'approved' && status !== 'closed' && (
+                            {isAdmin && isOwner && status !== 'approved' && status !== 'closed' && (
                               <Button
                                 variant="ghost"
                                 size="icon"

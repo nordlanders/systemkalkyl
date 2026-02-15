@@ -32,7 +32,8 @@ import {
   Clock,
   CheckCircle2,
   FileEdit,
-  Server
+  Server,
+  Copy
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -111,6 +112,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
+  const isOwner = !editCalculation || editCalculation.user_id === user?.id;
   const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | 'closed' | undefined;
   const isApproved = currentStatus === 'approved' || currentStatus === 'closed';
   const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
@@ -512,6 +514,89 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       setSaving(false);
     }
   }
+  async function handleCopyAsNew() {
+    if (!user || !editCalculation) return;
+
+    setSaving(true);
+    try {
+      const totalCost = calculateTotalCost();
+      const userName = fullName || user?.email || 'Okänd';
+      
+      const selectedCustomer = customers.find(c => c.id === customerId);
+      const selectedOwningOrg = owningOrganizations.find(o => o.id === owningOrganizationId);
+      
+      const { data, error } = await supabase
+        .from('calculations')
+        .insert({
+          user_id: user.id,
+          created_by_name: userName,
+          name: `${calculationName || 'Kopia'} (kopia)`,
+          ci_identity: ciIdentity.trim(),
+          service_type: serviceType,
+          customer_id: customerId,
+          organization_id: null,
+          owning_organization_id: owningOrganizationId,
+          municipality: selectedCustomer?.name || '',
+          owning_organization: selectedOwningOrg?.name || null,
+          calculation_year: calculationYear,
+          total_cost: totalCost,
+          updated_by_name: userName,
+          status: 'draft',
+          version: 1,
+          cpu_count: 0,
+          storage_gb: 0,
+          server_count: 0,
+          operation_hours: 0,
+          cpu_cost: 0,
+          storage_cost: 0,
+          server_cost: 0,
+          operation_cost: 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Copy calculation items
+      const items = rows.map(row => ({
+        calculation_id: data.id,
+        pricing_config_id: row.pricingConfigId || null,
+        price_type: row.priceType,
+        quantity: row.quantity,
+        unit_price: row.unitPrice,
+        total_price: calculateRowTotal(row),
+        comment: row.comment || null,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('calculation_items')
+        .insert(items);
+
+      if (itemsError) throw itemsError;
+
+      await logAudit('create', 'calculations', data.id, undefined, {
+        name: data.name,
+        total_cost: data.total_cost,
+        copied_from: editCalculation.id,
+      });
+
+      toast({
+        title: 'Kalkyl kopierad',
+        description: 'En ny kalkyl har skapats baserad på den valda kalkylen.',
+      });
+
+      onSaved();
+    } catch (error) {
+      console.error('Error copying calculation:', error);
+      toast({
+        title: 'Fel vid kopiering',
+        description: 'Kunde inte kopiera kalkylen.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('sv-SE', {
@@ -696,11 +781,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-foreground">
-            {readOnly ? 'Visa kalkyl' : isEditing ? 'Redigera kalkyl' : 'Ny kalkyl'}
+            {readOnly 
+              ? (isOwner ? 'Visa kalkyl' : `Visa kalkyl (${editCalculation?.created_by_name || 'annan användare'})`)
+              : isEditing ? 'Redigera kalkyl' : 'Ny kalkyl'}
           </h1>
           <p className="text-muted-foreground mt-1">
             {readOnly
-              ? 'Denna kalkyl är godkänd och kan inte ändras'
+              ? (isOwner 
+                  ? 'Denna kalkyl är godkänd och kan inte ändras'
+                  : 'Du visar en annan användares kalkyl (skrivskyddad)')
               : step === 1 
                 ? 'Steg 1: Ange namn, CI-identitet och tjänstetyp' 
                 : step === 2 
@@ -1655,17 +1744,26 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 {readOnly ? (
                   <>
                     <p className="text-sm text-muted-foreground">
-                      Vill du göra ändringar? Skapa en ny version baserad på denna godkända kalkyl.
+                      {isOwner 
+                        ? 'Vill du göra ändringar? Skapa en ny version baserad på denna godkända kalkyl.'
+                        : 'Detta är en annan användares kalkyl. Du kan skapa en ny egen kalkyl baserad på denna.'}
                     </p>
                     <div className="flex gap-3">
                       <Button variant="outline" onClick={onBack} className="gap-2">
                         <ArrowLeft className="h-4 w-4" />
                         Tillbaka till lista
                       </Button>
-                      <Button onClick={onCreateNewVersion} className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        Skapa ny version
-                      </Button>
+                      {isOwner ? (
+                        <Button onClick={onCreateNewVersion} className="gap-2">
+                          <Plus className="h-4 w-4" />
+                          Skapa ny version
+                        </Button>
+                      ) : (
+                        <Button onClick={handleCopyAsNew} className="gap-2">
+                          <Copy className="h-4 w-4" />
+                          Kopiera som ny kalkyl
+                        </Button>
+                      )}
                     </div>
                   </>
                 ) : (
