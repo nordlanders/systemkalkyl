@@ -337,7 +337,7 @@ export default function AuditHistory() {
         <TabsList>
           <TabsTrigger value="calculations" className="gap-2">
             <Calculator className="h-4 w-4" />
-            Mina beräkningar
+            {isAdmin ? 'Alla beräkningar' : 'Mina beräkningar'}
           </TabsTrigger>
           <TabsTrigger value="audit" className="gap-2">
             <History className="h-4 w-4" />
@@ -354,7 +354,7 @@ export default function AuditHistory() {
                 Kalkylhändelser
               </CardTitle>
               <CardDescription>
-                Historik över skapade, sparade och godkända kalkyler
+                {isAdmin ? 'Historik över alla användares skapade, sparade och godkända kalkyler' : 'Historik över skapade, sparade och godkända kalkyler'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
