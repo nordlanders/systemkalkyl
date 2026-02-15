@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,7 +19,8 @@ import {
   Crown,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Info
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -188,66 +190,110 @@ export default function UsersManagement() {
         <CreateUserDialog onUserCreated={loadUsers} />
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      {/* Role Info Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Users className="h-6 w-6 text-primary" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-muted">
+                  <Shield className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{users.filter(u => u.role === 'user').length}</p>
+                  <p className="text-sm text-muted-foreground">Användare</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{users.length}</p>
-                <p className="text-sm text-muted-foreground">Totalt</p>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 bg-popover text-popover-foreground z-50" side="bottom">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Användare</p>
+                    <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                      <li>Skapa och redigera egna kalkyler</li>
+                      <li>Visa priskonfigurationer</li>
+                      <li>Se historik för egna kalkyler</li>
+                      <li>Behörighet styrs av läs/skriv-nivå</li>
+                    </ul>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-accent/10">
-                <ShieldCheck className="h-6 w-6 text-accent" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-accent/10">
+                  <ShieldCheck className="h-5 w-5 text-accent" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{users.filter(u => u.role === 'admin').length}</p>
+                  <p className="text-sm text-muted-foreground">Administratörer</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {users.filter(u => u.role === 'admin').length}
-                </p>
-                <p className="text-sm text-muted-foreground">Administratörer</p>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 bg-popover text-popover-foreground z-50" side="bottom">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Admin</p>
+                    <p className="text-xs text-muted-foreground italic">Utöver allt som Användare kan:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                      <li>Se och hantera alla kalkyler</li>
+                      <li>Hantera priskonfigurationer</li>
+                      <li>Hantera kunder och organisationer</li>
+                      <li>Hantera Objekt/CI och budget/utfall</li>
+                      <li>Radera kalkyler (ej godkända)</li>
+                      <li>Hantera användare och roller</li>
+                      <li>Återställa lösenord</li>
+                    </ul>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-muted">
-                <Edit3 className="h-6 w-6 text-muted-foreground" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500/10">
+                  <Crown className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{users.filter(u => u.role === 'superadmin').length}</p>
+                  <p className="text-sm text-muted-foreground">Superadmin</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {users.filter(u => u.permission_level === 'read_write').length}
-                </p>
-                <p className="text-sm text-muted-foreground">Läsa & skriva</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-muted">
-                <Eye className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {users.filter(u => u.permission_level === 'read_only').length}
-                </p>
-                <p className="text-sm text-muted-foreground">Endast läsa</p>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 bg-popover text-popover-foreground z-50" side="bottom">
+                  <div className="space-y-2">
+                    <p className="font-semibold text-sm">Superadmin</p>
+                    <p className="text-xs text-muted-foreground italic">Utöver allt som Admin kan:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4">
+                      <li>Tilldela och ändra roller för alla användare</li>
+                      <li>Skapa och ta bort administratörer</li>
+                      <li>Full åtkomst utan begränsningar</li>
+                    </ul>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
