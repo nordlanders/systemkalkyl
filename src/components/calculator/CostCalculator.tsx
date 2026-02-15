@@ -334,6 +334,20 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     return map;
   }, [rows, pricing]);
 
+  // Build a map of ukonto -> account_type from pricing config
+  const accountTypesByUkonto = useMemo(() => {
+    const map: Record<string, string> = {};
+    rows.filter(r => r.pricingConfigId).forEach(row => {
+      const pc = pricing.find(p => p.id === row.pricingConfigId);
+      const ukonto = (pc as any)?.ukonto;
+      const accountType = (pc as any)?.account_type;
+      if (ukonto && accountType) {
+        map[ukonto] = accountType;
+      }
+    });
+    return map;
+  }, [rows, pricing]);
+
   async function saveCalculation() {
     if (!user) return;
 
@@ -1095,7 +1109,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     )}
                   </CardContent>
                 </Card>
-                <BudgetOutcomeInfo objectNumber={selectedCI.object_number || null} calculationCostsByUkonto={calculationCostsByUkonto} />
+                <BudgetOutcomeInfo objectNumber={selectedCI.object_number || null} calculationCostsByUkonto={calculationCostsByUkonto} accountTypesByUkonto={accountTypesByUkonto} />
               </>
             ) : (
               <Card className="border-dashed">
@@ -1523,7 +1537,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
             {/* Budget & Utfall in step 2 */}
             {selectedCI?.object_number && (
-              <BudgetOutcomeInfo objectNumber={selectedCI.object_number} calculationCostsByUkonto={calculationCostsByUkonto} />
+              <BudgetOutcomeInfo objectNumber={selectedCI.object_number} calculationCostsByUkonto={calculationCostsByUkonto} accountTypesByUkonto={accountTypesByUkonto} />
             )}
 
           </div>
@@ -1712,7 +1726,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
           {/* Budget & Utfall in step 3 */}
           {selectedCI?.object_number && (
-            <BudgetOutcomeInfo objectNumber={selectedCI.object_number} calculationCostsByUkonto={calculationCostsByUkonto} />
+            <BudgetOutcomeInfo objectNumber={selectedCI.object_number} calculationCostsByUkonto={calculationCostsByUkonto} accountTypesByUkonto={accountTypesByUkonto} />
           )}
 
           {/* Status Selection */}

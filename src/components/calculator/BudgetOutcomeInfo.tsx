@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface BudgetOutcomeInfoProps {
   objectNumber: string | null;
   calculationCostsByUkonto?: Record<string, number>;
+  accountTypesByUkonto?: Record<string, string>;
 }
 
 interface RawRow {
@@ -27,9 +28,10 @@ interface UkontoRow {
   budget_2026: number;
   kalkyl: number;
   onlyKalkyl?: boolean;
+  isIncome?: boolean;
 }
 
-export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkonto = {} }: BudgetOutcomeInfoProps) {
+export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkonto = {}, accountTypesByUkonto = {} }: BudgetOutcomeInfoProps) {
   const [loading, setLoading] = useState(false);
   const [rawRows, setRawRows] = useState<RawRow[]>([]);
   const [selectedAnsvar, setSelectedAnsvar] = useState<Set<string>>(new Set());
@@ -135,6 +137,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     for (const [pricingUkonto, cost] of Object.entries(calculationCostsByUkonto)) {
       if (cost !== 0 && !matchedPricingUkontos.has(pricingUkonto)) {
         const label = pricingUkonto + ' (enbart kalkyl)';
+        const isIncome = accountTypesByUkonto[pricingUkonto] === 'intäkt';
         map.set(label, {
           ukonto: label,
           utfall_ack: 0,
@@ -142,6 +145,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
           budget_2026: 0,
           kalkyl: cost,
           onlyKalkyl: true,
+          isIncome,
         });
       }
     }
@@ -205,8 +209,8 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
 
   const hasKalkylData = Object.keys(calculationCostsByUkonto).length > 0;
 
-  const costRows = rows.filter(r => r.onlyKalkyl || isExpenseUkonto(r.ukonto));
-  const incomeRows = rows.filter(r => !r.onlyKalkyl && !isExpenseUkonto(r.ukonto));
+  const costRows = rows.filter(r => r.onlyKalkyl ? !r.isIncome : isExpenseUkonto(r.ukonto));
+  const incomeRows = rows.filter(r => r.onlyKalkyl ? r.isIncome : !isExpenseUkonto(r.ukonto));
 
   const sumRows = (arr: UkontoRow[]) => arr.reduce(
     (acc, r) => ({

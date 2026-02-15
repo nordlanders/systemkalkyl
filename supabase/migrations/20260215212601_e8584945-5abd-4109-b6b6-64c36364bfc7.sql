@@ -1,0 +1,1 @@
+ALTER TABLE public.pricing_config ADD COLUMN account_type text NOT NULL DEFAULT 'kostnad' CHECK (account_type IN ('kostnad', 'intäkt'));

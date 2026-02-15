@@ -66,6 +66,7 @@ export default function PricingConfig() {
   const [comment, setComment] = useState('');
   const [costOwner, setCostOwner] = useState('Produktion');
   const [ukonto, setUkonto] = useState('');
+  const [accountType, setAccountType] = useState('kostnad');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(
@@ -110,7 +111,7 @@ export default function PricingConfig() {
     setComment('');
     setCostOwner('Produktion');
     setUkonto('');
-    setUkonto('');
+    setAccountType('kostnad');
     setEffectiveFrom('');
     setEffectiveTo('');
     setSelectedServiceTypes(SERVICE_TYPES.map(st => st.value));
@@ -127,6 +128,7 @@ export default function PricingConfig() {
     setComment(config.comment || '');
     setCostOwner(config.cost_owner || 'Produktion');
     setUkonto((config as any).ukonto || '');
+    setAccountType((config as any).account_type || 'kostnad');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
     setSelectedServiceTypes(config.service_types || []);
@@ -172,6 +174,7 @@ export default function PricingConfig() {
         comment: comment || null,
         cost_owner: costOwner || null,
         ukonto: ukonto || null,
+        account_type: accountType,
         effective_from: effectiveFrom,
         effective_to: effectiveTo || null,
         created_by: user.id,
@@ -389,6 +392,19 @@ export default function PricingConfig() {
                   {ukonto && ukonto.length >= 4 && ukonto.length < 6 && (
                     <p className="text-xs text-muted-foreground">Position {ukonto.length + 1}–6 matchar valfri siffra (prefixmatchning)</p>
                   )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Kontotyp</Label>
+                  <Select value={accountType} onValueChange={setAccountType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kostnad">Kostnad</SelectItem>
+                      <SelectItem value="intäkt">Intäkt</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

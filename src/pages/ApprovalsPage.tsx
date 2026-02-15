@@ -57,6 +57,7 @@ export default function ApprovalsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedObjectNumber, setSelectedObjectNumber] = useState<string | null>(null);
   const [calculationCostsByUkonto, setCalculationCostsByUkonto] = useState<Record<string, number>>({});
+  const [accountTypesByUkonto, setAccountTypesByUkonto] = useState<Record<string, string>>({});
   const [ciInfoMap, setCiInfoMap] = useState<Record<string, { objectNumber: string; ciDisplay: string }>>({});
 
   const { toast } = useToast();
@@ -131,6 +132,7 @@ export default function ApprovalsPage() {
     setLoadingItems(true);
     setSelectedObjectNumber(null);
     setCalculationCostsByUkonto({});
+    setAccountTypesByUkonto({});
 
     try {
       // Load calculation items
@@ -159,12 +161,18 @@ export default function ApprovalsPage() {
         if (pricingIds.length > 0) {
           const { data: pricingData } = await supabase
             .from('pricing_config')
-            .select('id, ukonto')
+            .select('id, ukonto, account_type')
             .in('id', pricingIds);
 
           if (pricingData) {
             const ukontoMap: Record<string, string> = {};
-            pricingData.forEach((p: any) => { if (p.ukonto) ukontoMap[p.id] = p.ukonto; });
+            const atMap: Record<string, string> = {};
+            pricingData.forEach((p: any) => { 
+              if (p.ukonto) {
+                ukontoMap[p.id] = p.ukonto;
+                if (p.account_type) atMap[p.ukonto] = p.account_type;
+              }
+            });
 
             const costMap: Record<string, number> = {};
             data.forEach((item: any) => {
@@ -174,6 +182,7 @@ export default function ApprovalsPage() {
               }
             });
             setCalculationCostsByUkonto(costMap);
+            setAccountTypesByUkonto(atMap);
           }
         }
       }
@@ -511,6 +520,7 @@ export default function ApprovalsPage() {
                   <BudgetOutcomeInfo
                     objectNumber={selectedObjectNumber}
                     calculationCostsByUkonto={calculationCostsByUkonto}
+                    accountTypesByUkonto={accountTypesByUkonto}
                   />
                 )}
               </div>
