@@ -113,6 +113,15 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     return Array.from(map.values()).sort((a, b) => a.ukonto.localeCompare(b.ukonto, 'sv'));
   }, [rawRows, selectedAnsvar, calculationCostsByUkonto]);
 
+  function toggleAnsvar(ansvar: string) {
+    setSelectedAnsvar(prev => {
+      const next = new Set(prev);
+      if (next.has(ansvar)) next.delete(ansvar);
+      else next.add(ansvar);
+      return next;
+    });
+  }
+
   function formatNumber(value: number) {
     return new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(value);
   }
@@ -292,6 +301,32 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Ansvar filter */}
+        {uniqueAnsvar.length > 0 && (
+          <div className="rounded-md border p-2 bg-muted/30 space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">Inkluderade ansvar ({selectedAnsvar.size}/{uniqueAnsvar.length})</p>
+            <div className="flex flex-wrap gap-2">
+              {uniqueAnsvar.map(a => (
+                <label key={a} className="flex items-center gap-1 text-xs cursor-pointer">
+                  <Checkbox
+                    checked={selectedAnsvar.has(a)}
+                    onCheckedChange={() => toggleAnsvar(a)}
+                  />
+                  {a}
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" className="h-5 text-xs px-1.5" onClick={() => setSelectedAnsvar(new Set(uniqueAnsvar))}>
+                Alla
+              </Button>
+              <Button variant="ghost" size="sm" className="h-5 text-xs px-1.5" onClick={() => setSelectedAnsvar(new Set())}>
+                Inga
+              </Button>
+            </div>
+          </div>
+        )}
+
         {rows.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-2">Inga ansvar valda</p>
         ) : (
