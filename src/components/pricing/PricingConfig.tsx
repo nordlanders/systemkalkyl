@@ -65,8 +65,6 @@ export default function PricingConfig() {
   const [category, setCategory] = useState('Drift');
   const [comment, setComment] = useState('');
   const [costOwner, setCostOwner] = useState('Produktion');
-  const [internalAccount, setInternalAccount] = useState('');
-  const [externalAccount, setExternalAccount] = useState('');
   const [ukonto, setUkonto] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
@@ -111,8 +109,7 @@ export default function PricingConfig() {
     setCategory('Drift');
     setComment('');
     setCostOwner('Produktion');
-    setInternalAccount('');
-    setExternalAccount('');
+    setUkonto('');
     setUkonto('');
     setEffectiveFrom('');
     setEffectiveTo('');
@@ -129,8 +126,6 @@ export default function PricingConfig() {
     setCategory(config.category || 'Drift');
     setComment(config.comment || '');
     setCostOwner(config.cost_owner || 'Produktion');
-    setInternalAccount((config as any).internal_account || '');
-    setExternalAccount((config as any).external_account || '');
     setUkonto((config as any).ukonto || '');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
@@ -167,8 +162,6 @@ export default function PricingConfig() {
         category: category || null,
         comment: comment || null,
         cost_owner: costOwner || null,
-        internal_account: internalAccount || null,
-        external_account: externalAccount || null,
         ukonto: ukonto || null,
         effective_from: effectiveFrom,
         effective_to: effectiveTo || null,
@@ -368,24 +361,7 @@ export default function PricingConfig() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Internt konto</Label>
-                    <Input
-                      placeholder="T.ex. 5010"
-                      value={internalAccount}
-                      onChange={(e) => setInternalAccount(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Externt konto</Label>
-                    <Input
-                      placeholder="T.ex. 6210"
-                      value={externalAccount}
-                      onChange={(e) => setExternalAccount(e.target.value)}
-                    />
-                  </div>
-                </div>
+
 
                 <div className="space-y-2">
                   <Label>Ukonto (6 siffror)</Label>
@@ -545,8 +521,6 @@ export default function PricingConfig() {
                   <TableHead>Pris</TableHead>
                   <TableHead>Enhet</TableHead>
                   <TableHead>Kategori</TableHead>
-                  <TableHead>Int. konto</TableHead>
-                  <TableHead>Ext. konto</TableHead>
                   <TableHead>Ukonto</TableHead>
                   <TableHead>Default i / Ej möjlig i</TableHead>
                   <TableHead>Giltigt från</TableHead>
@@ -556,7 +530,7 @@ export default function PricingConfig() {
               <TableBody>
                 {pricing.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 10 : 9} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 8 : 7} className="text-center text-muted-foreground py-8">
                       Inga priskonfigurationer hittades
                     </TableCell>
                   </TableRow>
@@ -591,12 +565,6 @@ export default function PricingConfig() {
                         </TableCell>
                         <TableCell>
                           {(config as any).ukonto || '—'}
-                        </TableCell>
-                        <TableCell>
-                          {(config as any).internal_account || '—'}
-                        </TableCell>
-                        <TableCell>
-                          {(config as any).external_account || '—'}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1 max-w-[280px]">
