@@ -303,8 +303,8 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
       return;
     }
 
-    // Helper function to load image as base64
-    const loadImageAsBase64 = (src: string): Promise<string> => {
+    // Helper function to load image as base64 and get dimensions
+    const loadImage = (src: string): Promise<{ base64: string; width: number; height: number }> => {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'Anonymous';
@@ -314,7 +314,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
           canvas.height = img.height;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL('image/png'));
+          resolve({ base64: canvas.toDataURL('image/png'), width: img.width, height: img.height });
         };
         img.onerror = reject;
         img.src = src;
@@ -327,15 +327,19 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     let yPos = 15;
     const calculationYear = (calc as any).calculation_year;
 
-    // Add logo at the top
+    // Add logo at the top, preserving aspect ratio
     try {
-      const sundsvallsBase64 = await loadImageAsBase64(sundsvallsKommunLogo);
-      doc.addImage(sundsvallsBase64, 'PNG', 14, yPos, 40, 16);
+      const logo = await loadImage(sundsvallsKommunLogo);
+      const maxWidth = 40;
+      const ratio = logo.width / logo.height;
+      const logoWidth = maxWidth;
+      const logoHeight = maxWidth / ratio;
+      doc.addImage(logo.base64, 'PNG', 14, yPos, logoWidth, logoHeight);
+      yPos += logoHeight + 8;
     } catch (e) {
       console.error('Could not load logo:', e);
+      yPos += 25;
     }
-    
-    yPos += 25;
 
     // Title
     doc.setFontSize(20);
