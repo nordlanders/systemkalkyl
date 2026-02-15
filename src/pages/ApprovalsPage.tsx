@@ -17,6 +17,7 @@ import {
   Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
+import BudgetOutcomeInfo from '@/components/calculator/BudgetOutcomeInfo';
 import { sv } from 'date-fns/locale';
 import {
   Dialog,
@@ -53,6 +54,8 @@ export default function ApprovalsPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [calculationItems, setCalculationItems] = useState<any[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
+  const [selectedObjectNumber, setSelectedObjectNumber] = useState<string | null>(null);
+  const [calculationCostsByUkonto, setCalculationCostsByUkonto] = useState<Record<string, number>>({});
 
   const { toast } = useToast();
 
@@ -103,8 +106,11 @@ export default function ApprovalsPage() {
     setSelectedCalc(calc);
     setDetailsOpen(true);
     setLoadingItems(true);
+    setSelectedObjectNumber(null);
+    setCalculationCostsByUkonto({});
 
     try {
+      // Load calculation items
       const { data, error } = await supabase
         .from('calculation_items')
         .select('*')
@@ -112,6 +118,42 @@ export default function ApprovalsPage() {
 
       if (error) throw error;
       setCalculationItems(data || []);
+
+      // Look up object_number from configuration_items
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(calc.ci_identity);
+      if (isUuid) {
+        const { data: ciData } = await supabase
+          .from('configuration_items')
+          .select('object_number')
+          .eq('id', calc.ci_identity)
+          .maybeSingle();
+        setSelectedObjectNumber(ciData?.object_number || null);
+      }
+
+      // Build calculationCostsByUkonto from items + pricing_config
+      if (data && data.length > 0) {
+        const pricingIds = data.filter((i: any) => i.pricing_config_id).map((i: any) => i.pricing_config_id);
+        if (pricingIds.length > 0) {
+          const { data: pricingData } = await supabase
+            .from('pricing_config')
+            .select('id, ukonto')
+            .in('id', pricingIds);
+
+          if (pricingData) {
+            const ukontoMap: Record<string, string> = {};
+            pricingData.forEach((p: any) => { if (p.ukonto) ukontoMap[p.id] = p.ukonto; });
+
+            const costMap: Record<string, number> = {};
+            data.forEach((item: any) => {
+              const ukonto = ukontoMap[item.pricing_config_id];
+              if (ukonto) {
+                costMap[ukonto] = (costMap[ukonto] || 0) + Number(item.total_price || 0);
+              }
+            });
+            setCalculationCostsByUkonto(costMap);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error loading calculation items:', error);
     } finally {
@@ -421,6 +463,14 @@ export default function ApprovalsPage() {
                     {formatCurrency(selectedCalc.total_cost)}
                   </span>
                 </div>
+
+                {/* Budget & Utfall */}
+                {selectedObjectNumber && (
+                  <BudgetOutcomeInfo
+                    objectNumber={selectedObjectNumber}
+                    calculationCostsByUkonto={calculationCostsByUkonto}
+                  />
+                )}
               </div>
             )}
 
