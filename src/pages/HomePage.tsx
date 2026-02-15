@@ -210,7 +210,7 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-md">
             <Info className="h-4 w-4 text-primary" />
-            <span>Senaste systemuppdatering: 2 feb 2026</span>
+            <span>Senaste systemuppdatering: 15 feb 2026</span>
           </div>
         </div>
 
