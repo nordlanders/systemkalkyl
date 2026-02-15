@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -318,6 +318,19 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   function calculateTotalCost(): number {
     return rows.reduce((sum, row) => sum + calculateRowTotal(row), 0);
   }
+
+  // Build a map of ukonto -> total cost from current calculation rows
+  const calculationCostsByUkonto = useMemo(() => {
+    const map: Record<string, number> = {};
+    rows.filter(r => r.pricingConfigId).forEach(row => {
+      const pc = pricing.find(p => p.id === row.pricingConfigId);
+      const ukonto = (pc as any)?.ukonto;
+      if (ukonto) {
+        map[ukonto] = (map[ukonto] || 0) + calculateRowTotal(row);
+      }
+    });
+    return map;
+  }, [rows, pricing]);
 
   async function saveCalculation() {
     if (!user) return;
@@ -931,7 +944,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     )}
                   </CardContent>
                 </Card>
-                <BudgetOutcomeInfo objectNumber={selectedCI.object_number || null} />
+                <BudgetOutcomeInfo objectNumber={selectedCI.object_number || null} calculationCostsByUkonto={calculationCostsByUkonto} />
               </>
             ) : (
               <Card className="border-dashed">
@@ -1455,6 +1468,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               </Card>
             )}
 
+            {/* Budget & Utfall in step 2 */}
+            {selectedCI?.object_number && (
+              <BudgetOutcomeInfo objectNumber={selectedCI.object_number} calculationCostsByUkonto={calculationCostsByUkonto} />
+            )}
+
           </div>
         </div>
       ) : (
@@ -1638,6 +1656,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               </div>
             </CardContent>
           </Card>
+
+          {/* Budget & Utfall in step 3 */}
+          {selectedCI?.object_number && (
+            <BudgetOutcomeInfo objectNumber={selectedCI.object_number} calculationCostsByUkonto={calculationCostsByUkonto} />
+          )}
 
           {/* Status Selection */}
           {readOnly ? (
