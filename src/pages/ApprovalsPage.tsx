@@ -56,6 +56,7 @@ export default function ApprovalsPage() {
   const [loadingItems, setLoadingItems] = useState(false);
   const [selectedObjectNumber, setSelectedObjectNumber] = useState<string | null>(null);
   const [calculationCostsByUkonto, setCalculationCostsByUkonto] = useState<Record<string, number>>({});
+  const [ciInfoMap, setCiInfoMap] = useState<Record<string, { objectNumber: string; ciDisplay: string }>>({});
 
   const { toast } = useToast();
 
@@ -89,7 +90,28 @@ export default function ApprovalsPage() {
       const { data, error } = await query;
 
       if (error) throw error;
-      setCalculations((data || []) as PendingCalculation[]);
+      const calcs = (data || []) as PendingCalculation[];
+      setCalculations(calcs);
+
+      // Look up CI info (object_number, ci_number) for UUID-based ci_identities
+      const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const uuidIds = calcs.filter(c => uuidPattern.test(c.ci_identity)).map(c => c.ci_identity);
+      if (uuidIds.length > 0) {
+        const { data: ciData } = await supabase
+          .from('configuration_items')
+          .select('id, object_number, ci_number, system_name')
+          .in('id', uuidIds);
+        if (ciData) {
+          const map: Record<string, { objectNumber: string; ciDisplay: string }> = {};
+          ciData.forEach((ci: any) => {
+            map[ci.id] = {
+              objectNumber: ci.object_number || '',
+              ciDisplay: ci.ci_number || ci.system_name || '',
+            };
+          });
+          setCiInfoMap(map);
+        }
+      }
     } catch (error) {
       console.error('Error loading pending calculations:', error);
       toast({
@@ -321,7 +343,8 @@ export default function ApprovalsPage() {
                   <TableHeader>
                     <TableRow className="bg-muted/50">
                       <TableHead>Namn</TableHead>
-                      <TableHead>CI-identitet</TableHead>
+                      <TableHead>Objekt / CI</TableHead>
+                      <TableHead>Objektnummer</TableHead>
                       <TableHead>Organisation</TableHead>
                       <TableHead>Kalkylår</TableHead>
                       <TableHead>Total kostnad</TableHead>
@@ -336,7 +359,22 @@ export default function ApprovalsPage() {
                         <TableCell className="font-medium">
                           {calc.name || 'Namnlös kalkyl'}
                         </TableCell>
-                        <TableCell>{calc.ci_identity}</TableCell>
+                        <TableCell>
+                          {(() => {
+                            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(calc.ci_identity);
+                            if (isUuid) {
+                              const info = ciInfoMap[calc.ci_identity];
+                              return info?.ciDisplay || '-';
+                            }
+                            return calc.ci_identity;
+                          })()}
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(calc.ci_identity);
+                            return isUuid ? (ciInfoMap[calc.ci_identity]?.objectNumber || '-') : '-';
+                          })()}
+                        </TableCell>
                         <TableCell>{calc.owning_organization || '-'}</TableCell>
                         <TableCell>{calc.calculation_year}</TableCell>
                         <TableCell>{formatCurrency(calc.total_cost)}</TableCell>
@@ -385,7 +423,13 @@ export default function ApprovalsPage() {
             <DialogHeader>
               <DialogTitle>Granska kalkyl</DialogTitle>
               <DialogDescription>
-                {selectedCalc?.name || 'Namnlös kalkyl'} - {selectedCalc?.ci_identity}
+                {selectedCalc?.name || 'Namnlös kalkyl'}
+                {(() => {
+                  if (!selectedCalc) return '';
+                  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(selectedCalc.ci_identity);
+                  const display = isUuid ? (ciInfoMap[selectedCalc.ci_identity]?.ciDisplay || '') : selectedCalc.ci_identity;
+                  return display ? ` - ${display}` : '';
+                })()}
               </DialogDescription>
             </DialogHeader>
 
@@ -413,6 +457,12 @@ export default function ApprovalsPage() {
                     <p className="text-muted-foreground">Version</p>
                     <p className="font-medium">{selectedCalc.version}</p>
                   </div>
+                  {selectedObjectNumber && (
+                    <div>
+                      <p className="text-muted-foreground">Objektnummer</p>
+                      <p className="font-medium">{selectedObjectNumber}</p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-muted-foreground">Skapad av</p>
                     <p className="font-medium">{selectedCalc.created_by_name || '-'}</p>
