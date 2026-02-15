@@ -67,6 +67,7 @@ export default function PricingConfig() {
   const [costOwner, setCostOwner] = useState('Produktion');
   const [internalAccount, setInternalAccount] = useState('');
   const [externalAccount, setExternalAccount] = useState('');
+  const [ukonto, setUkonto] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState('');
   const [effectiveTo, setEffectiveTo] = useState('');
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>(
@@ -112,6 +113,7 @@ export default function PricingConfig() {
     setCostOwner('Produktion');
     setInternalAccount('');
     setExternalAccount('');
+    setUkonto('');
     setEffectiveFrom('');
     setEffectiveTo('');
     setSelectedServiceTypes(SERVICE_TYPES.map(st => st.value));
@@ -129,6 +131,7 @@ export default function PricingConfig() {
     setCostOwner(config.cost_owner || 'Produktion');
     setInternalAccount((config as any).internal_account || '');
     setExternalAccount((config as any).external_account || '');
+    setUkonto((config as any).ukonto || '');
     setEffectiveFrom(config.effective_from);
     setEffectiveTo(config.effective_to || '');
     setSelectedServiceTypes(config.service_types || []);
@@ -166,6 +169,7 @@ export default function PricingConfig() {
         cost_owner: costOwner || null,
         internal_account: internalAccount || null,
         external_account: externalAccount || null,
+        ukonto: ukonto || null,
         effective_from: effectiveFrom,
         effective_to: effectiveTo || null,
         created_by: user.id,
@@ -384,6 +388,22 @@ export default function PricingConfig() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Ukonto (6 siffror)</Label>
+                  <Input
+                    placeholder="T.ex. 743200"
+                    value={ukonto}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setUkonto(val);
+                    }}
+                    maxLength={6}
+                  />
+                  {ukonto && ukonto.length !== 6 && (
+                    <p className="text-xs text-destructive">Ukonto måste vara exakt 6 siffror</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
                   <Label>Kommentar</Label>
                   <Textarea
                     placeholder="Beskrivning eller instruktioner för denna pristyp"
@@ -527,6 +547,7 @@ export default function PricingConfig() {
                   <TableHead>Kategori</TableHead>
                   <TableHead>Int. konto</TableHead>
                   <TableHead>Ext. konto</TableHead>
+                  <TableHead>Ukonto</TableHead>
                   <TableHead>Default i / Ej möjlig i</TableHead>
                   <TableHead>Giltigt från</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
@@ -535,7 +556,7 @@ export default function PricingConfig() {
               <TableBody>
                 {pricing.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 9 : 8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 10 : 9} className="text-center text-muted-foreground py-8">
                       Inga priskonfigurationer hittades
                     </TableCell>
                   </TableRow>
@@ -567,6 +588,9 @@ export default function PricingConfig() {
                           <span className="text-xs px-2 py-1 rounded bg-muted">
                             {config.category || '—'}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          {(config as any).ukonto || '—'}
                         </TableCell>
                         <TableCell>
                           {(config as any).internal_account || '—'}
