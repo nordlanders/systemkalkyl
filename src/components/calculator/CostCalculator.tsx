@@ -100,6 +100,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const [owningOrganizations, setOwningOrganizations] = useState<OwningOrganization[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rows, setRows] = useState<CalculationRow[]>([]);
+  const [approvedVersionItems, setApprovedVersionItems] = useState<Array<{price_type: string; quantity: number; unit_price: number; total_price: number; comment?: string}>>([]);
   const [selectedCI, setSelectedCI] = useState<ConfigurationItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -129,6 +130,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   useEffect(() => {
     if (editCalculation && pricing.length > 0) {
       loadExistingItems();
+      loadLastApprovedVersion();
     }
   }, [editCalculation, pricing]);
 
@@ -206,6 +208,30 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       }
     } catch (error) {
       console.error('Error loading calculation items:', error);
+    }
+  }
+
+  async function loadLastApprovedVersion() {
+    if (!editCalculation) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('calculation_versions')
+        .select('*')
+        .eq('calculation_id', editCalculation.id)
+        .eq('status', 'approved')
+        .order('version', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const items = (data[0].items as any[]) || [];
+        setApprovedVersionItems(items);
+      } else {
+        setApprovedVersionItems([]);
+      }
+    } catch (error) {
+      console.error('Error loading approved version:', error);
     }
   }
 
@@ -1204,14 +1230,42 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {rows.filter(r => r.pricingConfigId).map((row, index) => (
-                      <div key={row.id} className="flex justify-between items-center py-2 border-b border-border/50">
-                        <span className="text-muted-foreground text-sm truncate max-w-[150px]" title={row.priceType}>
-                          {row.priceType}
-                        </span>
-                        <span className="font-mono text-sm">{formatCurrency(calculateRowTotal(row))}</span>
-                      </div>
-                    ))}
+                    {rows.filter(r => r.pricingConfigId).map((row) => {
+                      const pricingConfig = pricing.find(p => p.id === row.pricingConfigId);
+                      const ukonto = (pricingConfig as any)?.ukonto || '';
+                      const approvedItem = approvedVersionItems.find(i => i.price_type === row.priceType);
+                      const currentTotal = calculateRowTotal(row);
+                      const diff = approvedItem ? currentTotal - Number(approvedItem.total_price) : null;
+                      
+                      return (
+                        <div key={row.id} className="py-2 border-b border-border/50">
+                          <div className="flex justify-between items-center">
+                            <div className="truncate max-w-[150px]">
+                              <span className="text-muted-foreground text-sm" title={row.priceType}>
+                                {row.priceType}
+                              </span>
+                              {ukonto && (
+                                <span className="text-xs text-muted-foreground ml-1">({ukonto})</span>
+                              )}
+                            </div>
+                            <span className="font-mono text-sm">{formatCurrency(currentTotal)}</span>
+                          </div>
+                          {approvedItem && (
+                            <div className="flex justify-between items-center mt-1">
+                              <span className="text-xs text-muted-foreground">Godkänd version</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs text-muted-foreground">{formatCurrency(Number(approvedItem.total_price))}</span>
+                                {diff !== null && diff !== 0 && (
+                                  <span className={`font-mono text-xs ${diff > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                    {diff > 0 ? '+' : ''}{formatCurrency(diff)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
@@ -1222,6 +1276,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                       {formatCurrency(calculateTotalCost())}
                     </span>
                   </div>
+                  {approvedVersionItems.length > 0 && (
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-xs text-muted-foreground">Godkänd version</span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {formatCurrency(approvedVersionItems.reduce((sum, i) => sum + Number(i.total_price), 0))}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1440,25 +1502,56 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {rows.filter(r => r.pricingConfigId).map((row, index) => (
-                  <div key={row.id} className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
-                    <div className="flex-1">
-                      <p className="font-medium">{row.priceType}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {row.quantity} {row.unit} × {formatCurrency(row.unitPrice)}
-                      </p>
-                      {row.comment && (
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" />
-                          {row.comment}
-                        </p>
-                      )}
+                {rows.filter(r => r.pricingConfigId).map((row) => {
+                  const pricingConfig = pricing.find(p => p.id === row.pricingConfigId);
+                  const ukonto = (pricingConfig as any)?.ukonto || '';
+                  const approvedItem = approvedVersionItems.find(i => i.price_type === row.priceType);
+                  const currentTotal = calculateRowTotal(row);
+                  const diff = approvedItem ? currentTotal - Number(approvedItem.total_price) : null;
+                  
+                  return (
+                    <div key={row.id} className="py-3 border-b border-border/50 last:border-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{row.priceType}</p>
+                            {ukonto && (
+                              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                Ukonto: {ukonto}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {row.quantity} {row.unit} × {formatCurrency(row.unitPrice)}
+                          </p>
+                          {row.comment && (
+                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                              <MessageSquare className="h-3 w-3" />
+                              {row.comment}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className="font-mono font-medium text-primary">
+                            {formatCurrency(currentTotal)}
+                          </span>
+                          {approvedItem && (
+                            <div className="mt-0.5">
+                              <span className="font-mono text-xs text-muted-foreground">
+                                Godkänd: {formatCurrency(Number(approvedItem.total_price))}
+                              </span>
+                              {diff !== null && diff !== 0 && (
+                                <span className={`font-mono text-xs ml-1 ${diff > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                  ({diff > 0 ? '+' : ''}{formatCurrency(diff)})
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <span className="font-mono font-medium text-primary">
-                      {formatCurrency(calculateRowTotal(row))}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               {!readOnly && (
                 <div className="mt-4 pt-4 border-t">
@@ -1526,6 +1619,22 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   {formatCurrency(calculateTotalCost())}
                 </span>
                 <p className="text-muted-foreground mt-2">per månad</p>
+                {approvedVersionItems.length > 0 && (() => {
+                  const approvedTotal = approvedVersionItems.reduce((sum, i) => sum + Number(i.total_price), 0);
+                  const totalDiff = calculateTotalCost() - approvedTotal;
+                  return (
+                    <div className="mt-3 pt-3 border-t border-primary/20">
+                      <p className="text-sm text-muted-foreground">
+                        Godkänd version: <span className="font-mono">{formatCurrency(approvedTotal)}</span>
+                      </p>
+                      {totalDiff !== 0 && (
+                        <p className={`text-sm font-mono font-medium ${totalDiff > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                          Differens: {totalDiff > 0 ? '+' : ''}{formatCurrency(totalDiff)}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </CardContent>
           </Card>
