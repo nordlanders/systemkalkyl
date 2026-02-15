@@ -774,11 +774,9 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
                             <StatusIcon className="h-3 w-3" />
                             {currentStatus.label}
                           </Badge>
-                          {status === 'approved' && calc.version > 1 && (
-                            <span className="text-xs text-muted-foreground">
-                              v{calc.version}
-                            </span>
-                          )}
+                          <span className="text-xs text-muted-foreground">
+                            v{calc.version}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
