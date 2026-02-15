@@ -307,12 +307,18 @@ export default function ApprovalsPage() {
                   <FileCheck className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">
-                    {approvalOrganizations?.length || 'Alla'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {approvalOrganizations?.length ? 'Organisationer att godkänna' : 'organisationer'}
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Godkänner för</p>
+                  {approvalOrganizations?.length ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {approvalOrganizations.map((org) => (
+                        <Badge key={org} variant="secondary" className="text-xs">
+                          {org}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-semibold">Alla organisationer</p>
+                  )}
                 </div>
               </div>
             </CardContent>
