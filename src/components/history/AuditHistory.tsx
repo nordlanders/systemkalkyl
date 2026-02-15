@@ -26,11 +26,13 @@ import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
 type SortField = 'type' | 'name' | 'ci_identity' | 'version' | 'status' | 'performedBy' | 'date';
+type CIMap = Record<string, { system_name: string; object_number: string | null; ci_number: string }>;
 type SortDirection = 'asc' | 'desc';
 
 export default function AuditHistory() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
+  const [ciMap, setCiMap] = useState<CIMap>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCalculation, setSelectedCalculation] = useState<string>('all');
@@ -70,6 +72,19 @@ export default function AuditHistory() {
 
       if (calcsError) throw calcsError;
       setCalculations(calcs as Calculation[]);
+
+      // Load configuration items for object number mapping
+      const { data: ciData } = await supabase
+        .from('configuration_items')
+        .select('id, system_name, object_number, ci_number');
+      
+      if (ciData) {
+        const map: CIMap = {};
+        ciData.forEach((ci: any) => {
+          map[ci.id] = { system_name: ci.system_name, object_number: ci.object_number, ci_number: ci.ci_number };
+        });
+        setCiMap(map);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
@@ -211,11 +226,13 @@ export default function AuditHistory() {
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(e => 
-        e.name.toLowerCase().includes(query) ||
-        e.ci_identity.toLowerCase().includes(query) ||
-        e.performedBy.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter(e => {
+        const objNr = ciMap[e.ci_identity]?.object_number || '';
+        return e.name.toLowerCase().includes(query) ||
+          e.ci_identity.toLowerCase().includes(query) ||
+          objNr.toLowerCase().includes(query) ||
+          e.performedBy.toLowerCase().includes(query);
+      });
     }
     
     // Sort
@@ -346,7 +363,7 @@ export default function AuditHistory() {
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Sök på kalkyl eller CI-identitet..."
+                    placeholder="Sök på kalkyl, objektnummer eller användare..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9"
@@ -378,7 +395,7 @@ export default function AuditHistory() {
                         Kalkyl
                       </SortableHeader>
                       <SortableHeader field="ci_identity">
-                        CI-identitet
+                        Objektnummer
                       </SortableHeader>
                       <SortableHeader field="version">
                         Version
@@ -421,7 +438,7 @@ export default function AuditHistory() {
                             {event.name}
                           </TableCell>
                           <TableCell className="font-mono text-sm">
-                            {event.ci_identity}
+                            {ciMap[event.ci_identity]?.object_number || event.ci_identity}
                           </TableCell>
                           <TableCell className="font-mono">
                             v{event.version}
