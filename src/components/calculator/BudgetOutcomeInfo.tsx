@@ -230,7 +230,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  var costRows = grouped.filter(function(r) { return r.budget_2026 < 0; });';
     html += '  var cols = hasKalkyl ? 5 : 4;';
     html += '  var h = "<table><thead><tr><th>Konto</th><th class=\\"right\\">Utfall ack.</th><th class=\\"right\\">Budget 2025</th><th class=\\"right\\">Budget 2026</th>";';
-    html += '  if (hasKalkyl) h += "<th class=\\"right primary\\">Kalkyl</th>";';
+    html += '  if (hasKalkyl) h += "<th class=\\"right primary\\">Denna kalkyl</th>";';
     html += '  h += "</tr></thead><tbody>";';
     html += '  function sumArr(arr) { return arr.reduce(function(a,r) { return { utfall_ack: a.utfall_ack+r.utfall_ack, budget_2025: a.budget_2025+r.budget_2025, budget_2026: a.budget_2026+r.budget_2026, kalkyl: a.kalkyl+r.kalkyl }; }, { utfall_ack:0, budget_2025:0, budget_2026:0, kalkyl:0 }); }';
     html += '  function renderSection(title, sRows) {';
@@ -282,7 +282,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
         </div>
         {hasKalkylData && (
           <div className="flex justify-between text-xs">
-            <span className="text-primary font-medium">Kalkyl</span>
+            <span className="text-primary font-medium">Denna kalkyl</span>
             <span className="font-mono text-primary font-medium">
               {totals.kalkyl !== 0 ? formatNumber(totals.kalkyl) : '–'}
             </span>
@@ -350,7 +350,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
                 </div>
                 {hasKalkylData && (
                   <div className="flex justify-between text-xs">
-                    <span className="text-primary font-semibold">Kalkyl</span>
+                    <span className="text-primary font-semibold">Denna kalkyl</span>
                     <span className="font-mono text-primary font-semibold">{formatNumber(grandTotals.kalkyl)}</span>
                   </div>
                 )}
