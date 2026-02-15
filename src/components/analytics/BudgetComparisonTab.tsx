@@ -118,15 +118,15 @@ export default function BudgetComparisonTab() {
       const objectNumber = ci?.object_number;
 
       if (objectNumber) {
-        // Budget data uses 'mot' column with format "6110700 Lagring" - match by prefix
+        // Budget data uses 'objekt' column with format "6110700 Lagring" - match by prefix
         const { data: budgetRows } = await supabase
           .from('budget_outcomes')
           .select('id, objekt, ansvar, ukonto, budget_2025, budget_2026, utfall_ack, diff, import_label, extraction_date, mot')
-          .not('mot', 'is', null);
+          .not('objekt', 'is', null);
         
-        // Filter rows where mot starts with the object number
+        // Filter rows where objekt starts with the object number
         const matchedRows = (budgetRows || []).filter((r: any) => 
-          r.mot && r.mot.toString().startsWith(objectNumber)
+          r.objekt && r.objekt.toString().split(' ')[0].trim() === objectNumber
         );
         setBudgetData(matchedRows);
       } else {
