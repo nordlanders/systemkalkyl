@@ -383,30 +383,15 @@ export default function ApprovalsPage() {
                           {format(new Date(calc.created_at), 'd MMM yyyy', { locale: sv })}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => viewDetails(calc)}
-                              className="gap-1"
-                            >
-                              <Eye className="h-4 w-4" />
-                              Granska
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleApprove(calc.id)}
-                              disabled={approving === calc.id}
-                              className="gap-1"
-                            >
-                              {approving === calc.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <CheckCircle2 className="h-4 w-4" />
-                              )}
-                              Godkänn
-                            </Button>
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => viewDetails(calc)}
+                            className="gap-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            Granska
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
