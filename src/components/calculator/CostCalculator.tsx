@@ -32,8 +32,7 @@ import {
   Clock,
   CheckCircle2,
   FileEdit,
-  Server,
-  ExternalLink
+  Server
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
@@ -1301,105 +1300,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               </CardContent>
             </Card>
 
-            {/* Budget & Utfall popup button */}
-            {selectedCI?.object_number && (
-              <Button
-                className="w-full gap-2"
-                onClick={() => {
-                  const objNr = selectedCI.object_number;
-                  const popup = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-                  if (!popup) return;
-                  popup.document.write('<html><head><title>Budget & Utfall – Objekt ' + objNr + '</title><style>body{font-family:system-ui,sans-serif;margin:20px;color:#333}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}th{background:#f3f4f6;font-weight:600;font-size:13px}.right{text-align:right}.section{background:#f9fafb;font-weight:600;padding:6px 12px;font-size:13px}.subtotal{font-weight:600;border-top:2px solid #d1d5db}.grand{font-weight:700;border-top:3px solid #6b7280;font-size:15px}.indent{padding-left:24px}.loading{text-align:center;padding:40px;color:#999}</style></head><body>');
-                  popup.document.write('<h2>Budget & Utfall – Objekt ' + objNr + '</h2>');
-                  popup.document.write('<p class="loading">Laddar data...</p>');
-                  popup.document.write('</body></html>');
-                  popup.document.close();
-                  supabase
-                    .from('budget_outcomes')
-                    .select('vht, ansvar, budget_2025, budget_2026, utfall_ack, mot')
-                    .not('mot', 'is', null)
-                    .then(({ data, error }) => {
-                      if (!popup || popup.closed) return;
-                      if (error || !data) {
-                        popup.document.body.innerHTML = '<h2>Fel vid laddning</h2><p>' + (error?.message || 'Ingen data') + '</p>';
-                        return;
-                      }
-                      const matched = data.filter((row: any) => {
-                        if (!row.mot) return false;
-                        return row.mot.split(' ')[0].trim() === objNr;
-                      });
-                      if (matched.length === 0) {
-                        popup.document.body.innerHTML = '<h2>Budget & Utfall – Objekt ' + objNr + '</h2><p>Ingen data hittades.</p>';
-                        return;
-                      }
-                      
-                      // Build data with ansvar info
-                      const rowsWithAnsvar = matched.map((row: any) => ({
-                        vht: row.vht || '(tomt)',
-                        ansvar: row.ansvar || '(tomt)',
-                        utfall_ack: row.utfall_ack || 0,
-                        budget_2025: row.budget_2025 || 0,
-                        budget_2026: row.budget_2026 || 0,
-                      }));
-                      
-                      const uniqueAnsvar = Array.from(new Set(rowsWithAnsvar.map((r: any) => r.ansvar))).sort((a: string, b: string) => a.localeCompare(b, 'sv'));
-                      
-                      let html = '<style>.filter-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-bottom:16px}.filter-box h3{margin:0 0 8px;font-size:14px;color:#555}.filter-items{display:flex;flex-wrap:wrap;gap:8px}.filter-item{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer}.filter-item input{cursor:pointer}.filter-actions{margin-top:8px;display:flex;gap:8px}.filter-btn{background:#e5e7eb;border:none;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer}.filter-btn:hover{background:#d1d5db}</style>';
-                      html += '<h2>Budget & Utfall – Objekt ' + objNr + '</h2>';
-                      
-                      // Ansvar filter
-                      html += '<div class="filter-box"><h3>Inkluderade ansvar</h3><div class="filter-items">';
-                      uniqueAnsvar.forEach((a: string) => {
-                        html += '<label class="filter-item"><input type="checkbox" checked data-ansvar="' + a.replace(/"/g, '&quot;') + '" onchange="filterRows()"> ' + a + '</label>';
-                      });
-                      html += '</div><div class="filter-actions"><button class="filter-btn" onclick="toggleAll(true)">Markera alla</button><button class="filter-btn" onclick="toggleAll(false)">Avmarkera alla</button></div></div>';
-                      html += '<div id="table-container"></div>';
-                      
-                      html += '<script>';
-                      html += 'var allRows = ' + JSON.stringify(rowsWithAnsvar) + ';';
-                      html += 'function fmt(n) { return new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(n); }';
-                      html += 'function toggleAll(state) { document.querySelectorAll("[data-ansvar]").forEach(function(cb) { cb.checked = state; }); filterRows(); }';
-                      html += 'function filterRows() {';
-                      html += '  var checked = []; document.querySelectorAll("[data-ansvar]:checked").forEach(function(cb) { checked.push(cb.getAttribute("data-ansvar")); });';
-                      html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
-                      html += '  var map = {};';
-                      html += '  filtered.forEach(function(r) { var k = r.vht; if (!map[k]) map[k] = { vht: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0 }; map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
-                      html += '  var grouped = Object.values(map).sort(function(a, b) { return a.vht.localeCompare(b.vht, "sv"); });';
-                      html += '  var incomeRows = grouped.filter(function(r) { return r.budget_2026 >= 0; });';
-                      html += '  var costRows = grouped.filter(function(r) { return r.budget_2026 < 0; });';
-                      html += '  var h = "<table><thead><tr><th>Konto</th><th class=\\"right\\">Utfall ack.</th><th class=\\"right\\">Budget 2025</th><th class=\\"right\\">Budget 2026</th></tr></thead><tbody>";';
-                      html += '  function sumArr(arr) { return arr.reduce(function(a,r) { return { utfall_ack: a.utfall_ack+r.utfall_ack, budget_2025: a.budget_2025+r.budget_2025, budget_2026: a.budget_2026+r.budget_2026 }; }, { utfall_ack:0, budget_2025:0, budget_2026:0 }); }';
-                      html += '  function renderSection(title, sRows) {';
-                      html += '    var t = sumArr(sRows);';
-                      html += '    h += "<tr><td colspan=\\"4\\" class=\\"section\\">" + title + "</td></tr>";';
-                      html += '    sRows.forEach(function(r) { h += "<tr><td class=\\"indent\\">" + r.vht + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td></tr>"; });';
-                      html += '    h += "<tr class=\\"subtotal\\"><td class=\\"indent\\">Summa " + title.toLowerCase() + "</td><td class=\\"right\\">" + fmt(t.utfall_ack) + "</td><td class=\\"right\\">" + fmt(t.budget_2025) + "</td><td class=\\"right\\">" + fmt(t.budget_2026) + "</td></tr>";';
-                      html += '  }';
-                      html += '  if (incomeRows.length > 0) renderSection("Intäkter", incomeRows);';
-                      html += '  if (costRows.length > 0) renderSection("Kostnader", costRows);';
-                      html += '  var grand = sumArr(grouped);';
-                      html += '  h += "<tr class=\\"grand\\"><td>Netto</td><td class=\\"right\\">" + fmt(grand.utfall_ack) + "</td><td class=\\"right\\">" + fmt(grand.budget_2025) + "</td><td class=\\"right\\">" + fmt(grand.budget_2026) + "</td></tr>";';
-                      html += '  h += "</tbody></table>";';
-                      html += '  document.getElementById("table-container").innerHTML = h;';
-                      html += '}';
-                      html += 'filterRows();';
-                      html += '<\/script>';
-                      
-                      popup.document.body.innerHTML = html;
-                      // Re-execute scripts since innerHTML doesn't run them
-                      var scripts = popup.document.querySelectorAll('script');
-                      scripts.forEach(function(s: any) {
-                        var ns = popup!.document.createElement('script');
-                        ns.textContent = s.textContent;
-                        s.parentNode!.replaceChild(ns, s);
-                      });
-                    });
-                }}
-              >
-                <ExternalLink className="h-4 w-4" />
-                Visa budget och utfall (öppnas i eget fönster)
-              </Button>
-            )}
+            {/* Budget & Utfall is now shown via BudgetOutcomeInfo below */}
 
             {/* Info about calculation */}
             <Card>

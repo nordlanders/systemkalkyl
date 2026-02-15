@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, TrendingUp } from 'lucide-react';
+import { Loader2, TrendingUp, ExternalLink } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -84,7 +84,6 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     [rawRows]
   );
 
-  // Extract the 6-digit code prefix from vht for matching with ukonto
   function extractVhtCode(vht: string): string {
     const match = vht.match(/^(\d{6})/);
     return match ? match[1] : vht;
@@ -114,15 +113,6 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     });
     return Array.from(map.values()).sort((a, b) => a.ukonto.localeCompare(b.ukonto, 'sv'));
   }, [rawRows, selectedAnsvar, calculationCostsByUkonto]);
-
-  function toggleAnsvar(ansvar: string) {
-    setSelectedAnsvar(prev => {
-      const next = new Set(prev);
-      if (next.has(ansvar)) next.delete(ansvar);
-      else next.add(ansvar);
-      return next;
-    });
-  }
 
   function formatNumber(value: number) {
     return new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(value);
@@ -171,78 +161,116 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
   const costTotals = sumRows(costRows);
   const grandTotals = sumRows(rows);
 
-  const renderSection = (title: string, sectionRows: UkontoRow[], sectionTotals: { utfall_ack: number; budget_2025: number; budget_2026: number; kalkyl: number }) => (
-    <>
-      <TableRow className="bg-muted/30">
-        <TableCell colSpan={hasKalkylData ? 5 : 4} className="text-xs font-semibold py-1.5">{title}</TableCell>
-      </TableRow>
-      {sectionRows.map((row) => (
-        <TableRow key={row.ukonto}>
-          <TableCell className="text-xs font-medium pl-6">{row.ukonto}</TableCell>
-          <TableCell className="text-xs text-right">{formatNumber(row.utfall_ack)}</TableCell>
-          <TableCell className="text-xs text-right">{formatNumber(row.budget_2025)}</TableCell>
-          <TableCell className="text-xs text-right">{formatNumber(row.budget_2026)}</TableCell>
-          {hasKalkylData && (
-            <TableCell className="text-xs text-right font-medium text-primary">
-              {row.kalkyl !== 0 ? formatNumber(row.kalkyl) : '–'}
-            </TableCell>
-          )}
-        </TableRow>
-      ))}
-      <TableRow className="border-t">
-        <TableCell className="text-xs font-semibold pl-6">Summa {title.toLowerCase()}</TableCell>
-        <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.utfall_ack)}</TableCell>
-        <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.budget_2025)}</TableCell>
-        <TableCell className="text-xs text-right font-semibold">{formatNumber(sectionTotals.budget_2026)}</TableCell>
-        {hasKalkylData && (
-          <TableCell className="text-xs text-right font-semibold text-primary">
-            {sectionTotals.kalkyl !== 0 ? formatNumber(sectionTotals.kalkyl) : '–'}
-          </TableCell>
-        )}
-      </TableRow>
-    </>
-  );
+  function openDetailPopup() {
+    const popup = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+    if (!popup) return;
+
+    const filteredRows = rawRows.filter(r => selectedAnsvar.has(r.ansvar));
+    const allAnsvar = uniqueAnsvar;
+    const kalkylMap = calculationCostsByUkonto;
+
+    let html = `<!DOCTYPE html><html><head><title>Budget, utfall och kalkyler – Objekt ${objectNumber}</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:20px;color:#333}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}
+th{background:#f3f4f6;font-weight:600;font-size:13px}
+.right{text-align:right}
+.section{background:#f9fafb;font-weight:600;padding:6px 12px;font-size:13px}
+.subtotal{font-weight:600;border-top:2px solid #d1d5db}
+.grand{font-weight:700;border-top:3px solid #6b7280;font-size:15px}
+.indent{padding-left:24px}
+.loading{text-align:center;padding:40px;color:#999}
+.primary{color:#005595;font-weight:600}
+.filter-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-bottom:16px}
+.filter-box h3{margin:0 0 8px;font-size:14px;color:#555}
+.filter-items{display:flex;flex-wrap:wrap;gap:8px}
+.filter-item{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer}
+.filter-item input{cursor:pointer}
+.filter-actions{margin-top:8px;display:flex;gap:8px}
+.filter-btn{background:#e5e7eb;border:none;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer}
+.filter-btn:hover{background:#d1d5db}
+</style></head><body>`;
+
+    html += `<h2>Budget, utfall och kalkyler – Objekt ${objectNumber}</h2>`;
+
+    // Ansvar filter
+    html += '<div class="filter-box"><h3>Inkluderade ansvar</h3><div class="filter-items">';
+    allAnsvar.forEach(a => {
+      const checked = selectedAnsvar.has(a) ? 'checked' : '';
+      html += `<label class="filter-item"><input type="checkbox" ${checked} data-ansvar="${a.replace(/"/g, '&quot;')}" onchange="filterRows()"> ${a}</label>`;
+    });
+    html += '</div><div class="filter-actions"><button class="filter-btn" onclick="toggleAll(true)">Markera alla</button><button class="filter-btn" onclick="toggleAll(false)">Avmarkera alla</button></div></div>';
+    html += '<div id="table-container"></div>';
+
+    const hasKalkyl = Object.keys(kalkylMap).length > 0;
+
+    html += '<script>';
+    html += 'var allRows = ' + JSON.stringify(filteredRows.length > 0 ? rawRows.map(r => ({ vht: r.vht, ansvar: r.ansvar, utfall_ack: r.utfall_ack, budget_2025: r.budget_2025, budget_2026: r.budget_2026 })) : []) + ';';
+    html += 'var kalkylMap = ' + JSON.stringify(kalkylMap) + ';';
+    html += 'var hasKalkyl = ' + JSON.stringify(hasKalkyl) + ';';
+    html += 'function fmt(n) { return new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(n); }';
+    html += 'function extractCode(vht) { var m = vht.match(/^(\\d{6})/); return m ? m[1] : vht; }';
+    html += 'function toggleAll(state) { document.querySelectorAll("[data-ansvar]").forEach(function(cb) { cb.checked = state; }); filterRows(); }';
+    html += 'function filterRows() {';
+    html += '  var checked = []; document.querySelectorAll("[data-ansvar]:checked").forEach(function(cb) { checked.push(cb.getAttribute("data-ansvar")); });';
+    html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
+    html += '  var map = {};';
+    html += '  filtered.forEach(function(r) { var k = r.vht; if (!map[k]) { var code = extractCode(k); map[k] = { vht: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[code] || 0 }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
+    html += '  var grouped = Object.values(map).sort(function(a, b) { return a.vht.localeCompare(b.vht, "sv"); });';
+    html += '  var incomeRows = grouped.filter(function(r) { return r.budget_2026 >= 0; });';
+    html += '  var costRows = grouped.filter(function(r) { return r.budget_2026 < 0; });';
+    html += '  var cols = hasKalkyl ? 5 : 4;';
+    html += '  var h = "<table><thead><tr><th>Konto</th><th class=\\"right\\">Utfall ack.</th><th class=\\"right\\">Budget 2025</th><th class=\\"right\\">Budget 2026</th>";';
+    html += '  if (hasKalkyl) h += "<th class=\\"right primary\\">Kalkyl</th>";';
+    html += '  h += "</tr></thead><tbody>";';
+    html += '  function sumArr(arr) { return arr.reduce(function(a,r) { return { utfall_ack: a.utfall_ack+r.utfall_ack, budget_2025: a.budget_2025+r.budget_2025, budget_2026: a.budget_2026+r.budget_2026, kalkyl: a.kalkyl+r.kalkyl }; }, { utfall_ack:0, budget_2025:0, budget_2026:0, kalkyl:0 }); }';
+    html += '  function renderSection(title, sRows) {';
+    html += '    var t = sumArr(sRows);';
+    html += '    h += "<tr><td colspan=\\"" + cols + "\\" class=\\"section\\">" + title + "</td></tr>";';
+    html += '    sRows.forEach(function(r) { h += "<tr><td class=\\"indent\\">" + r.vht + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td>"; if (hasKalkyl) h += "<td class=\\"right primary\\">" + (r.kalkyl !== 0 ? fmt(r.kalkyl) : "–") + "</td>"; h += "</tr>"; });';
+    html += '    h += "<tr class=\\"subtotal\\"><td class=\\"indent\\">Summa " + title.toLowerCase() + "</td><td class=\\"right\\">" + fmt(t.utfall_ack) + "</td><td class=\\"right\\">" + fmt(t.budget_2025) + "</td><td class=\\"right\\">" + fmt(t.budget_2026) + "</td>";';
+    html += '    if (hasKalkyl) h += "<td class=\\"right primary\\">" + (t.kalkyl !== 0 ? fmt(t.kalkyl) : "–") + "</td>";';
+    html += '    h += "</tr>";';
+    html += '  }';
+    html += '  if (incomeRows.length > 0) renderSection("Intäkter", incomeRows);';
+    html += '  if (costRows.length > 0) renderSection("Kostnader", costRows);';
+    html += '  var grand = sumArr(grouped);';
+    html += '  h += "<tr class=\\"grand\\"><td>Netto</td><td class=\\"right\\">" + fmt(grand.utfall_ack) + "</td><td class=\\"right\\">" + fmt(grand.budget_2025) + "</td><td class=\\"right\\">" + fmt(grand.budget_2026) + "</td>";';
+    html += '  if (hasKalkyl) h += "<td class=\\"right primary\\">" + fmt(grand.kalkyl) + "</td>";';
+    html += '  h += "</tr></tbody></table>";';
+    html += '  document.getElementById("table-container").innerHTML = h;';
+    html += '}';
+    html += 'filterRows();';
+    html += '<\/script>';
+
+    html += '</body></html>';
+    popup.document.write(html);
+    popup.document.close();
+    // Re-execute scripts
+    const scripts = popup.document.querySelectorAll('script');
+    scripts.forEach((s: any) => {
+      const ns = popup!.document.createElement('script');
+      ns.textContent = s.textContent;
+      s.parentNode!.replaceChild(ns, s);
+    });
+  }
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
-          Budget & Utfall – Objekt {objectNumber}
+          Budget, utfall och kalkyler – Objekt {objectNumber}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Ansvar filter */}
-        {uniqueAnsvar.length > 0 && (
-          <div className="rounded-md border p-3 bg-muted/30 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Inkluderade ansvar</p>
-            <div className="flex flex-wrap gap-3">
-              {uniqueAnsvar.map(a => (
-                <label key={a} className="flex items-center gap-1.5 text-xs cursor-pointer">
-                  <Checkbox
-                    checked={selectedAnsvar.has(a)}
-                    onCheckedChange={() => toggleAnsvar(a)}
-                  />
-                  {a}
-                </label>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => setSelectedAnsvar(new Set(uniqueAnsvar))}>
-                Markera alla
-              </Button>
-              <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => setSelectedAnsvar(new Set())}>
-                Avmarkera alla
-              </Button>
-            </div>
-          </div>
-        )}
-
+        {/* Summary table */}
         <div className="overflow-auto border rounded-md">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs">Konto</TableHead>
+                <TableHead className="text-xs"></TableHead>
                 <TableHead className="text-xs text-right">Utfall ack.</TableHead>
                 <TableHead className="text-xs text-right">Budget 2025</TableHead>
                 <TableHead className="text-xs text-right">Budget 2026</TableHead>
@@ -260,8 +288,32 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
                 </TableRow>
               ) : (
                 <>
-                  {incomeRows.length > 0 && renderSection('Intäkter', incomeRows, incomeTotals)}
-                  {costRows.length > 0 && renderSection('Kostnader', costRows, costTotals)}
+                  {incomeRows.length > 0 && (
+                    <TableRow>
+                      <TableCell className="text-xs font-semibold">Intäkter</TableCell>
+                      <TableCell className="text-xs text-right font-semibold">{formatNumber(incomeTotals.utfall_ack)}</TableCell>
+                      <TableCell className="text-xs text-right font-semibold">{formatNumber(incomeTotals.budget_2025)}</TableCell>
+                      <TableCell className="text-xs text-right font-semibold">{formatNumber(incomeTotals.budget_2026)}</TableCell>
+                      {hasKalkylData && (
+                        <TableCell className="text-xs text-right font-semibold text-primary">
+                          {incomeTotals.kalkyl !== 0 ? formatNumber(incomeTotals.kalkyl) : '–'}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )}
+                  {costRows.length > 0 && (
+                    <TableRow>
+                      <TableCell className="text-xs font-semibold">Kostnader</TableCell>
+                      <TableCell className="text-xs text-right font-semibold">{formatNumber(costTotals.utfall_ack)}</TableCell>
+                      <TableCell className="text-xs text-right font-semibold">{formatNumber(costTotals.budget_2025)}</TableCell>
+                      <TableCell className="text-xs text-right font-semibold">{formatNumber(costTotals.budget_2026)}</TableCell>
+                      {hasKalkylData && (
+                        <TableCell className="text-xs text-right font-semibold text-primary">
+                          {costTotals.kalkyl !== 0 ? formatNumber(costTotals.kalkyl) : '–'}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )}
                   <TableRow className="font-semibold border-t-2">
                     <TableCell className="text-xs">Netto</TableCell>
                     <TableCell className="text-xs text-right">{formatNumber(grandTotals.utfall_ack)}</TableCell>
@@ -276,6 +328,16 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
             </TableBody>
           </Table>
         </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-2 text-xs"
+          onClick={openDetailPopup}
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Visa detaljer (öppnas i eget fönster)
+        </Button>
       </CardContent>
     </Card>
   );
