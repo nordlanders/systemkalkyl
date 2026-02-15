@@ -350,16 +350,23 @@ export default function UsersManagement() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={u.role === 'superadmin' ? 'default' : u.role === 'admin' ? 'default' : 'secondary'} 
-                          className={u.role === 'superadmin' ? 'bg-amber-600 hover:bg-amber-700' : ''}>
-                          {u.role === 'superadmin' ? (
-                            <><Crown className="h-3 w-3 mr-1" /> Superadmin</>
-                          ) : u.role === 'admin' ? (
-                            <><ShieldCheck className="h-3 w-3 mr-1" /> Admin</>
-                          ) : (
-                            <><Shield className="h-3 w-3 mr-1" /> Användare</>
+                        <div className="flex flex-col gap-1">
+                          <Badge variant={u.role === 'superadmin' ? 'default' : u.role === 'admin' ? 'default' : 'secondary'} 
+                            className={u.role === 'superadmin' ? 'bg-amber-600 hover:bg-amber-700' : ''}>
+                            {u.role === 'superadmin' ? (
+                              <><Crown className="h-3 w-3 mr-1" /> Superadmin</>
+                            ) : u.role === 'admin' ? (
+                              <><ShieldCheck className="h-3 w-3 mr-1" /> Admin</>
+                            ) : (
+                              <><Shield className="h-3 w-3 mr-1" /> Användare</>
+                            )}
+                          </Badge>
+                          {u.can_approve && (
+                            <Badge variant="outline" className="text-xs gap-1 border-green-500/50 text-green-700 dark:text-green-400 w-fit">
+                              <ShieldCheck className="h-3 w-3" /> Godkännare
+                            </Badge>
                           )}
-                        </Badge>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="gap-1">
