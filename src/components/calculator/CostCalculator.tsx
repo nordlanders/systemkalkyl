@@ -1241,7 +1241,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   popup.document.close();
                   supabase
                     .from('budget_outcomes')
-                    .select('vht, budget_2025, budget_2026, utfall_ack, mot')
+                    .select('vht, ansvar, budget_2025, budget_2026, utfall_ack, mot')
                     .not('mot', 'is', null)
                     .then(({ data, error }) => {
                       if (!popup || popup.closed) return;
@@ -1257,39 +1257,67 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                         popup.document.body.innerHTML = '<h2>Budget & Utfall – Objekt ' + objNr + '</h2><p>Ingen data hittades.</p>';
                         return;
                       }
-                      const map = new Map<string, { vht: string; utfall_ack: number; budget_2025: number; budget_2026: number }>();
-                      matched.forEach((row: any) => {
-                        const key = row.vht || '(tomt)';
-                        const ex = map.get(key);
-                        if (ex) {
-                          ex.utfall_ack += row.utfall_ack || 0;
-                          ex.budget_2025 += row.budget_2025 || 0;
-                          ex.budget_2026 += row.budget_2026 || 0;
-                        } else {
-                          map.set(key, { vht: key, utfall_ack: row.utfall_ack || 0, budget_2025: row.budget_2025 || 0, budget_2026: row.budget_2026 || 0 });
-                        }
+                      
+                      // Build data with ansvar info
+                      const rowsWithAnsvar = matched.map((row: any) => ({
+                        vht: row.vht || '(tomt)',
+                        ansvar: row.ansvar || '(tomt)',
+                        utfall_ack: row.utfall_ack || 0,
+                        budget_2025: row.budget_2025 || 0,
+                        budget_2026: row.budget_2026 || 0,
+                      }));
+                      
+                      const uniqueAnsvar = Array.from(new Set(rowsWithAnsvar.map((r: any) => r.ansvar))).sort((a: string, b: string) => a.localeCompare(b, 'sv'));
+                      
+                      let html = '<style>.filter-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-bottom:16px}.filter-box h3{margin:0 0 8px;font-size:14px;color:#555}.filter-items{display:flex;flex-wrap:wrap;gap:8px}.filter-item{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer}.filter-item input{cursor:pointer}.filter-actions{margin-top:8px;display:flex;gap:8px}.filter-btn{background:#e5e7eb;border:none;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer}.filter-btn:hover{background:#d1d5db}</style>';
+                      html += '<h2>Budget & Utfall – Objekt ' + objNr + '</h2>';
+                      
+                      // Ansvar filter
+                      html += '<div class="filter-box"><h3>Inkluderade ansvar</h3><div class="filter-items">';
+                      uniqueAnsvar.forEach((a: string) => {
+                        html += '<label class="filter-item"><input type="checkbox" checked data-ansvar="' + a.replace(/"/g, '&quot;') + '" onchange="filterRows()"> ' + a + '</label>';
                       });
-                      const allRows = Array.from(map.values()).sort((a, b) => a.vht.localeCompare(b.vht, 'sv'));
-                      const incomeRows = allRows.filter(r => r.budget_2026 >= 0);
-                      const costRows = allRows.filter(r => r.budget_2026 < 0);
-                      const fmt = (n: number) => new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(n);
-                      const sum = (arr: typeof allRows) => arr.reduce((a, r) => ({ utfall_ack: a.utfall_ack + r.utfall_ack, budget_2025: a.budget_2025 + r.budget_2025, budget_2026: a.budget_2026 + r.budget_2026 }), { utfall_ack: 0, budget_2025: 0, budget_2026: 0 });
-                      let html = '<h2>Budget & Utfall – Objekt ' + objNr + '</h2>';
-                      html += '<table><thead><tr><th>Konto</th><th class="right">Utfall ack.</th><th class="right">Budget 2025</th><th class="right">Budget 2026</th></tr></thead><tbody>';
-                      const renderSection = (title: string, sRows: typeof allRows) => {
-                        const t = sum(sRows);
-                        html += '<tr><td colspan="4" class="section">' + title + '</td></tr>';
-                        sRows.forEach(r => {
-                          html += '<tr><td class="indent">' + r.vht + '</td><td class="right">' + fmt(r.utfall_ack) + '</td><td class="right">' + fmt(r.budget_2025) + '</td><td class="right">' + fmt(r.budget_2026) + '</td></tr>';
-                        });
-                        html += '<tr class="subtotal"><td class="indent">Summa ' + title.toLowerCase() + '</td><td class="right">' + fmt(t.utfall_ack) + '</td><td class="right">' + fmt(t.budget_2025) + '</td><td class="right">' + fmt(t.budget_2026) + '</td></tr>';
-                      };
-                      if (incomeRows.length > 0) renderSection('Intäkter', incomeRows);
-                      if (costRows.length > 0) renderSection('Kostnader', costRows);
-                      const grand = sum(allRows);
-                      html += '<tr class="grand"><td>Netto</td><td class="right">' + fmt(grand.utfall_ack) + '</td><td class="right">' + fmt(grand.budget_2025) + '</td><td class="right">' + fmt(grand.budget_2026) + '</td></tr>';
-                      html += '</tbody></table>';
+                      html += '</div><div class="filter-actions"><button class="filter-btn" onclick="toggleAll(true)">Markera alla</button><button class="filter-btn" onclick="toggleAll(false)">Avmarkera alla</button></div></div>';
+                      html += '<div id="table-container"></div>';
+                      
+                      html += '<script>';
+                      html += 'var allRows = ' + JSON.stringify(rowsWithAnsvar) + ';';
+                      html += 'function fmt(n) { return new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(n); }';
+                      html += 'function toggleAll(state) { document.querySelectorAll("[data-ansvar]").forEach(function(cb) { cb.checked = state; }); filterRows(); }';
+                      html += 'function filterRows() {';
+                      html += '  var checked = []; document.querySelectorAll("[data-ansvar]:checked").forEach(function(cb) { checked.push(cb.getAttribute("data-ansvar")); });';
+                      html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
+                      html += '  var map = {};';
+                      html += '  filtered.forEach(function(r) { var k = r.vht; if (!map[k]) map[k] = { vht: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0 }; map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
+                      html += '  var grouped = Object.values(map).sort(function(a, b) { return a.vht.localeCompare(b.vht, "sv"); });';
+                      html += '  var incomeRows = grouped.filter(function(r) { return r.budget_2026 >= 0; });';
+                      html += '  var costRows = grouped.filter(function(r) { return r.budget_2026 < 0; });';
+                      html += '  var h = "<table><thead><tr><th>Konto</th><th class=\\"right\\">Utfall ack.</th><th class=\\"right\\">Budget 2025</th><th class=\\"right\\">Budget 2026</th></tr></thead><tbody>";';
+                      html += '  function sumArr(arr) { return arr.reduce(function(a,r) { return { utfall_ack: a.utfall_ack+r.utfall_ack, budget_2025: a.budget_2025+r.budget_2025, budget_2026: a.budget_2026+r.budget_2026 }; }, { utfall_ack:0, budget_2025:0, budget_2026:0 }); }';
+                      html += '  function renderSection(title, sRows) {';
+                      html += '    var t = sumArr(sRows);';
+                      html += '    h += "<tr><td colspan=\\"4\\" class=\\"section\\">" + title + "</td></tr>";';
+                      html += '    sRows.forEach(function(r) { h += "<tr><td class=\\"indent\\">" + r.vht + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td></tr>"; });';
+                      html += '    h += "<tr class=\\"subtotal\\"><td class=\\"indent\\">Summa " + title.toLowerCase() + "</td><td class=\\"right\\">" + fmt(t.utfall_ack) + "</td><td class=\\"right\\">" + fmt(t.budget_2025) + "</td><td class=\\"right\\">" + fmt(t.budget_2026) + "</td></tr>";';
+                      html += '  }';
+                      html += '  if (incomeRows.length > 0) renderSection("Intäkter", incomeRows);';
+                      html += '  if (costRows.length > 0) renderSection("Kostnader", costRows);';
+                      html += '  var grand = sumArr(grouped);';
+                      html += '  h += "<tr class=\\"grand\\"><td>Netto</td><td class=\\"right\\">" + fmt(grand.utfall_ack) + "</td><td class=\\"right\\">" + fmt(grand.budget_2025) + "</td><td class=\\"right\\">" + fmt(grand.budget_2026) + "</td></tr>";';
+                      html += '  h += "</tbody></table>";';
+                      html += '  document.getElementById("table-container").innerHTML = h;';
+                      html += '}';
+                      html += 'filterRows();';
+                      html += '<\/script>';
+                      
                       popup.document.body.innerHTML = html;
+                      // Re-execute scripts since innerHTML doesn't run them
+                      var scripts = popup.document.querySelectorAll('script');
+                      scripts.forEach(function(s: any) {
+                        var ns = popup!.document.createElement('script');
+                        ns.textContent = s.textContent;
+                        s.parentNode!.replaceChild(ns, s);
+                      });
                     });
                 }}
               >

@@ -349,29 +349,48 @@ export default function BudgetComparisonTab() {
                   className="gap-2"
                   onClick={() => {
                     const objNr = selectedCI.object_number;
-                    const popup = window.open('', '_blank', 'width=900,height=600,scrollbars=yes,resizable=yes');
+                    const popup = window.open('', '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
                     if (!popup) return;
                     const fmt = (n: number) => new Intl.NumberFormat('sv-SE', { maximumFractionDigits: 0 }).format(n);
+                    
+                    // Get unique ansvar values
+                    const uniqueAnsvar = Array.from(new Set(budgetData.map(r => r.ansvar || '(tomt)'))).sort((a, b) => a.localeCompare(b, 'sv'));
+                    
                     let html = '<html><head><title>Budgetrader – Objekt ' + objNr + '</title>';
-                    html += '<style>body{font-family:system-ui,sans-serif;margin:20px;color:#333}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}th{background:#f3f4f6;font-weight:600;font-size:13px}.right{text-align:right}.total{font-weight:600;background:#f9fafb;border-top:2px solid #d1d5db}.neg{color:#dc2626}</style>';
+                    html += '<style>body{font-family:system-ui,sans-serif;margin:20px;color:#333}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}th{background:#f3f4f6;font-weight:600;font-size:13px}.right{text-align:right}.total{font-weight:600;background:#f9fafb;border-top:2px solid #d1d5db}.neg{color:#dc2626}.filter-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin-bottom:16px}.filter-box h3{margin:0 0 8px;font-size:14px;color:#555}.filter-items{display:flex;flex-wrap:wrap;gap:8px}.filter-item{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer}.filter-item input{cursor:pointer}.filter-actions{margin-top:8px;display:flex;gap:8px}.filter-btn{background:#e5e7eb;border:none;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer}.filter-btn:hover{background:#d1d5db}</style>';
                     html += '</head><body>';
                     html += '<h2>Budgetrader – Objekt ' + objNr + '</h2>';
-                    html += '<table><thead><tr><th>Ansvar</th><th>Ukonto</th><th class="right">Budget 2025</th><th class="right">Budget 2026</th><th class="right">Utfall ack.</th><th class="right">Diff</th></tr></thead><tbody>';
-                    budgetData.forEach(row => {
-                      const diff = Number(row.diff || 0);
-                      html += '<tr><td>' + (row.ansvar || '-') + '</td><td>' + (row.ukonto || '-') + '</td>';
-                      html += '<td class="right">' + fmt(Number(row.budget_2025 || 0)) + '</td>';
-                      html += '<td class="right">' + fmt(Number(row.budget_2026 || 0)) + '</td>';
-                      html += '<td class="right">' + fmt(Number(row.utfall_ack || 0)) + '</td>';
-                      html += '<td class="right' + (diff < 0 ? ' neg' : '') + '">' + fmt(diff) + '</td></tr>';
+                    
+                    // Ansvar filter section
+                    html += '<div class="filter-box"><h3>Inkluderade ansvar</h3><div class="filter-items">';
+                    uniqueAnsvar.forEach(a => {
+                      html += '<label class="filter-item"><input type="checkbox" checked data-ansvar="' + a.replace(/"/g, '&quot;') + '" onchange="filterRows()"> ' + a + '</label>';
                     });
-                    const diffTotal = budgetData.reduce((s, r) => s + Number(r.diff || 0), 0);
-                    html += '<tr class="total"><td colspan="2">Totalt</td>';
-                    html += '<td class="right">' + fmt(budgetTotal2025) + '</td>';
-                    html += '<td class="right">' + fmt(budgetTotal2026) + '</td>';
-                    html += '<td class="right">' + fmt(utfallTotal) + '</td>';
-                    html += '<td class="right">' + fmt(diffTotal) + '</td></tr>';
-                    html += '</tbody></table></body></html>';
+                    html += '</div><div class="filter-actions"><button class="filter-btn" onclick="toggleAll(true)">Markera alla</button><button class="filter-btn" onclick="toggleAll(false)">Avmarkera alla</button></div></div>';
+                    
+                    html += '<div id="table-container"></div>';
+                    
+                    // Store data as JSON for JS filtering
+                    html += '<script>';
+                    html += 'var allData = ' + JSON.stringify(budgetData.map(r => ({ ansvar: r.ansvar || '(tomt)', ukonto: r.ukonto || '-', budget_2025: Number(r.budget_2025 || 0), budget_2026: Number(r.budget_2026 || 0), utfall_ack: Number(r.utfall_ack || 0), diff: Number(r.diff || 0) }))) + ';';
+                    html += 'function fmt(n) { return new Intl.NumberFormat("sv-SE", { maximumFractionDigits: 0 }).format(n); }';
+                    html += 'function toggleAll(state) { document.querySelectorAll("[data-ansvar]").forEach(function(cb) { cb.checked = state; }); filterRows(); }';
+                    html += 'function filterRows() {';
+                    html += '  var checked = []; document.querySelectorAll("[data-ansvar]:checked").forEach(function(cb) { checked.push(cb.getAttribute("data-ansvar")); });';
+                    html += '  var filtered = allData.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
+                    html += '  var t = { budget_2025: 0, budget_2026: 0, utfall_ack: 0, diff: 0 };';
+                    html += '  var h = "<table><thead><tr><th>Ansvar</th><th>Ukonto</th><th class=\\"right\\">Budget 2025</th><th class=\\"right\\">Budget 2026</th><th class=\\"right\\">Utfall ack.</th><th class=\\"right\\">Diff</th></tr></thead><tbody>";';
+                    html += '  filtered.forEach(function(r) {';
+                    html += '    t.budget_2025 += r.budget_2025; t.budget_2026 += r.budget_2026; t.utfall_ack += r.utfall_ack; t.diff += r.diff;';
+                    html += '    h += "<tr><td>" + r.ansvar + "</td><td>" + r.ukonto + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right" + (r.diff < 0 ? " neg" : "") + "\\">" + fmt(r.diff) + "</td></tr>";';
+                    html += '  });';
+                    html += '  h += "<tr class=\\"total\\"><td colspan=\\"2\\">Totalt (" + filtered.length + " rader)</td><td class=\\"right\\">" + fmt(t.budget_2025) + "</td><td class=\\"right\\">" + fmt(t.budget_2026) + "</td><td class=\\"right\\">" + fmt(t.utfall_ack) + "</td><td class=\\"right\\">" + fmt(t.diff) + "</td></tr>";';
+                    html += '  h += "</tbody></table>";';
+                    html += '  document.getElementById("table-container").innerHTML = h;';
+                    html += '}';
+                    html += 'filterRows();';
+                    html += '<\/script>';
+                    html += '</body></html>';
                     popup.document.write(html);
                     popup.document.close();
                   }}
