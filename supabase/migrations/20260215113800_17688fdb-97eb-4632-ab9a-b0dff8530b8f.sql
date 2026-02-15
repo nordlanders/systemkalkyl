@@ -1,0 +1,1 @@
+ALTER TABLE public.pricing_config ADD COLUMN ukonto text NULL;

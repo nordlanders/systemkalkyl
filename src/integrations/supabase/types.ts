@@ -552,6 +552,7 @@ export type Database = {
           price_per_unit: number
           price_type: string
           service_types: string[] | null
+          ukonto: string | null
           unit: string | null
           updated_at: string
         }
@@ -570,6 +571,7 @@ export type Database = {
           price_per_unit: number
           price_type: string
           service_types?: string[] | null
+          ukonto?: string | null
           unit?: string | null
           updated_at?: string
         }
@@ -588,6 +590,7 @@ export type Database = {
           price_per_unit?: number
           price_type?: string
           service_types?: string[] | null
+          ukonto?: string | null
           unit?: string | null
           updated_at?: string
         }
