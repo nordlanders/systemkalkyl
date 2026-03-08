@@ -20,7 +20,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Info
+  Info,
+  Download
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
