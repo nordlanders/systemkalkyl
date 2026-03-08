@@ -220,7 +220,13 @@ export default function UsersManagement() {
             Hantera systemanvändare och deras roller
           </p>
         </div>
-        <CreateUserDialog onUserCreated={loadUsers} />
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportDatabase} disabled={exporting} className="gap-2">
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Exportera databas
+          </Button>
+          <CreateUserDialog onUserCreated={loadUsers} />
+        </div>
       </div>
 
       {/* Role Info Cards */}
