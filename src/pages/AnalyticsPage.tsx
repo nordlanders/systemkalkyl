@@ -606,6 +606,10 @@ export default function AnalyticsPage() {
                   <GitCompareArrows className="h-4 w-4" />
                   Jämför med budget & utfall
                 </TabsTrigger>
+                <TabsTrigger value="follow-up" className="gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Uppföljning
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="service-type">
