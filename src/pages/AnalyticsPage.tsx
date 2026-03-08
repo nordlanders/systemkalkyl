@@ -828,6 +828,9 @@ export default function AnalyticsPage() {
               <TabsContent value="budget-comparison">
                 <BudgetComparisonTab />
               </TabsContent>
+              <TabsContent value="follow-up">
+                <FollowUpTab />
+              </TabsContent>
             </Tabs>
           </>
         )}
