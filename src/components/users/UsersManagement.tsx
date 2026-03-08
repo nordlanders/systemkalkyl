@@ -49,8 +49,40 @@ export default function UsersManagement() {
   const [sortColumn, setSortColumn] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
+  const [exporting, setExporting] = useState(false);
+
   const { user, isAdmin, isSuperAdmin } = useAuth();
   const { toast } = useToast();
+
+  async function handleExportDatabase() {
+    setExporting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Ingen aktiv session');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/export-database`,
+        { headers: { 'Authorization': `Bearer ${session.access_token}` } }
+      );
+
+      if (!response.ok) throw new Error('Export misslyckades');
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `database-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast({ title: 'Export klar', description: 'Databasexporten har laddats ner.' });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({ title: 'Exportfel', description: 'Kunde inte exportera databasen.', variant: 'destructive' });
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => {
     if (isAdmin) {
