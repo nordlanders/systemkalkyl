@@ -136,7 +136,10 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     // Add kalkyl ukonto codes that had no matching budget rows
     for (const [pricingUkonto, cost] of Object.entries(calculationCostsByUkonto)) {
       if (cost !== 0 && !matchedPricingUkontos.has(pricingUkonto)) {
-        const label = pricingUkonto + ' (enbart kalkyl)';
+        const isNoUkonto = pricingUkonto.startsWith('_noukonto_');
+        const label = isNoUkonto
+          ? pricingUkonto.replace('_noukonto_', '') + ' (utan ukonto)'
+          : pricingUkonto + ' (enbart kalkyl)';
         const isIncome = accountTypesByUkonto[pricingUkonto] === 'intäkt';
         map.set(label, {
           ukonto: label,
@@ -160,8 +163,9 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
       matchedSet?.add(ukontoCode);
       return cost;
     }
-    // Prefix matching
+    // Prefix matching (skip _noukonto_ keys)
     for (const [pricingUkonto, pCost] of Object.entries(calculationCostsByUkonto)) {
+      if (pricingUkonto.startsWith('_noukonto_')) continue;
       if (ukontoCode.startsWith(pricingUkonto) || pricingUkonto.startsWith(ukontoCode)) {
         cost += pCost;
         matchedSet?.add(pricingUkonto);

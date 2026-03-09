@@ -327,9 +327,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     rows.filter(r => r.pricingConfigId).forEach(row => {
       const pc = pricing.find(p => p.id === row.pricingConfigId);
       const ukonto = (pc as any)?.ukonto;
-      if (ukonto) {
-        map[ukonto] = (map[ukonto] || 0) + calculateRowTotal(row);
-      }
+      const key = ukonto || `_noukonto_${row.priceType}`;
+      map[key] = (map[key] || 0) + calculateRowTotal(row);
     });
     return map;
   }, [rows, pricing]);
