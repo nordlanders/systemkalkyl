@@ -163,8 +163,9 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
       matchedSet?.add(ukontoCode);
       return cost;
     }
-    // Prefix matching
+    // Prefix matching (skip _noukonto_ keys)
     for (const [pricingUkonto, pCost] of Object.entries(calculationCostsByUkonto)) {
+      if (pricingUkonto.startsWith('_noukonto_')) continue;
       if (ukontoCode.startsWith(pricingUkonto) || pricingUkonto.startsWith(ukontoCode)) {
         cost += pCost;
         matchedSet?.add(pricingUkonto);
