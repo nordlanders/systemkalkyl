@@ -24,6 +24,7 @@ interface UserData {
   permission_level: 'read_only' | 'read_write';
   can_approve?: boolean;
   approval_organizations?: string[];
+  deactivated_at?: string | null;
 }
 
 interface EditUserDialogProps {
