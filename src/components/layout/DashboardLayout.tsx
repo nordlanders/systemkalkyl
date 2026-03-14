@@ -39,8 +39,8 @@ interface DashboardLayoutProps {
 
 const mainNavItems = [
   { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false },
-  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: false },
-  { href: '/history', icon: History, label: 'Historik', adminOnly: false },
+  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
+  { href: '/history', icon: History, label: 'Historik', adminOnly: true },
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: false },
 ];
 
