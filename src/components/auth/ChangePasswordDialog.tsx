@@ -109,6 +109,7 @@ export default function ChangePasswordDialog({ open, onOpenChange, forced }: Cha
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
+      if (forced && !isOpen) return; // Can't close forced dialog
       onOpenChange(isOpen);
       if (!isOpen) resetForm();
     }}>
