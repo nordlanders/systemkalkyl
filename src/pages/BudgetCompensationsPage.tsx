@@ -10,10 +10,10 @@ export default function BudgetCompensationsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate('/');
+    if (!loading && !user) {
+      navigate('/auth');
     }
-  }, [user, loading, isAdmin, navigate]);
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
