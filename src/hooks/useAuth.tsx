@@ -17,6 +17,8 @@ interface AuthContextType {
   approvalOrganizations: string[];
   loading: boolean;
   fullName: string | null;
+  passwordExpired: boolean;
+  clearPasswordExpired: () => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
