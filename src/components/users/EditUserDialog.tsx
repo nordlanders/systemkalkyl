@@ -319,6 +319,63 @@ export default function EditUserDialog({
             )}
           </div>
 
+          <Separator />
+
+          {/* Deactivation section */}
+          <div className="space-y-3">
+            <div className="space-y-0.5">
+              <Label className="flex items-center gap-2">
+                <CalendarOff className="h-4 w-4 text-destructive" />
+                Avsluta användare
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Ange sista arbetsdag. Efter detta datum kan användaren inte logga in.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isCurrentUser}
+                    className={`w-[200px] justify-start text-left font-normal ${!deactivatedAt ? 'text-muted-foreground' : ''}`}
+                  >
+                    {deactivatedAt 
+                      ? deactivatedAt.toLocaleDateString('sv-SE')
+                      : 'Välj datum...'
+                    }
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={deactivatedAt}
+                    onSelect={setDeactivatedAt}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              {deactivatedAt && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDeactivatedAt(undefined)}
+                  disabled={isCurrentUser}
+                  className="text-destructive hover:text-destructive"
+                >
+                  Ta bort datum
+                </Button>
+              )}
+            </div>
+            {deactivatedAt && new Date(deactivatedAt) <= new Date() && (
+              <p className="text-xs text-destructive font-medium">
+                ⚠️ Användaren är avslutad och kan inte logga in.
+              </p>
+            )}
+          </div>
+
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Avbryt
