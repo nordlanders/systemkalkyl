@@ -474,30 +474,62 @@ export default function CmdbManagement() {
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-3 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Sök system, hostname, IP..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" />
+          <div className="flex flex-col gap-3 mb-4">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Sök system, hostname, IP, ägare, driftansvarig..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" />
+              </div>
+              <Select value={envFilter} onValueChange={setEnvFilter}>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Miljö" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla miljöer</SelectItem>
+                  <SelectItem value="production">Produktion</SelectItem>
+                  <SelectItem value="test">Test</SelectItem>
+                  <SelectItem value="development">Utveckling</SelectItem>
+                  <SelectItem value="staging">Staging</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla statusar</SelectItem>
+                  <SelectItem value="active">Aktiv</SelectItem>
+                  <SelectItem value="inactive">Inaktiv</SelectItem>
+                  <SelectItem value="decommissioned">Avvecklad</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={envFilter} onValueChange={setEnvFilter}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Miljö" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alla miljöer</SelectItem>
-                <SelectItem value="production">Produktion</SelectItem>
-                <SelectItem value="test">Test</SelectItem>
-                <SelectItem value="development">Utveckling</SelectItem>
-                <SelectItem value="staging">Staging</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alla statusar</SelectItem>
-                <SelectItem value="active">Aktiv</SelectItem>
-                <SelectItem value="inactive">Inaktiv</SelectItem>
-                <SelectItem value="decommissioned">Avvecklad</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col md:flex-row gap-3">
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Systemägare" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla systemägare</SelectItem>
+                  {uniqueOwners.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={adminFilter} onValueChange={setAdminFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Systemförvaltare" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla systemförvaltare</SelectItem>
+                  {uniqueAdmins.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={opsResponsibleFilter} onValueChange={setOpsResponsibleFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Driftansvarig" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla driftansvariga</SelectItem>
+                  {uniqueOpsResponsible.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={opsTeamFilter} onValueChange={setOpsTeamFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Driftteam" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla driftteam</SelectItem>
+                  {uniqueOpsTeams.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {loadingSystems ? (
