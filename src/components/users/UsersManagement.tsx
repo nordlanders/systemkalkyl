@@ -386,7 +386,17 @@ export default function UsersManagement() {
                     <TableRow key={u.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{u.full_name || 'Namnlös användare'}</p>
+                          <p className="font-medium">
+                            {u.full_name || 'Namnlös användare'}
+                            {u.deactivated_at && new Date(u.deactivated_at) <= new Date() && (
+                              <Badge variant="destructive" className="ml-2 text-xs">Avslutad</Badge>
+                            )}
+                            {u.deactivated_at && new Date(u.deactivated_at) > new Date() && (
+                              <Badge variant="outline" className="ml-2 text-xs border-amber-500 text-amber-600">
+                                Avslutas {new Date(u.deactivated_at).toLocaleDateString('sv-SE')}
+                              </Badge>
+                            )}
+                          </p>
                           <p className="text-sm text-muted-foreground">{u.email}</p>
                         </div>
                       </TableCell>
