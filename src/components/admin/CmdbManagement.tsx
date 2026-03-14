@@ -35,6 +35,8 @@ interface CmdbSystem {
   responsible_person: string | null;
   system_owner: string | null;
   system_administrator: string | null;
+  ops_responsible: string | null;
+  ops_team: string | null;
   description: string | null;
   status: string | null;
   notes: string | null;
