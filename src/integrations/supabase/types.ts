@@ -462,6 +462,8 @@ export type Database = {
           id: string
           imported_by: string | null
           notes: string | null
+          ops_responsible: string | null
+          ops_team: string | null
           responsible_person: string | null
           status: string | null
           system_administrator: string | null
@@ -477,6 +479,8 @@ export type Database = {
           id?: string
           imported_by?: string | null
           notes?: string | null
+          ops_responsible?: string | null
+          ops_team?: string | null
           responsible_person?: string | null
           status?: string | null
           system_administrator?: string | null
@@ -492,6 +496,8 @@ export type Database = {
           id?: string
           imported_by?: string | null
           notes?: string | null
+          ops_responsible?: string | null
+          ops_team?: string | null
           responsible_person?: string | null
           status?: string | null
           system_administrator?: string | null
