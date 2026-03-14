@@ -388,6 +388,75 @@ export type Database = {
           },
         ]
       }
+      cmdb_assets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          datacenter: string | null
+          disk_gb: number | null
+          environment: string | null
+          hostname: string | null
+          id: string
+          imported_at: string | null
+          imported_by: string | null
+          ip_address: string | null
+          notes: string | null
+          os: string | null
+          ram_gb: number | null
+          responsible_person: string | null
+          server_count: number | null
+          status: string | null
+          system_name: string
+          updated_at: string
+          vcpu: number | null
+          vlan: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          datacenter?: string | null
+          disk_gb?: number | null
+          environment?: string | null
+          hostname?: string | null
+          id?: string
+          imported_at?: string | null
+          imported_by?: string | null
+          ip_address?: string | null
+          notes?: string | null
+          os?: string | null
+          ram_gb?: number | null
+          responsible_person?: string | null
+          server_count?: number | null
+          status?: string | null
+          system_name: string
+          updated_at?: string
+          vcpu?: number | null
+          vlan?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          datacenter?: string | null
+          disk_gb?: number | null
+          environment?: string | null
+          hostname?: string | null
+          id?: string
+          imported_at?: string | null
+          imported_by?: string | null
+          ip_address?: string | null
+          notes?: string | null
+          os?: string | null
+          ram_gb?: number | null
+          responsible_person?: string | null
+          server_count?: number | null
+          status?: string | null
+          system_name?: string
+          updated_at?: string
+          vcpu?: number | null
+          vlan?: string | null
+        }
+        Relationships: []
+      }
       configuration_items: {
         Row: {
           ci_number: string
