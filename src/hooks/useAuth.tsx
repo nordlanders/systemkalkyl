@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 type PermissionLevel = 'read_only' | 'read_write';
 
+const PASSWORD_MAX_AGE_DAYS = 90;
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -15,6 +17,8 @@ interface AuthContextType {
   approvalOrganizations: string[];
   loading: boolean;
   fullName: string | null;
+  passwordExpired: boolean;
+  clearPasswordExpired: () => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -32,8 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [approvalOrganizations, setApprovalOrganizations] = useState<string[]>([]);
   const [fullName, setFullName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordExpired, setPasswordExpired] = useState(false);
 
   const canWrite = permissionLevel === 'read_write';
+  const clearPasswordExpired = () => setPasswordExpired(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -128,13 +134,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if user is deactivated
       const { data: profile } = await supabase
         .from('profiles')
-        .select('deactivated_at')
+        .select('deactivated_at, password_changed_at')
         .eq('user_id', data.user.id)
         .maybeSingle();
       
       if (profile?.deactivated_at && new Date(profile.deactivated_at) <= new Date()) {
         await supabase.auth.signOut();
         return { error: new Error('Ditt konto har avslutats. Kontakta en administratör för mer information.') };
+      }
+
+      // Check password age
+      const passwordChangedAt = profile?.password_changed_at ? new Date(profile.password_changed_at) : null;
+      const daysSinceChange = passwordChangedAt 
+        ? (Date.now() - passwordChangedAt.getTime()) / (1000 * 60 * 60 * 24)
+        : PASSWORD_MAX_AGE_DAYS + 1; // Force change if never set
+      
+      if (daysSinceChange > PASSWORD_MAX_AGE_DAYS) {
+        setPasswordExpired(true);
       }
 
       // Update last_login_at on successful login
@@ -171,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFullName(null);
     setCanApprove(false);
     setApprovalOrganizations([]);
+    setPasswordExpired(false);
   };
 
   return (
@@ -185,6 +202,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       approvalOrganizations, 
       loading, 
       fullName, 
+      passwordExpired,
+      clearPasswordExpired,
       signIn, 
       signUp, 
       signOut 

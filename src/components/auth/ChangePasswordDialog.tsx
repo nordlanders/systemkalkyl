@@ -29,9 +29,10 @@ const passwordSchema = z.object({
 interface ChangePasswordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  forced?: boolean;
 }
 
-export default function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
+export default function ChangePasswordDialog({ open, onOpenChange, forced }: ChangePasswordDialogProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -72,6 +73,15 @@ export default function ChangePasswordDialog({ open, onOpenChange }: ChangePassw
 
       if (error) throw error;
 
+      // Update password_changed_at in profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ password_changed_at: new Date().toISOString() })
+          .eq('user_id', user.id);
+      }
+
       toast({
         title: 'Lösenord uppdaterat',
         description: 'Ditt lösenord har ändrats.',
@@ -99,15 +109,18 @@ export default function ChangePasswordDialog({ open, onOpenChange }: ChangePassw
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
+      if (forced && !isOpen) return; // Can't close forced dialog
       onOpenChange(isOpen);
       if (!isOpen) resetForm();
     }}>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Byt lösenord</DialogTitle>
+            <DialogTitle>{forced ? 'Lösenordsbyte krävs' : 'Byt lösenord'}</DialogTitle>
             <DialogDescription>
-              Ange ditt nya lösenord nedan. Lösenordet måste vara minst 12 tecken.
+              {forced 
+                ? 'Ditt lösenord har inte bytts på över 90 dagar. Du måste byta lösenord för att fortsätta.'
+                : 'Ange ditt nya lösenord nedan. Lösenordet måste vara minst 12 tecken.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -141,9 +154,11 @@ export default function ChangePasswordDialog({ open, onOpenChange }: ChangePassw
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-              Avbryt
-            </Button>
+            {!forced && (
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+                Avbryt
+              </Button>
+            )}
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
               Spara
