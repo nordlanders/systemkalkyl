@@ -20,6 +20,7 @@ import UserManualPage from "./pages/UserManualPage";
 import ApprovalsPage from "./pages/ApprovalsPage";
 import BudgetOutcomePage from "./pages/BudgetOutcomePage";
 import BudgetCompensationsPage from "./pages/BudgetCompensationsPage";
+import CmdbPage from "./pages/CmdbPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
