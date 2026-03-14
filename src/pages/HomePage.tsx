@@ -29,6 +29,8 @@ import {
   Info
 } from 'lucide-react';
 
+declare const __BUILD_DATE__: string;
+
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
