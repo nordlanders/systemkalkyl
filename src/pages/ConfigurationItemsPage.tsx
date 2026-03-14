@@ -6,7 +6,7 @@ import ConfigurationItemsManagement from '@/components/admin/ConfigurationItemsM
 import { Loader2 } from 'lucide-react';
 
 export default function ConfigurationItemsPage() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,16 +25,6 @@ export default function ConfigurationItemsPage() {
 
   if (!user) {
     return null;
-  }
-
-  if (!isAdmin) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center py-12">
-          <p className="text-muted-foreground">Du har inte behörighet att visa denna sida.</p>
-        </div>
-      </DashboardLayout>
-    );
   }
 
   return (
