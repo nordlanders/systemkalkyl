@@ -124,6 +124,7 @@ export default function EditUserDialog({
           permissionLevel,
           canApprove,
           approvalOrganizations: canApprove ? approvalOrganizations : [],
+          deactivatedAt: deactivatedAt ? deactivatedAt.toISOString().split('T')[0] : null,
         },
       });
 

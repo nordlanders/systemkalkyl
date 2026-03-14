@@ -124,8 +124,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     
-    // Update last_login_at on successful login
     if (!error && data.user) {
+      // Check if user is deactivated
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('deactivated_at')
+        .eq('user_id', data.user.id)
+        .maybeSingle();
+      
+      if (profile?.deactivated_at && new Date(profile.deactivated_at) <= new Date()) {
+        await supabase.auth.signOut();
+        return { error: new Error('Ditt konto har avslutats. Kontakta en administratör för mer information.') };
+      }
+
+      // Update last_login_at on successful login
       await supabase
         .from('profiles')
         .update({ last_login_at: new Date().toISOString() })
