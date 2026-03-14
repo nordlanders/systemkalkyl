@@ -647,6 +647,24 @@ export default function CmdbManagement() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Graph Dialog */}
+      <Dialog open={!!graphSystem} onOpenChange={(open) => { if (!open) setGraphSystem(null); }}>
+        <DialogContent className="max-w-5xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Network className="h-5 w-5 text-primary" />
+              Relationsdiagram – {graphSystem?.system_name}
+            </DialogTitle>
+          </DialogHeader>
+          {graphSystem && (
+            <SystemRelationshipGraph
+              systemName={graphSystem.system_name}
+              servers={serversBySystem[graphSystem.id] || []}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
