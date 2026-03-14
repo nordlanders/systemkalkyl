@@ -184,7 +184,7 @@ export default function CmdbManagement() {
           row[field] = val;
         }
       });
-      if (row.system_name) rows.push(row);
+      if (row.system_name) rows.push(row as { system_name: string; [key: string]: unknown });
     }
 
     if (!rows.length) {
