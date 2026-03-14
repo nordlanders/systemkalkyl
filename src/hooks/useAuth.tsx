@@ -187,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFullName(null);
     setCanApprove(false);
     setApprovalOrganizations([]);
+    setPasswordExpired(false);
   };
 
   return (
