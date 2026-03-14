@@ -367,8 +367,32 @@ export default function CmdbManagement() {
     </Badge>
   );
 
+  // Calculate last updated timestamp
+  const lastUpdated = useMemo(() => {
+    const allDates = [
+      ...systems.map((s) => s.updated_at),
+      ...servers.map((s) => s.updated_at),
+    ].filter(Boolean);
+    if (!allDates.length) return null;
+    return new Date(Math.max(...allDates.map((d) => new Date(d).getTime())));
+  }, [systems, servers]);
+
   return (
     <div className="space-y-6">
+      {/* Replica info banner */}
+      <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 p-4">
+        <Info className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+        <div className="text-sm">
+          <p className="font-medium">Detta är en replika av den aktuella CMDB-databasen</p>
+          <p className="text-muted-foreground">
+            Informationen synkroniseras via import och kan avvika från källsystemet.
+            {lastUpdated && (
+              <> Senast uppdaterad: <span className="font-medium text-foreground">{lastUpdated.toLocaleDateString('sv-SE')} {lastUpdated.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}</span></>
+            )}
+          </p>
+        </div>
+      </div>
+
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card><CardContent className="p-4 flex items-center gap-3">
