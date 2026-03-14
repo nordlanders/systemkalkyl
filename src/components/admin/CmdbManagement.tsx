@@ -66,11 +66,6 @@ const emptySystemForm = {
   system_administrator: '', ops_responsible: '', ops_team: '', description: '', status: 'active', notes: '',
 };
 
-const emptyServerForm = {
-  system_id: '', hostname: '', os: '', datacenter: '', vcpu: 0, ram_gb: 0,
-  disk_gb: 0, ip_address: '', vlan: '', status: 'active', notes: '',
-};
-
 export default function CmdbManagement() {
   const { isAdmin, user } = useAuth();
   const { toast } = useToast();
