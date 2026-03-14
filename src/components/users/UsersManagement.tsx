@@ -116,6 +116,7 @@ export default function UsersManagement() {
           role: (userRole?.role as 'admin' | 'user') || 'user',
           can_approve: (profile as any).can_approve ?? false,
           approval_organizations: (profile as any).approval_organizations ?? [],
+          deactivated_at: (profile as any).deactivated_at ?? null,
         };
       });
 
