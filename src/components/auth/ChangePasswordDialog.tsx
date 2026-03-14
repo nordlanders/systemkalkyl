@@ -29,6 +29,7 @@ const passwordSchema = z.object({
 interface ChangePasswordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  forced?: boolean;
 }
 
 export default function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
