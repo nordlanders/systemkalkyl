@@ -170,7 +170,7 @@ export default function CmdbManagement() {
     };
 
     const colMap = headers.map((h) => fieldMap[h] || null);
-    const rows: Record<string, unknown>[] = [];
+    const rows: Array<{ system_name: string; [key: string]: unknown }> = [];
 
     for (let i = 1; i < lines.length; i++) {
       const vals = lines[i].split(';').map((v) => v.trim());
