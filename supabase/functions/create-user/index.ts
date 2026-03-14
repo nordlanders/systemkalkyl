@@ -2,12 +2,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Verify the requesting user is an admin
+    // Verify the requesting user
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -44,12 +44,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if requesting user is admin
+    // Check if requesting user is admin or superadmin
     const { data: roleData } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", requestingUser.id)
-      .eq("role", "admin")
+      .in("role", ["admin", "superadmin"])
       .maybeSingle();
 
     if (!roleData) {
@@ -64,6 +64,14 @@ Deno.serve(async (req) => {
     if (!email || !password) {
       return new Response(JSON.stringify({ error: "Email and password are required" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Non-superadmins cannot create superadmin users
+    if (role === "superadmin" && roleData.role !== "superadmin") {
+      return new Response(JSON.stringify({ error: "Endast superadmin kan skapa superadmin-användare" }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -91,11 +99,11 @@ Deno.serve(async (req) => {
         .eq("user_id", newUser.user.id);
     }
 
-    // Update role if admin is specified
-    if (role === "admin" && newUser.user) {
+    // Update role if not default 'user'
+    if (role && role !== "user" && newUser.user) {
       await supabaseAdmin
         .from("user_roles")
-        .update({ role: "admin" })
+        .update({ role })
         .eq("user_id", newUser.user.id);
     }
 
@@ -104,7 +112,7 @@ Deno.serve(async (req) => {
       user_id: requestingUser.id,
       action: "create",
       table_name: "users",
-      record_id: newUser.user?.id,
+      record_id: newUser.user?.id ?? "unknown",
       new_values: { email, fullName, role, permissionLevel },
     });
 
