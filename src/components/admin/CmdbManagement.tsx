@@ -82,6 +82,10 @@ export default function CmdbManagement() {
   const [envFilter, setEnvFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedSystems, setExpandedSystems] = useState<Set<string>>(new Set());
+  const [ownerFilter, setOwnerFilter] = useState('all');
+  const [adminFilter, setAdminFilter] = useState('all');
+  const [opsResponsibleFilter, setOpsResponsibleFilter] = useState('all');
+  const [opsTeamFilter, setOpsTeamFilter] = useState('all');
 
   // System dialog
   const [systemDialogOpen, setSystemDialogOpen] = useState(false);
