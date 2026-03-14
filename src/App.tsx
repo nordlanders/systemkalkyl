@@ -34,6 +34,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <ForcedPasswordChange />
+        <SessionManager />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
