@@ -497,7 +497,11 @@ export default function CmdbManagement() {
                               <EnvBadge env={sys.environment} />
                               <StatusBadge status={sys.status} />
                             </div>
-                            {sys.responsible_person && <p className="text-xs text-muted-foreground mt-0.5">Ansvarig: {sys.responsible_person}</p>}
+                            <div className="flex flex-wrap gap-x-4 text-xs text-muted-foreground mt-0.5">
+                              {sys.system_owner && <span>Systemägare: {sys.system_owner}</span>}
+                              {sys.system_administrator && <span>Systemförvaltare: {sys.system_administrator}</span>}
+                              {sys.responsible_person && <span>Ansvarig: {sys.responsible_person}</span>}
+                            </div>
                           </div>
                           <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1"><Server className="h-3 w-3" /> {sysServers.length} servrar</span>
