@@ -28,6 +28,7 @@ import {
   Building,
   Server,
   FileSpreadsheet,
+  DollarSign,
   Key
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
