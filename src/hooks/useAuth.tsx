@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 type PermissionLevel = 'read_only' | 'read_write';
 
-const PASSWORD_MAX_AGE_DAYS = 90;
+const PASSWORD_MAX_AGE_DAYS = 180;
 
 interface AuthContextType {
   user: User | null;
