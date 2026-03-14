@@ -114,6 +114,9 @@ Deno.serve(async (req) => {
     if (approvalOrganizations !== undefined) {
       profileUpdates.approval_organizations = approvalOrganizations;
     }
+    if (deactivatedAt !== undefined) {
+      profileUpdates.deactivated_at = deactivatedAt;
+    }
 
     if (Object.keys(profileUpdates).length > 0) {
       await supabaseAdmin
