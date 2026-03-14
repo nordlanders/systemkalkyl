@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ForcedPasswordChange from "@/components/auth/ForcedPasswordChange";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import HomePage from "./pages/HomePage";
 import CalculatorPage from "./pages/CalculatorPage";
 import Auth from "./pages/Auth";
@@ -21,6 +22,10 @@ import BudgetOutcomePage from "./pages/BudgetOutcomePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+function SessionManager() {
+  useSessionTimeout();
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,6 +34,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <ForcedPasswordChange />
+        <SessionManager />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
