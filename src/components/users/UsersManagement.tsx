@@ -39,6 +39,7 @@ interface UserWithRole {
   role: 'admin' | 'user' | 'superadmin';
   can_approve: boolean;
   approval_organizations: string[];
+  deactivated_at: string | null;
 }
 
 export default function UsersManagement() {
