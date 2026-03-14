@@ -481,12 +481,15 @@ export default function CmdbManagement() {
                             <span className="flex items-center gap-1"><MemoryStick className="h-3 w-3" /> {sysRam} GB RAM</span>
                             <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" /> {sysDisk} GB</span>
                           </div>
-                          {isAdmin && (
-                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" onClick={() => openEditSystem(sys)}><Edit className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="icon" onClick={() => { if (confirm('Ta bort systemet och alla servrar?')) deleteSystem.mutate(sys.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                            </div>
-                          )}
+                          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" title="Visa relationsdiagram" onClick={() => setGraphSystem(sys)}><Network className="h-4 w-4 text-primary" /></Button>
+                              {isAdmin && (
+                                <>
+                                  <Button variant="ghost" size="icon" onClick={() => openEditSystem(sys)}><Edit className="h-4 w-4" /></Button>
+                                  <Button variant="ghost" size="icon" onClick={() => { if (confirm('Ta bort systemet och alla servrar?')) deleteSystem.mutate(sys.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                </>
+                              )}
+                          </div>
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
