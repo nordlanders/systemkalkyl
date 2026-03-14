@@ -336,7 +336,8 @@ export default function CmdbManagement() {
     setSystemForm({
       system_name: sys.system_name, environment: sys.environment || 'production',
       responsible_person: sys.responsible_person || '', system_owner: sys.system_owner || '',
-      system_administrator: sys.system_administrator || '', description: sys.description || '',
+      system_administrator: sys.system_administrator || '', ops_responsible: sys.ops_responsible || '',
+      ops_team: sys.ops_team || '', description: sys.description || '',
       status: sys.status || 'active', notes: sys.notes || '',
     });
     setSystemDialogOpen(true);
