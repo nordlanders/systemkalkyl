@@ -8,8 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Key, Eye, EyeOff, Copy, Check, FileCheck } from 'lucide-react';
+import { Loader2, Key, Eye, EyeOff, Copy, Check, FileCheck, CalendarOff } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
 
 interface OwningOrganization {
   id: string;
