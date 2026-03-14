@@ -143,6 +143,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('Ditt konto har avslutats. Kontakta en administratör för mer information.') };
       }
 
+      // Check password age
+      const passwordChangedAt = profile?.password_changed_at ? new Date(profile.password_changed_at) : null;
+      const daysSinceChange = passwordChangedAt 
+        ? (Date.now() - passwordChangedAt.getTime()) / (1000 * 60 * 60 * 24)
+        : PASSWORD_MAX_AGE_DAYS + 1; // Force change if never set
+      
+      if (daysSinceChange > PASSWORD_MAX_AGE_DAYS) {
+        setPasswordExpired(true);
+      }
+
       // Update last_login_at on successful login
       await supabase
         .from('profiles')
