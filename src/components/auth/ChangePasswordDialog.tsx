@@ -116,9 +116,11 @@ export default function ChangePasswordDialog({ open, onOpenChange, forced }: Cha
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Byt lösenord</DialogTitle>
+            <DialogTitle>{forced ? 'Lösenordsbyte krävs' : 'Byt lösenord'}</DialogTitle>
             <DialogDescription>
-              Ange ditt nya lösenord nedan. Lösenordet måste vara minst 12 tecken.
+              {forced 
+                ? 'Ditt lösenord har inte bytts på över 90 dagar. Du måste byta lösenord för att fortsätta.'
+                : 'Ange ditt nya lösenord nedan. Lösenordet måste vara minst 12 tecken.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
