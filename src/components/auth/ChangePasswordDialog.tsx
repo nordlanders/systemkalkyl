@@ -164,11 +164,6 @@ export default function ChangePasswordDialog({ open, onOpenChange, forced }: Cha
               Spara
             </Button>
           </DialogFooter>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Spara
-            </Button>
-          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
