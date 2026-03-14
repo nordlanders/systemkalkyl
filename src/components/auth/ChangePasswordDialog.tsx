@@ -32,7 +32,7 @@ interface ChangePasswordDialogProps {
   forced?: boolean;
 }
 
-export default function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
+export default function ChangePasswordDialog({ open, onOpenChange, forced }: ChangePasswordDialogProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
