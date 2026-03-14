@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
     const requestingUserRole = roleData.role;
 
-    const { userId, role, permissionLevel, canApprove, approvalOrganizations } = await req.json();
+    const { userId, role, permissionLevel, canApprove, approvalOrganizations, deactivatedAt } = await req.json();
 
     if (!userId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
