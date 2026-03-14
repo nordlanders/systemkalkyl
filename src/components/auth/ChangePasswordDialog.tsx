@@ -119,7 +119,7 @@ export default function ChangePasswordDialog({ open, onOpenChange, forced }: Cha
             <DialogTitle>{forced ? 'Lösenordsbyte krävs' : 'Byt lösenord'}</DialogTitle>
             <DialogDescription>
               {forced 
-                ? 'Ditt lösenord har inte bytts på över 90 dagar. Du måste byta lösenord för att fortsätta.'
+                ? 'Ditt lösenord har inte bytts på över 180 dagar. Du måste byta lösenord för att fortsätta.'
                 : 'Ange ditt nya lösenord nedan. Lösenordet måste vara minst 12 tecken.'}
             </DialogDescription>
           </DialogHeader>
