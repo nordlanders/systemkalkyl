@@ -44,6 +44,7 @@ import {
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import BudgetComparisonTab from '@/components/analytics/BudgetComparisonTab';
+import ServiceCostTab from '@/components/analytics/ServiceCostTab';
 
 interface CalculationItem {
   price_type: string;
