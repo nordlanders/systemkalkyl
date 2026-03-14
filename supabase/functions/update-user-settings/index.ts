@@ -148,8 +148,9 @@ Deno.serve(async (req) => {
         permissionLevel: oldProfile?.permission_level,
         canApprove: oldProfile?.can_approve,
         approvalOrganizations: oldProfile?.approval_organizations,
+        deactivatedAt: oldProfile?.deactivated_at,
       },
-      new_values: { role, permissionLevel, canApprove, approvalOrganizations },
+      new_values: { role, permissionLevel, canApprove, approvalOrganizations, deactivatedAt },
     });
 
     return new Response(JSON.stringify({ success: true }), {
