@@ -53,6 +53,7 @@ const App = () => (
             <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="/budget-outcome" element={<BudgetOutcomePage />} />
             <Route path="/budget-compensations" element={<BudgetCompensationsPage />} />
+            <Route path="/cmdb" element={<CmdbPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
