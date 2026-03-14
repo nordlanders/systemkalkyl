@@ -47,6 +47,44 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_compensations: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          imported_at: string
+          imported_by: string | null
+          owning_organization_id: string
+          year: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          owning_organization_id: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          imported_at?: string
+          imported_by?: string | null
+          owning_organization_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_compensations_owning_organization_id_fkey"
+            columns: ["owning_organization_id"]
+            isOneToOne: false
+            referencedRelation: "owning_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_outcomes: {
         Row: {
           akt: string | null

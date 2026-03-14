@@ -28,6 +28,7 @@ import {
   Building,
   Server,
   FileSpreadsheet,
+  DollarSign,
   Key
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,7 @@ const adminNavItems = [
   { href: '/owning-organizations', icon: Building, label: 'Ägande organisation' },
   { href: '/configuration-items', icon: Server, label: 'Objekt och CI info' },
   { href: '/budget-outcome', icon: FileSpreadsheet, label: 'Budget & Utfall' },
+  { href: '/budget-compensations', icon: DollarSign, label: 'Budgetkompensationer' },
   { href: '/users', icon: Users, label: 'Användare' },
 ];
 
