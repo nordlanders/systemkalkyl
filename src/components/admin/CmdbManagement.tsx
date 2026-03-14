@@ -204,6 +204,8 @@ export default function CmdbManagement() {
       'ansvarig': 'responsible_person', 'responsible_person': 'responsible_person',
       'systemägare': 'system_owner', 'system_owner': 'system_owner',
       'systemförvaltare': 'system_administrator', 'system_administrator': 'system_administrator',
+      'driftansvarig': 'ops_responsible', 'ops_responsible': 'ops_responsible',
+      'driftteam': 'ops_team', 'ops_team': 'ops_team', 'driftansvarigt team': 'ops_team',
       'beskrivning': 'description', 'description': 'description',
       'status': 'status', 'anteckningar': 'notes', 'notes': 'notes',
     };
