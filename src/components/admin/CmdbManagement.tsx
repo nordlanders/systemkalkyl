@@ -415,7 +415,7 @@ export default function CmdbManagement() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <Card><CardContent className="p-4 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10"><Monitor className="h-5 w-5 text-primary" /></div>
           <div><p className="text-sm text-muted-foreground">System</p><p className="text-2xl font-bold">{systems.length}</p></div>
@@ -431,6 +431,14 @@ export default function CmdbManagement() {
         <Card><CardContent className="p-4 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10"><HardDrive className="h-5 w-5 text-primary" /></div>
           <div><p className="text-sm text-muted-foreground">Totalt disk</p><p className="text-2xl font-bold">{totalDisk} GB</p></div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">Systemägare</p><p className="text-2xl font-bold">{uniqueOwners.length}</p></div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><Shield className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">Driftteam</p><p className="text-2xl font-bold">{uniqueOpsTeams.length}</p></div>
         </CardContent></Card>
       </div>
 
