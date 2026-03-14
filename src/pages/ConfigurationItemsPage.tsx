@@ -27,16 +27,6 @@ export default function ConfigurationItemsPage() {
     return null;
   }
 
-  if (!isAdmin) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center py-12">
-          <p className="text-muted-foreground">Du har inte behörighet att visa denna sida.</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
   return (
     <DashboardLayout>
       <ConfigurationItemsManagement />
