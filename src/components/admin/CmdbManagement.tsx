@@ -61,10 +61,6 @@ interface CmdbServer {
   updated_at: string;
 }
 
-const emptySystemForm = {
-  system_name: '', environment: 'production', responsible_person: '', system_owner: '',
-  system_administrator: '', ops_responsible: '', ops_team: '', description: '', status: 'active', notes: '',
-};
 
 export default function CmdbManagement() {
   const { isAdmin, user } = useAuth();
