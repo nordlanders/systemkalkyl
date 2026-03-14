@@ -28,6 +28,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <ForcedPasswordChange />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
