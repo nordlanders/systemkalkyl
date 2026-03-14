@@ -63,7 +63,7 @@ interface CmdbServer {
 
 const emptySystemForm = {
   system_name: '', environment: 'production', responsible_person: '', system_owner: '',
-  system_administrator: '', description: '', status: 'active', notes: '',
+  system_administrator: '', ops_responsible: '', ops_team: '', description: '', status: 'active', notes: '',
 };
 
 const emptyServerForm = {
