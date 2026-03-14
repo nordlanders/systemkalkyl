@@ -73,6 +73,15 @@ export default function ChangePasswordDialog({ open, onOpenChange, forced }: Cha
 
       if (error) throw error;
 
+      // Update password_changed_at in profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ password_changed_at: new Date().toISOString() })
+          .eq('user_id', user.id);
+      }
+
       toast({
         title: 'Lösenord uppdaterat',
         description: 'Ditt lösenord har ändrats.',
