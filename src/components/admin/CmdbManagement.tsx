@@ -505,6 +505,8 @@ export default function CmdbManagement() {
                             <div className="flex flex-wrap gap-x-4 text-xs text-muted-foreground mt-0.5">
                               {sys.system_owner && <span>Systemägare: {sys.system_owner}</span>}
                               {sys.system_administrator && <span>Systemförvaltare: {sys.system_administrator}</span>}
+                              {sys.ops_responsible && <span>Driftansvarig: {sys.ops_responsible}</span>}
+                              {sys.ops_team && <span>Driftteam: {sys.ops_team}</span>}
                               {sys.responsible_person && <span>Ansvarig: {sys.responsible_person}</span>}
                             </div>
                           </div>
