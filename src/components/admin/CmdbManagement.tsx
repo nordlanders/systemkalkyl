@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/collapsible';
 import {
   Upload, Search, Trash2, Edit, Plus, Server, Cpu, HardDrive, MemoryStick,
-  Download, ChevronRight, ChevronDown, Monitor, Network,
+  Download, ChevronRight, ChevronDown, Monitor, Network, Info,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SystemRelationshipGraph from './SystemRelationshipGraph';
