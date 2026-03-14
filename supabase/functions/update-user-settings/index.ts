@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
     // Get old values for audit
     const { data: oldProfile } = await supabaseAdmin
       .from("profiles")
-      .select("permission_level, can_approve, approval_organizations")
+      .select("permission_level, can_approve, approval_organizations, deactivated_at")
       .eq("user_id", userId)
       .single();
 
