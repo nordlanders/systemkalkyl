@@ -35,6 +35,8 @@ interface CmdbSystem {
   responsible_person: string | null;
   system_owner: string | null;
   system_administrator: string | null;
+  ops_responsible: string | null;
+  ops_team: string | null;
   description: string | null;
   status: string | null;
   notes: string | null;
@@ -61,7 +63,7 @@ interface CmdbServer {
 
 const emptySystemForm = {
   system_name: '', environment: 'production', responsible_person: '', system_owner: '',
-  system_administrator: '', description: '', status: 'active', notes: '',
+  system_administrator: '', ops_responsible: '', ops_team: '', description: '', status: 'active', notes: '',
 };
 
 const emptyServerForm = {
@@ -202,6 +204,8 @@ export default function CmdbManagement() {
       'ansvarig': 'responsible_person', 'responsible_person': 'responsible_person',
       'systemägare': 'system_owner', 'system_owner': 'system_owner',
       'systemförvaltare': 'system_administrator', 'system_administrator': 'system_administrator',
+      'driftansvarig': 'ops_responsible', 'ops_responsible': 'ops_responsible',
+      'driftteam': 'ops_team', 'ops_team': 'ops_team', 'driftansvarigt team': 'ops_team',
       'beskrivning': 'description', 'description': 'description',
       'status': 'status', 'anteckningar': 'notes', 'notes': 'notes',
     };
@@ -332,7 +336,8 @@ export default function CmdbManagement() {
     setSystemForm({
       system_name: sys.system_name, environment: sys.environment || 'production',
       responsible_person: sys.responsible_person || '', system_owner: sys.system_owner || '',
-      system_administrator: sys.system_administrator || '', description: sys.description || '',
+      system_administrator: sys.system_administrator || '', ops_responsible: sys.ops_responsible || '',
+      ops_team: sys.ops_team || '', description: sys.description || '',
       status: sys.status || 'active', notes: sys.notes || '',
     });
     setSystemDialogOpen(true);
@@ -500,6 +505,8 @@ export default function CmdbManagement() {
                             <div className="flex flex-wrap gap-x-4 text-xs text-muted-foreground mt-0.5">
                               {sys.system_owner && <span>Systemägare: {sys.system_owner}</span>}
                               {sys.system_administrator && <span>Systemförvaltare: {sys.system_administrator}</span>}
+                              {sys.ops_responsible && <span>Driftansvarig: {sys.ops_responsible}</span>}
+                              {sys.ops_team && <span>Driftteam: {sys.ops_team}</span>}
                               {sys.responsible_person && <span>Ansvarig: {sys.responsible_person}</span>}
                             </div>
                           </div>
@@ -620,6 +627,8 @@ export default function CmdbManagement() {
               </div>
               <div><Label>Systemägare</Label><Input value={systemForm.system_owner} onChange={(e) => setSystemForm({ ...systemForm, system_owner: e.target.value })} /></div>
               <div><Label>Systemförvaltare</Label><Input value={systemForm.system_administrator} onChange={(e) => setSystemForm({ ...systemForm, system_administrator: e.target.value })} /></div>
+              <div><Label>Driftansvarig</Label><Input value={systemForm.ops_responsible} onChange={(e) => setSystemForm({ ...systemForm, ops_responsible: e.target.value })} /></div>
+              <div><Label>Driftansvarigt team</Label><Input value={systemForm.ops_team} onChange={(e) => setSystemForm({ ...systemForm, ops_team: e.target.value })} /></div>
               <div><Label>Ansvarig</Label><Input value={systemForm.responsible_person} onChange={(e) => setSystemForm({ ...systemForm, responsible_person: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Beskrivning</Label><Input value={systemForm.description} onChange={(e) => setSystemForm({ ...systemForm, description: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Anteckningar</Label><Input value={systemForm.notes} onChange={(e) => setSystemForm({ ...systemForm, notes: e.target.value })} /></div>
