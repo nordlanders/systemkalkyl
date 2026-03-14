@@ -333,9 +333,6 @@ export default function AnalyticsPage() {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <DashboardLayout>
