@@ -82,15 +82,6 @@ export default function CmdbManagement() {
   const [opsResponsibleFilter, setOpsResponsibleFilter] = useState('all');
   const [opsTeamFilter, setOpsTeamFilter] = useState('all');
 
-  // System dialog
-  const [systemDialogOpen, setSystemDialogOpen] = useState(false);
-  const [editingSystem, setEditingSystem] = useState<CmdbSystem | null>(null);
-  const [systemForm, setSystemForm] = useState(emptySystemForm);
-
-  // Server dialog
-  const [serverDialogOpen, setServerDialogOpen] = useState(false);
-  const [editingServer, setEditingServer] = useState<CmdbServer | null>(null);
-  const [serverForm, setServerForm] = useState(emptyServerForm);
 
   // Graph dialog
   const [graphSystem, setGraphSystem] = useState<CmdbSystem | null>(null);
