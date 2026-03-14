@@ -22,9 +22,10 @@ import {
 } from '@/components/ui/collapsible';
 import {
   Upload, Search, Trash2, Edit, Plus, Server, Cpu, HardDrive, MemoryStick,
-  Download, ChevronRight, ChevronDown, Monitor,
+  Download, ChevronRight, ChevronDown, Monitor, Network,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SystemRelationshipGraph from './SystemRelationshipGraph';
 
 // Types
 interface CmdbSystem {
