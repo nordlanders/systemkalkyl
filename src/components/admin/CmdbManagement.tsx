@@ -318,12 +318,16 @@ export default function CmdbManagement() {
   const filtered = systems.filter((s) => {
     const term = searchTerm.toLowerCase();
     const sysServers = serversBySystem[s.id] || [];
-    const matchesSearch = !term || [s.system_name, s.responsible_person, s.system_owner]
+    const matchesSearch = !term || [s.system_name, s.responsible_person, s.system_owner, s.system_administrator, s.ops_responsible, s.ops_team]
       .some((v) => v?.toLowerCase().includes(term)) ||
       sysServers.some((srv) => [srv.hostname, srv.ip_address, srv.os].some((v) => v?.toLowerCase().includes(term)));
     const matchesEnv = envFilter === 'all' || s.environment === envFilter;
     const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-    return matchesSearch && matchesEnv && matchesStatus;
+    const matchesOwner = ownerFilter === 'all' || s.system_owner === ownerFilter;
+    const matchesAdmin = adminFilter === 'all' || s.system_administrator === adminFilter;
+    const matchesOpsResp = opsResponsibleFilter === 'all' || s.ops_responsible === opsResponsibleFilter;
+    const matchesOpsTeam = opsTeamFilter === 'all' || s.ops_team === opsTeamFilter;
+    return matchesSearch && matchesEnv && matchesStatus && matchesOwner && matchesAdmin && matchesOpsResp && matchesOpsTeam;
   });
 
   // Filters for new fields
