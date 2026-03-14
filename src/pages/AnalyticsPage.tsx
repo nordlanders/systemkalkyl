@@ -603,6 +603,10 @@ export default function AnalyticsPage() {
                   <GitCompareArrows className="h-4 w-4" />
                   Jämför med budget & utfall
                 </TabsTrigger>
+                <TabsTrigger value="service-cost" className="gap-2">
+                  <Layers className="h-4 w-4" />
+                  Kostnad per bastjänst
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="service-type">
