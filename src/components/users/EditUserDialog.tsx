@@ -61,6 +61,7 @@ export default function EditUserDialog({
   const [permissionLevel, setPermissionLevel] = useState<'read_only' | 'read_write'>('read_write');
   const [canApprove, setCanApprove] = useState(false);
   const [approvalOrganizations, setApprovalOrganizations] = useState<string[]>([]);
+  const [deactivatedAt, setDeactivatedAt] = useState<Date | undefined>(undefined);
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
