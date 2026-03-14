@@ -91,6 +91,9 @@ export default function CmdbManagement() {
   const [editingServer, setEditingServer] = useState<CmdbServer | null>(null);
   const [serverForm, setServerForm] = useState(emptyServerForm);
 
+  // Graph dialog
+  const [graphSystem, setGraphSystem] = useState<CmdbSystem | null>(null);
+
   // Queries
   const { data: systems = [], isLoading: loadingSystems } = useQuery({
     queryKey: ['cmdb-systems'],
