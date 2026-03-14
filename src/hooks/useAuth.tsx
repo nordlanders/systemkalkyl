@@ -201,6 +201,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       approvalOrganizations, 
       loading, 
       fullName, 
+      passwordExpired,
+      clearPasswordExpired,
       signIn, 
       signUp, 
       signOut 
