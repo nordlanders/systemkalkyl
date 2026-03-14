@@ -604,6 +604,7 @@ export type Database = {
           approval_organizations: string[] | null
           can_approve: boolean
           created_at: string
+          deactivated_at: string | null
           email: string
           full_name: string | null
           id: string
@@ -616,6 +617,7 @@ export type Database = {
           approval_organizations?: string[] | null
           can_approve?: boolean
           created_at?: string
+          deactivated_at?: string | null
           email: string
           full_name?: string | null
           id?: string
@@ -628,6 +630,7 @@ export type Database = {
           approval_organizations?: string[] | null
           can_approve?: boolean
           created_at?: string
+          deactivated_at?: string | null
           email?: string
           full_name?: string | null
           id?: string
