@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ForcedPasswordChange from "@/components/auth/ForcedPasswordChange";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import HomePage from "./pages/HomePage";
 import CalculatorPage from "./pages/CalculatorPage";
 import Auth from "./pages/Auth";
