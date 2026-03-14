@@ -82,6 +82,10 @@ export default function CmdbManagement() {
   const [envFilter, setEnvFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedSystems, setExpandedSystems] = useState<Set<string>>(new Set());
+  const [ownerFilter, setOwnerFilter] = useState('all');
+  const [adminFilter, setAdminFilter] = useState('all');
+  const [opsResponsibleFilter, setOpsResponsibleFilter] = useState('all');
+  const [opsTeamFilter, setOpsTeamFilter] = useState('all');
 
   // System dialog
   const [systemDialogOpen, setSystemDialogOpen] = useState(false);
@@ -329,12 +333,6 @@ export default function CmdbManagement() {
     const matchesOpsTeam = opsTeamFilter === 'all' || s.ops_team === opsTeamFilter;
     return matchesSearch && matchesEnv && matchesStatus && matchesOwner && matchesAdmin && matchesOpsResp && matchesOpsTeam;
   });
-
-  // Filters for new fields
-  const [ownerFilter, setOwnerFilter] = useState('all');
-  const [adminFilter, setAdminFilter] = useState('all');
-  const [opsResponsibleFilter, setOpsResponsibleFilter] = useState('all');
-  const [opsTeamFilter, setOpsTeamFilter] = useState('all');
 
   // Unique values for filters
   const uniqueOwners = useMemo(() => [...new Set(systems.map(s => s.system_owner).filter(Boolean))].sort() as string[], [systems]);
