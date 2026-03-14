@@ -19,6 +19,7 @@ import ConfigurationItemsPage from "./pages/ConfigurationItemsPage";
 import UserManualPage from "./pages/UserManualPage";
 import ApprovalsPage from "./pages/ApprovalsPage";
 import BudgetOutcomePage from "./pages/BudgetOutcomePage";
+import BudgetCompensationsPage from "./pages/BudgetCompensationsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
