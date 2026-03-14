@@ -388,25 +388,21 @@ export type Database = {
           },
         ]
       }
-      cmdb_assets: {
+      cmdb_servers: {
         Row: {
           created_at: string
           created_by: string | null
           datacenter: string | null
           disk_gb: number | null
-          environment: string | null
-          hostname: string | null
+          hostname: string
           id: string
-          imported_at: string | null
           imported_by: string | null
           ip_address: string | null
           notes: string | null
           os: string | null
           ram_gb: number | null
-          responsible_person: string | null
-          server_count: number | null
           status: string | null
-          system_name: string
+          system_id: string
           updated_at: string
           vcpu: number | null
           vlan: string | null
@@ -416,19 +412,15 @@ export type Database = {
           created_by?: string | null
           datacenter?: string | null
           disk_gb?: number | null
-          environment?: string | null
-          hostname?: string | null
+          hostname: string
           id?: string
-          imported_at?: string | null
           imported_by?: string | null
           ip_address?: string | null
           notes?: string | null
           os?: string | null
           ram_gb?: number | null
-          responsible_person?: string | null
-          server_count?: number | null
           status?: string | null
-          system_name: string
+          system_id: string
           updated_at?: string
           vcpu?: number | null
           vlan?: string | null
@@ -438,22 +430,74 @@ export type Database = {
           created_by?: string | null
           datacenter?: string | null
           disk_gb?: number | null
-          environment?: string | null
-          hostname?: string | null
+          hostname?: string
           id?: string
-          imported_at?: string | null
           imported_by?: string | null
           ip_address?: string | null
           notes?: string | null
           os?: string | null
           ram_gb?: number | null
-          responsible_person?: string | null
-          server_count?: number | null
           status?: string | null
-          system_name?: string
+          system_id?: string
           updated_at?: string
           vcpu?: number | null
           vlan?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cmdb_servers_system_id_fkey"
+            columns: ["system_id"]
+            isOneToOne: false
+            referencedRelation: "cmdb_systems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cmdb_systems: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          environment: string | null
+          id: string
+          imported_by: string | null
+          notes: string | null
+          responsible_person: string | null
+          status: string | null
+          system_administrator: string | null
+          system_name: string
+          system_owner: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          environment?: string | null
+          id?: string
+          imported_by?: string | null
+          notes?: string | null
+          responsible_person?: string | null
+          status?: string | null
+          system_administrator?: string | null
+          system_name: string
+          system_owner?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          environment?: string | null
+          id?: string
+          imported_by?: string | null
+          notes?: string | null
+          responsible_person?: string | null
+          status?: string | null
+          system_administrator?: string | null
+          system_name?: string
+          system_owner?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
