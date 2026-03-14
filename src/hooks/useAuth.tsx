@@ -134,7 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if user is deactivated
       const { data: profile } = await supabase
         .from('profiles')
-        .select('deactivated_at')
+        .select('deactivated_at, password_changed_at')
         .eq('user_id', data.user.id)
         .maybeSingle();
       
