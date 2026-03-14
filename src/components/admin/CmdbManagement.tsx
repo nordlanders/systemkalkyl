@@ -18,314 +18,395 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   Upload, Search, Trash2, Edit, Plus, Server, Cpu, HardDrive, MemoryStick,
-  ArrowUpDown, Download,
+  Download, ChevronRight, ChevronDown, Monitor,
 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-interface CmdbAsset {
+// Types
+interface CmdbSystem {
   id: string;
   system_name: string;
-  hostname: string | null;
-  os: string | null;
   environment: string | null;
-  datacenter: string | null;
-  vcpu: number | null;
-  ram_gb: number | null;
-  disk_gb: number | null;
-  server_count: number | null;
-  ip_address: string | null;
-  vlan: string | null;
-  status: string | null;
   responsible_person: string | null;
+  system_owner: string | null;
+  system_administrator: string | null;
+  description: string | null;
+  status: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
-const emptyForm = {
-  system_name: '',
-  hostname: '',
-  os: '',
-  environment: 'production',
-  datacenter: '',
-  vcpu: 0,
-  ram_gb: 0,
-  disk_gb: 0,
-  server_count: 1,
-  ip_address: '',
-  vlan: '',
-  status: 'active',
-  responsible_person: '',
-  notes: '',
+interface CmdbServer {
+  id: string;
+  system_id: string;
+  hostname: string;
+  os: string | null;
+  datacenter: string | null;
+  vcpu: number | null;
+  ram_gb: number | null;
+  disk_gb: number | null;
+  ip_address: string | null;
+  vlan: string | null;
+  status: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const emptySystemForm = {
+  system_name: '', environment: 'production', responsible_person: '', system_owner: '',
+  system_administrator: '', description: '', status: 'active', notes: '',
 };
 
-type SortField = keyof CmdbAsset;
+const emptyServerForm = {
+  system_id: '', hostname: '', os: '', datacenter: '', vcpu: 0, ram_gb: 0,
+  disk_gb: 0, ip_address: '', vlan: '', status: 'active', notes: '',
+};
 
 export default function CmdbManagement() {
   const { isAdmin, user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const qc = useQueryClient();
+  const systemFileRef = useRef<HTMLInputElement>(null);
+  const serverFileRef = useRef<HTMLInputElement>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingAsset, setEditingAsset] = useState<CmdbAsset | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [sortField, setSortField] = useState<SortField>('system_name');
-  const [sortAsc, setSortAsc] = useState(true);
-  const [envFilter, setEnvFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [envFilter, setEnvFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [expandedSystems, setExpandedSystems] = useState<Set<string>>(new Set());
 
-  const { data: assets = [], isLoading } = useQuery({
-    queryKey: ['cmdb-assets'],
+  // System dialog
+  const [systemDialogOpen, setSystemDialogOpen] = useState(false);
+  const [editingSystem, setEditingSystem] = useState<CmdbSystem | null>(null);
+  const [systemForm, setSystemForm] = useState(emptySystemForm);
+
+  // Server dialog
+  const [serverDialogOpen, setServerDialogOpen] = useState(false);
+  const [editingServer, setEditingServer] = useState<CmdbServer | null>(null);
+  const [serverForm, setServerForm] = useState(emptyServerForm);
+
+  // Queries
+  const { data: systems = [], isLoading: loadingSystems } = useQuery({
+    queryKey: ['cmdb-systems'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('cmdb_assets')
-        .select('*')
-        .order('system_name');
+      const { data, error } = await supabase.from('cmdb_systems').select('*').order('system_name');
       if (error) throw error;
-      return data as CmdbAsset[];
+      return data as CmdbSystem[];
     },
   });
 
-  const upsertMutation = useMutation({
-    mutationFn: async (values: typeof form & { id?: string }) => {
-      if (values.id) {
-        const { error } = await supabase
-          .from('cmdb_assets')
-          .update(values)
-          .eq('id', values.id);
+  const { data: servers = [] } = useQuery({
+    queryKey: ['cmdb-servers'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('cmdb_servers').select('*').order('hostname');
+      if (error) throw error;
+      return data as CmdbServer[];
+    },
+  });
+
+  // Group servers by system
+  const serversBySystem = servers.reduce<Record<string, CmdbServer[]>>((acc, s) => {
+    (acc[s.system_id] ??= []).push(s);
+    return acc;
+  }, {});
+
+  // Mutations
+  const upsertSystem = useMutation({
+    mutationFn: async (vals: typeof emptySystemForm & { id?: string }) => {
+      const { id, ...rest } = vals;
+      if (id) {
+        const { error } = await supabase.from('cmdb_systems').update(rest).eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('cmdb_assets')
-          .insert({ ...values, created_by: user?.id, imported_by: user?.id });
+        const { error } = await supabase.from('cmdb_systems').insert({ ...rest, created_by: user?.id, imported_by: user?.id });
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cmdb-assets'] });
-      setDialogOpen(false);
-      setEditingAsset(null);
-      setForm(emptyForm);
-      toast({ title: editingAsset ? 'Uppdaterad' : 'Skapad', description: 'CMDB-posten har sparats.' });
+      qc.invalidateQueries({ queryKey: ['cmdb-systems'] });
+      setSystemDialogOpen(false);
+      setEditingSystem(null);
+      setSystemForm(emptySystemForm);
+      toast({ title: 'Sparat', description: 'Systemet har sparats.' });
     },
-    onError: (err: Error) => {
-      toast({ title: 'Fel', description: err.message, variant: 'destructive' });
-    },
+    onError: (e: Error) => toast({ title: 'Fel', description: e.message, variant: 'destructive' }),
   });
 
-  const deleteMutation = useMutation({
+  const deleteSystem = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('cmdb_assets').delete().eq('id', id);
+      const { error } = await supabase.from('cmdb_systems').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cmdb-assets'] });
-      toast({ title: 'Borttagen', description: 'Posten har tagits bort.' });
+      qc.invalidateQueries({ queryKey: ['cmdb-systems'] });
+      qc.invalidateQueries({ queryKey: ['cmdb-servers'] });
+      toast({ title: 'Borttagen' });
     },
-    onError: (err: Error) => {
-      toast({ title: 'Fel', description: err.message, variant: 'destructive' });
-    },
+    onError: (e: Error) => toast({ title: 'Fel', description: e.message, variant: 'destructive' }),
   });
 
-  const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const upsertServer = useMutation({
+    mutationFn: async (vals: typeof emptyServerForm & { id?: string }) => {
+      const { id, ...rest } = vals;
+      if (id) {
+        const { error } = await supabase.from('cmdb_servers').update(rest).eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('cmdb_servers').insert({ ...rest, created_by: user?.id, imported_by: user?.id });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cmdb-servers'] });
+      setServerDialogOpen(false);
+      setEditingServer(null);
+      setServerForm(emptyServerForm);
+      toast({ title: 'Sparat', description: 'Servern har sparats.' });
+    },
+    onError: (e: Error) => toast({ title: 'Fel', description: e.message, variant: 'destructive' }),
+  });
+
+  const deleteServer = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('cmdb_servers').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cmdb-servers'] });
+      toast({ title: 'Borttagen' });
+    },
+    onError: (e: Error) => toast({ title: 'Fel', description: e.message, variant: 'destructive' }),
+  });
+
+  // CSV import systems
+  const handleSystemCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const text = await file.text();
     const lines = text.split('\n').filter((l) => l.trim());
-    if (lines.length < 2) {
-      toast({ title: 'Fel', description: 'CSV-filen måste ha en rubrikrad och minst en datarad.', variant: 'destructive' });
-      return;
-    }
+    if (lines.length < 2) { toast({ title: 'Fel', description: 'Minst rubrikrad + en datarad krävs.', variant: 'destructive' }); return; }
 
     const headers = lines[0].split(';').map((h) => h.trim().toLowerCase());
     const fieldMap: Record<string, string> = {
-      'systemnamn': 'system_name',
-      'system_name': 'system_name',
-      'hostname': 'hostname',
-      'os': 'os',
-      'operativsystem': 'os',
-      'miljö': 'environment',
-      'environment': 'environment',
-      'datacenter': 'datacenter',
-      'vcpu': 'vcpu',
-      'ram_gb': 'ram_gb',
-      'ram': 'ram_gb',
-      'disk_gb': 'disk_gb',
-      'disk': 'disk_gb',
-      'diskutrymme': 'disk_gb',
-      'servrar': 'server_count',
-      'server_count': 'server_count',
-      'antal_servrar': 'server_count',
-      'ip': 'ip_address',
-      'ip_address': 'ip_address',
-      'vlan': 'vlan',
-      'status': 'status',
-      'ansvarig': 'responsible_person',
-      'responsible_person': 'responsible_person',
-      'anteckningar': 'notes',
-      'notes': 'notes',
+      'systemnamn': 'system_name', 'system_name': 'system_name',
+      'miljö': 'environment', 'environment': 'environment',
+      'ansvarig': 'responsible_person', 'responsible_person': 'responsible_person',
+      'systemägare': 'system_owner', 'system_owner': 'system_owner',
+      'systemförvaltare': 'system_administrator', 'system_administrator': 'system_administrator',
+      'beskrivning': 'description', 'description': 'description',
+      'status': 'status', 'anteckningar': 'notes', 'notes': 'notes',
     };
-
     const colMap = headers.map((h) => fieldMap[h] || null);
-    const rows: Array<{ system_name: string; [key: string]: unknown }> = [];
+    const rows: Array<{ system_name: string; [k: string]: unknown }> = [];
 
     for (let i = 1; i < lines.length; i++) {
       const vals = lines[i].split(';').map((v) => v.trim());
       const row: Record<string, unknown> = { created_by: user?.id, imported_by: user?.id };
-      colMap.forEach((field, idx) => {
-        if (!field) return;
-        const val = vals[idx] || '';
-        if (['vcpu', 'ram_gb', 'disk_gb', 'server_count'].includes(field)) {
-          row[field] = parseFloat(val.replace(',', '.')) || 0;
-        } else {
-          row[field] = val;
-        }
-      });
-      if (row.system_name) rows.push(row as { system_name: string; [key: string]: unknown });
+      colMap.forEach((f, idx) => { if (f) row[f] = vals[idx] || ''; });
+      if (row.system_name) rows.push(row as { system_name: string; [k: string]: unknown });
     }
 
-    if (!rows.length) {
-      toast({ title: 'Fel', description: 'Inga giltiga rader hittades. Kontrollera att kolumnen "Systemnamn" finns.', variant: 'destructive' });
-      return;
-    }
-
-    const { error } = await supabase.from('cmdb_assets').insert(rows);
-    if (error) {
-      toast({ title: 'Importfel', description: error.message, variant: 'destructive' });
-    } else {
-      queryClient.invalidateQueries({ queryKey: ['cmdb-assets'] });
-      toast({ title: 'Import klar', description: `${rows.length} poster importerade.` });
-    }
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (!rows.length) { toast({ title: 'Fel', description: 'Inga giltiga rader. Kolumnen "Systemnamn" krävs.', variant: 'destructive' }); return; }
+    const { error } = await supabase.from('cmdb_systems').insert(rows);
+    if (error) toast({ title: 'Importfel', description: error.message, variant: 'destructive' });
+    else { qc.invalidateQueries({ queryKey: ['cmdb-systems'] }); toast({ title: 'Import klar', description: `${rows.length} system importerade.` }); }
+    if (systemFileRef.current) systemFileRef.current.value = '';
   };
 
+  // CSV import servers
+  const handleServerCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    const lines = text.split('\n').filter((l) => l.trim());
+    if (lines.length < 2) { toast({ title: 'Fel', description: 'Minst rubrikrad + en datarad krävs.', variant: 'destructive' }); return; }
+
+    const headers = lines[0].split(';').map((h) => h.trim().toLowerCase());
+    const fieldMap: Record<string, string> = {
+      'systemnamn': '_system_name', 'system_name': '_system_name', 'system': '_system_name',
+      'hostname': 'hostname', 'servernamn': 'hostname',
+      'os': 'os', 'operativsystem': 'os',
+      'datacenter': 'datacenter',
+      'vcpu': 'vcpu', 'ram_gb': 'ram_gb', 'ram': 'ram_gb',
+      'disk_gb': 'disk_gb', 'disk': 'disk_gb', 'diskutrymme': 'disk_gb',
+      'ip': 'ip_address', 'ip_address': 'ip_address',
+      'vlan': 'vlan', 'status': 'status',
+      'anteckningar': 'notes', 'notes': 'notes',
+    };
+    const colMap = headers.map((h) => fieldMap[h] || null);
+
+    // Build system name -> id lookup
+    const systemLookup: Record<string, string> = {};
+    systems.forEach((s) => { systemLookup[s.system_name.toLowerCase()] = s.id; });
+
+    const rows: Array<{ hostname: string; system_id: string; [k: string]: unknown }> = [];
+    const unknownSystems: string[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const vals = lines[i].split(';').map((v) => v.trim());
+      const row: Record<string, unknown> = { created_by: user?.id, imported_by: user?.id };
+      let sysName = '';
+      colMap.forEach((f, idx) => {
+        if (!f) return;
+        const val = vals[idx] || '';
+        if (f === '_system_name') { sysName = val; return; }
+        if (['vcpu', 'ram_gb', 'disk_gb'].includes(f)) row[f] = parseFloat(val.replace(',', '.')) || 0;
+        else row[f] = val;
+      });
+      const sysId = systemLookup[sysName.toLowerCase()];
+      if (!sysId) { if (sysName) unknownSystems.push(sysName); continue; }
+      row.system_id = sysId;
+      if (row.hostname) rows.push(row as { hostname: string; system_id: string; [k: string]: unknown });
+    }
+
+    if (unknownSystems.length) {
+      const unique = [...new Set(unknownSystems)];
+      toast({ title: 'Varning', description: `Okända system (hoppa över): ${unique.join(', ')}`, variant: 'destructive' });
+    }
+
+    if (!rows.length) { toast({ title: 'Fel', description: 'Inga giltiga rader. Kolumnerna "Systemnamn" och "Hostname" krävs.', variant: 'destructive' }); return; }
+    const { error } = await supabase.from('cmdb_servers').insert(rows);
+    if (error) toast({ title: 'Importfel', description: error.message, variant: 'destructive' });
+    else { qc.invalidateQueries({ queryKey: ['cmdb-servers'] }); toast({ title: 'Import klar', description: `${rows.length} servrar importerade.` }); }
+    if (serverFileRef.current) serverFileRef.current.value = '';
+  };
+
+  // Export
   const handleExportCsv = () => {
-    const headers = ['Systemnamn', 'Hostname', 'OS', 'Miljö', 'Datacenter', 'vCPU', 'RAM (GB)', 'Disk (GB)', 'Antal servrar', 'IP', 'VLAN', 'Status', 'Ansvarig', 'Anteckningar'];
+    const headers = ['Systemnamn', 'Hostname', 'OS', 'Miljö', 'Datacenter', 'vCPU', 'RAM (GB)', 'Disk (GB)', 'IP', 'VLAN', 'Status', 'Ansvarig'];
     const csvRows = [headers.join(';')];
-    filtered.forEach((a) => {
-      csvRows.push([
-        a.system_name, a.hostname || '', a.os || '', a.environment || '', a.datacenter || '',
-        a.vcpu ?? 0, a.ram_gb ?? 0, a.disk_gb ?? 0, a.server_count ?? 0,
-        a.ip_address || '', a.vlan || '', a.status || '', a.responsible_person || '', a.notes || '',
-      ].join(';'));
+    systems.forEach((sys) => {
+      const sysServers = serversBySystem[sys.id] || [];
+      if (sysServers.length === 0) {
+        csvRows.push([sys.system_name, '', '', sys.environment || '', '', '', '', '', '', '', sys.status || '', sys.responsible_person || ''].join(';'));
+      } else {
+        sysServers.forEach((srv) => {
+          csvRows.push([sys.system_name, srv.hostname, srv.os || '', sys.environment || '', srv.datacenter || '', srv.vcpu ?? 0, srv.ram_gb ?? 0, srv.disk_gb ?? 0, srv.ip_address || '', srv.vlan || '', srv.status || '', sys.responsible_person || ''].join(';'));
+        });
+      }
     });
     const blob = new Blob(['\uFEFF' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
-    link.download = `cmdb-export-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    link.href = url; link.download = `cmdb-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click(); URL.revokeObjectURL(url);
   };
 
-  const openEdit = (asset: CmdbAsset) => {
-    setEditingAsset(asset);
-    setForm({
-      system_name: asset.system_name,
-      hostname: asset.hostname || '',
-      os: asset.os || '',
-      environment: asset.environment || 'production',
-      datacenter: asset.datacenter || '',
-      vcpu: asset.vcpu ?? 0,
-      ram_gb: asset.ram_gb ?? 0,
-      disk_gb: asset.disk_gb ?? 0,
-      server_count: asset.server_count ?? 1,
-      ip_address: asset.ip_address || '',
-      vlan: asset.vlan || '',
-      status: asset.status || 'active',
-      responsible_person: asset.responsible_person || '',
-      notes: asset.notes || '',
+  // Toggle expand
+  const toggleExpand = (id: string) => {
+    setExpandedSystems((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
     });
-    setDialogOpen(true);
   };
 
-  const toggleSort = (field: SortField) => {
-    if (sortField === field) setSortAsc(!sortAsc);
-    else { setSortField(field); setSortAsc(true); }
-  };
+  // Filtered systems
+  const filtered = systems.filter((s) => {
+    const term = searchTerm.toLowerCase();
+    const sysServers = serversBySystem[s.id] || [];
+    const matchesSearch = !term || [s.system_name, s.responsible_person, s.system_owner]
+      .some((v) => v?.toLowerCase().includes(term)) ||
+      sysServers.some((srv) => [srv.hostname, srv.ip_address, srv.os].some((v) => v?.toLowerCase().includes(term)));
+    const matchesEnv = envFilter === 'all' || s.environment === envFilter;
+    const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
+    return matchesSearch && matchesEnv && matchesStatus;
+  });
 
-  const filtered = assets
-    .filter((a) => {
-      const s = searchTerm.toLowerCase();
-      const matchesSearch = !s || [a.system_name, a.hostname, a.os, a.ip_address, a.responsible_person, a.datacenter]
-        .some((v) => v?.toLowerCase().includes(s));
-      const matchesEnv = envFilter === 'all' || a.environment === envFilter;
-      const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
-      return matchesSearch && matchesEnv && matchesStatus;
-    })
-    .sort((a, b) => {
-      const aVal = a[sortField] ?? '';
-      const bVal = b[sortField] ?? '';
-      const cmp = String(aVal).localeCompare(String(bVal), 'sv', { numeric: true });
-      return sortAsc ? cmp : -cmp;
+  // Stats
+  const totalVcpu = servers.reduce((s, a) => s + (a.vcpu ?? 0), 0);
+  const totalRam = servers.reduce((s, a) => s + Number(a.ram_gb ?? 0), 0);
+  const totalDisk = servers.reduce((s, a) => s + Number(a.disk_gb ?? 0), 0);
+
+  const openEditSystem = (sys: CmdbSystem) => {
+    setEditingSystem(sys);
+    setSystemForm({
+      system_name: sys.system_name, environment: sys.environment || 'production',
+      responsible_person: sys.responsible_person || '', system_owner: sys.system_owner || '',
+      system_administrator: sys.system_administrator || '', description: sys.description || '',
+      status: sys.status || 'active', notes: sys.notes || '',
     });
+    setSystemDialogOpen(true);
+  };
 
-  // Summary stats
-  const totalServers = assets.reduce((s, a) => s + (a.server_count ?? 0), 0);
-  const totalVcpu = assets.reduce((s, a) => s + (a.vcpu ?? 0), 0);
-  const totalRam = assets.reduce((s, a) => s + Number(a.ram_gb ?? 0), 0);
-  const totalDisk = assets.reduce((s, a) => s + Number(a.disk_gb ?? 0), 0);
+  const openAddServer = (systemId: string) => {
+    setEditingServer(null);
+    setServerForm({ ...emptyServerForm, system_id: systemId });
+    setServerDialogOpen(true);
+  };
 
-  const SortHeader = ({ field, label }: { field: SortField; label: string }) => (
-    <TableHead className="cursor-pointer select-none" onClick={() => toggleSort(field)}>
-      <span className="flex items-center gap-1">
-        {label}
-        <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
-      </span>
-    </TableHead>
+  const openEditServer = (srv: CmdbServer) => {
+    setEditingServer(srv);
+    setServerForm({
+      system_id: srv.system_id, hostname: srv.hostname, os: srv.os || '',
+      datacenter: srv.datacenter || '', vcpu: srv.vcpu ?? 0, ram_gb: srv.ram_gb ?? 0,
+      disk_gb: srv.disk_gb ?? 0, ip_address: srv.ip_address || '', vlan: srv.vlan || '',
+      status: srv.status || 'active', notes: srv.notes || '',
+    });
+    setServerDialogOpen(true);
+  };
+
+  const StatusBadge = ({ status }: { status: string | null }) => (
+    <Badge variant={status === 'active' ? 'default' : 'outline'}>
+      {status === 'active' ? 'Aktiv' : status === 'inactive' ? 'Inaktiv' : 'Avvecklad'}
+    </Badge>
+  );
+
+  const EnvBadge = ({ env }: { env: string | null }) => (
+    <Badge variant={env === 'production' ? 'default' : 'secondary'}>
+      {env === 'production' ? 'Prod' : env === 'test' ? 'Test' : env === 'development' ? 'Dev' : env || '-'}
+    </Badge>
   );
 
   return (
     <div className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><Server className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-sm text-muted-foreground">System</p><p className="text-2xl font-bold">{assets.length}</p></div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><Cpu className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-sm text-muted-foreground">Totalt vCPU</p><p className="text-2xl font-bold">{totalVcpu}</p></div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><MemoryStick className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-sm text-muted-foreground">Totalt RAM</p><p className="text-2xl font-bold">{totalRam} GB</p></div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><HardDrive className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-sm text-muted-foreground">Totalt disk</p><p className="text-2xl font-bold">{totalDisk} GB</p></div>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><Monitor className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">System</p><p className="text-2xl font-bold">{systems.length}</p></div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><Server className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">Servrar</p><p className="text-2xl font-bold">{servers.length}</p></div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><Cpu className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">Totalt vCPU</p><p className="text-2xl font-bold">{totalVcpu}</p></div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><HardDrive className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">Totalt disk</p><p className="text-2xl font-bold">{totalDisk} GB</p></div>
+        </CardContent></Card>
       </div>
 
-      {/* Toolbar */}
+      {/* Main content */}
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle>CMDB - Infrastrukturregister</CardTitle>
-              <CardDescription>Hantera servrar, system och infrastrukturresurser</CardDescription>
+              <CardDescription>System med tillhörande servrar och infrastrukturresurser</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               {isAdmin && (
                 <>
-                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="h-4 w-4 mr-1" /> Importera CSV
+                  <Button variant="outline" size="sm" onClick={() => { setEditingSystem(null); setSystemForm(emptySystemForm); setSystemDialogOpen(true); }}>
+                    <Plus className="h-4 w-4 mr-1" /> System
                   </Button>
-                  <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvImport} />
-                  <Button variant="outline" size="sm" onClick={() => { setEditingAsset(null); setForm(emptyForm); setDialogOpen(true); }}>
-                    <Plus className="h-4 w-4 mr-1" /> Lägg till
+                  <Button variant="outline" size="sm" onClick={() => systemFileRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-1" /> Import system
                   </Button>
+                  <Button variant="outline" size="sm" onClick={() => serverFileRef.current?.click()}>
+                    <Upload className="h-4 w-4 mr-1" /> Import servrar
+                  </Button>
+                  <input ref={systemFileRef} type="file" accept=".csv" className="hidden" onChange={handleSystemCsvImport} />
+                  <input ref={serverFileRef} type="file" accept=".csv" className="hidden" onChange={handleServerCsvImport} />
                 </>
               )}
               <Button variant="outline" size="sm" onClick={handleExportCsv}>
@@ -335,6 +416,7 @@ export default function CmdbManagement() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Filters */}
           <div className="flex flex-col md:flex-row gap-3 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -361,83 +443,126 @@ export default function CmdbManagement() {
             </Select>
           </div>
 
-          {isLoading ? (
+          {loadingSystems ? (
             <p className="text-muted-foreground py-8 text-center">Laddar...</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">Inga system hittades</p>
           ) : (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <SortHeader field="system_name" label="Systemnamn" />
-                    <SortHeader field="hostname" label="Hostname" />
-                    <SortHeader field="environment" label="Miljö" />
-                    <SortHeader field="vcpu" label="vCPU" />
-                    <SortHeader field="ram_gb" label="RAM (GB)" />
-                    <SortHeader field="disk_gb" label="Disk (GB)" />
-                    <SortHeader field="server_count" label="Servrar" />
-                    <SortHeader field="os" label="OS" />
-                    <SortHeader field="ip_address" label="IP" />
-                    <SortHeader field="status" label="Status" />
-                    <SortHeader field="responsible_person" label="Ansvarig" />
-                    {isAdmin && <TableHead className="w-20">Åtgärder</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.length === 0 ? (
-                    <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Inga poster hittades</TableCell></TableRow>
-                  ) : filtered.map((asset) => (
-                    <TableRow key={asset.id}>
-                      <TableCell className="font-medium">{asset.system_name}</TableCell>
-                      <TableCell>{asset.hostname}</TableCell>
-                      <TableCell>
-                        <Badge variant={asset.environment === 'production' ? 'default' : 'secondary'}>
-                          {asset.environment === 'production' ? 'Prod' : asset.environment === 'test' ? 'Test' : asset.environment === 'development' ? 'Dev' : asset.environment}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">{asset.vcpu}</TableCell>
-                      <TableCell className="text-right">{asset.ram_gb}</TableCell>
-                      <TableCell className="text-right">{asset.disk_gb}</TableCell>
-                      <TableCell className="text-right">{asset.server_count}</TableCell>
-                      <TableCell>{asset.os}</TableCell>
-                      <TableCell className="font-mono text-xs">{asset.ip_address}</TableCell>
-                      <TableCell>
-                        <Badge variant={asset.status === 'active' ? 'default' : 'outline'}>
-                          {asset.status === 'active' ? 'Aktiv' : asset.status === 'inactive' ? 'Inaktiv' : 'Avvecklad'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{asset.responsible_person}</TableCell>
-                      {isAdmin && (
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => openEdit(asset)}><Edit className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" onClick={() => { if (confirm('Ta bort denna post?')) deleteMutation.mutate(asset.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            <div className="space-y-2">
+              {filtered.map((sys) => {
+                const sysServers = serversBySystem[sys.id] || [];
+                const expanded = expandedSystems.has(sys.id);
+                const sysVcpu = sysServers.reduce((s, a) => s + (a.vcpu ?? 0), 0);
+                const sysRam = sysServers.reduce((s, a) => s + Number(a.ram_gb ?? 0), 0);
+                const sysDisk = sysServers.reduce((s, a) => s + Number(a.disk_gb ?? 0), 0);
+
+                return (
+                  <Collapsible key={sys.id} open={expanded} onOpenChange={() => toggleExpand(sys.id)}>
+                    <div className="rounded-lg border bg-card">
+                      <CollapsibleTrigger asChild>
+                        <div className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50 transition-colors">
+                          {expanded ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          <Monitor className="h-5 w-5 text-primary" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold">{sys.system_name}</span>
+                              <EnvBadge env={sys.environment} />
+                              <StatusBadge status={sys.status} />
+                            </div>
+                            {sys.responsible_person && <p className="text-xs text-muted-foreground mt-0.5">Ansvarig: {sys.responsible_person}</p>}
                           </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                          <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1"><Server className="h-3 w-3" /> {sysServers.length} servrar</span>
+                            <span className="flex items-center gap-1"><Cpu className="h-3 w-3" /> {sysVcpu} vCPU</span>
+                            <span className="flex items-center gap-1"><MemoryStick className="h-3 w-3" /> {sysRam} GB RAM</span>
+                            <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" /> {sysDisk} GB</span>
+                          </div>
+                          {isAdmin && (
+                            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" onClick={() => openEditSystem(sys)}><Edit className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => { if (confirm('Ta bort systemet och alla servrar?')) deleteSystem.mutate(sys.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                            </div>
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="border-t px-4 pb-4">
+                          {sys.description && <p className="text-sm text-muted-foreground py-2">{sys.description}</p>}
+                          <div className="flex items-center justify-between py-2">
+                            <h4 className="text-sm font-medium flex items-center gap-1"><Server className="h-4 w-4" /> Servrar ({sysServers.length})</h4>
+                            {isAdmin && (
+                              <Button variant="outline" size="sm" onClick={() => openAddServer(sys.id)}>
+                                <Plus className="h-3 w-3 mr-1" /> Lägg till server
+                              </Button>
+                            )}
+                          </div>
+                          {sysServers.length === 0 ? (
+                            <p className="text-sm text-muted-foreground py-4 text-center">Inga servrar registrerade</p>
+                          ) : (
+                            <div className="rounded-md border overflow-x-auto">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Hostname</TableHead>
+                                    <TableHead>OS</TableHead>
+                                    <TableHead>Datacenter</TableHead>
+                                    <TableHead className="text-right">vCPU</TableHead>
+                                    <TableHead className="text-right">RAM (GB)</TableHead>
+                                    <TableHead className="text-right">Disk (GB)</TableHead>
+                                    <TableHead>IP</TableHead>
+                                    <TableHead>VLAN</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    {isAdmin && <TableHead className="w-20">Åtgärder</TableHead>}
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {sysServers.map((srv) => (
+                                    <TableRow key={srv.id}>
+                                      <TableCell className="font-medium">{srv.hostname}</TableCell>
+                                      <TableCell>{srv.os}</TableCell>
+                                      <TableCell>{srv.datacenter}</TableCell>
+                                      <TableCell className="text-right">{srv.vcpu}</TableCell>
+                                      <TableCell className="text-right">{srv.ram_gb}</TableCell>
+                                      <TableCell className="text-right">{srv.disk_gb}</TableCell>
+                                      <TableCell className="font-mono text-xs">{srv.ip_address}</TableCell>
+                                      <TableCell>{srv.vlan}</TableCell>
+                                      <TableCell><StatusBadge status={srv.status} /></TableCell>
+                                      {isAdmin && (
+                                        <TableCell>
+                                          <div className="flex gap-1">
+                                            <Button variant="ghost" size="icon" onClick={() => openEditServer(srv)}><Edit className="h-4 w-4" /></Button>
+                                            <Button variant="ghost" size="icon" onClick={() => { if (confirm('Ta bort servern?')) deleteServer.mutate(srv.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                          </div>
+                                        </TableCell>
+                                      )}
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          )}
+                        </div>
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
+                );
+              })}
             </div>
           )}
-          <p className="text-xs text-muted-foreground mt-2">Visar {filtered.length} av {assets.length} poster</p>
+          <p className="text-xs text-muted-foreground mt-2">Visar {filtered.length} av {systems.length} system, totalt {servers.length} servrar</p>
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingAsset ? 'Redigera systempost' : 'Lägg till systempost'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); upsertMutation.mutate({ ...form, ...(editingAsset ? { id: editingAsset.id } : {}) }); }}>
+      {/* System Dialog */}
+      <Dialog open={systemDialogOpen} onOpenChange={setSystemDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>{editingSystem ? 'Redigera system' : 'Lägg till system'}</DialogTitle></DialogHeader>
+          <form onSubmit={(e) => { e.preventDefault(); upsertSystem.mutate({ ...systemForm, ...(editingSystem ? { id: editingSystem.id } : {}) }); }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-              <div><Label>Systemnamn *</Label><Input value={form.system_name} onChange={(e) => setForm({ ...form, system_name: e.target.value })} required /></div>
-              <div><Label>Hostname</Label><Input value={form.hostname} onChange={(e) => setForm({ ...form, hostname: e.target.value })} /></div>
-              <div><Label>OS</Label><Input value={form.os} onChange={(e) => setForm({ ...form, os: e.target.value })} placeholder="t.ex. Windows Server 2022" /></div>
+              <div className="md:col-span-2"><Label>Systemnamn *</Label><Input value={systemForm.system_name} onChange={(e) => setSystemForm({ ...systemForm, system_name: e.target.value })} required /></div>
               <div>
                 <Label>Miljö</Label>
-                <Select value={form.environment} onValueChange={(v) => setForm({ ...form, environment: v })}>
+                <Select value={systemForm.environment} onValueChange={(v) => setSystemForm({ ...systemForm, environment: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="production">Produktion</SelectItem>
@@ -447,16 +572,9 @@ export default function CmdbManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Datacenter</Label><Input value={form.datacenter} onChange={(e) => setForm({ ...form, datacenter: e.target.value })} /></div>
-              <div><Label>vCPU</Label><Input type="number" value={form.vcpu} onChange={(e) => setForm({ ...form, vcpu: Number(e.target.value) })} min={0} /></div>
-              <div><Label>RAM (GB)</Label><Input type="number" value={form.ram_gb} onChange={(e) => setForm({ ...form, ram_gb: Number(e.target.value) })} min={0} /></div>
-              <div><Label>Disk (GB)</Label><Input type="number" value={form.disk_gb} onChange={(e) => setForm({ ...form, disk_gb: Number(e.target.value) })} min={0} /></div>
-              <div><Label>Antal servrar</Label><Input type="number" value={form.server_count} onChange={(e) => setForm({ ...form, server_count: Number(e.target.value) })} min={0} /></div>
-              <div><Label>IP-adress</Label><Input value={form.ip_address} onChange={(e) => setForm({ ...form, ip_address: e.target.value })} /></div>
-              <div><Label>VLAN</Label><Input value={form.vlan} onChange={(e) => setForm({ ...form, vlan: e.target.value })} /></div>
               <div>
                 <Label>Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                <Select value={systemForm.status} onValueChange={(v) => setSystemForm({ ...systemForm, status: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Aktiv</SelectItem>
@@ -465,12 +583,59 @@ export default function CmdbManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Ansvarig</Label><Input value={form.responsible_person} onChange={(e) => setForm({ ...form, responsible_person: e.target.value })} /></div>
-              <div className="md:col-span-2"><Label>Anteckningar</Label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+              <div><Label>Systemägare</Label><Input value={systemForm.system_owner} onChange={(e) => setSystemForm({ ...systemForm, system_owner: e.target.value })} /></div>
+              <div><Label>Systemförvaltare</Label><Input value={systemForm.system_administrator} onChange={(e) => setSystemForm({ ...systemForm, system_administrator: e.target.value })} /></div>
+              <div><Label>Ansvarig</Label><Input value={systemForm.responsible_person} onChange={(e) => setSystemForm({ ...systemForm, responsible_person: e.target.value })} /></div>
+              <div className="md:col-span-2"><Label>Beskrivning</Label><Input value={systemForm.description} onChange={(e) => setSystemForm({ ...systemForm, description: e.target.value })} /></div>
+              <div className="md:col-span-2"><Label>Anteckningar</Label><Input value={systemForm.notes} onChange={(e) => setSystemForm({ ...systemForm, notes: e.target.value })} /></div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Avbryt</Button>
-              <Button type="submit" disabled={upsertMutation.isPending}>{editingAsset ? 'Spara' : 'Lägg till'}</Button>
+              <Button type="button" variant="outline" onClick={() => setSystemDialogOpen(false)}>Avbryt</Button>
+              <Button type="submit" disabled={upsertSystem.isPending}>{editingSystem ? 'Spara' : 'Lägg till'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Server Dialog */}
+      <Dialog open={serverDialogOpen} onOpenChange={setServerDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>{editingServer ? 'Redigera server' : 'Lägg till server'}</DialogTitle></DialogHeader>
+          <form onSubmit={(e) => { e.preventDefault(); upsertServer.mutate({ ...serverForm, ...(editingServer ? { id: editingServer.id } : {}) }); }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+              <div>
+                <Label>System *</Label>
+                <Select value={serverForm.system_id} onValueChange={(v) => setServerForm({ ...serverForm, system_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="Välj system" /></SelectTrigger>
+                  <SelectContent>
+                    {systems.map((s) => <SelectItem key={s.id} value={s.id}>{s.system_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Hostname *</Label><Input value={serverForm.hostname} onChange={(e) => setServerForm({ ...serverForm, hostname: e.target.value })} required /></div>
+              <div><Label>OS</Label><Input value={serverForm.os} onChange={(e) => setServerForm({ ...serverForm, os: e.target.value })} placeholder="t.ex. Windows Server 2022" /></div>
+              <div><Label>Datacenter</Label><Input value={serverForm.datacenter} onChange={(e) => setServerForm({ ...serverForm, datacenter: e.target.value })} /></div>
+              <div><Label>vCPU</Label><Input type="number" value={serverForm.vcpu} onChange={(e) => setServerForm({ ...serverForm, vcpu: Number(e.target.value) })} min={0} /></div>
+              <div><Label>RAM (GB)</Label><Input type="number" value={serverForm.ram_gb} onChange={(e) => setServerForm({ ...serverForm, ram_gb: Number(e.target.value) })} min={0} /></div>
+              <div><Label>Disk (GB)</Label><Input type="number" value={serverForm.disk_gb} onChange={(e) => setServerForm({ ...serverForm, disk_gb: Number(e.target.value) })} min={0} /></div>
+              <div><Label>IP-adress</Label><Input value={serverForm.ip_address} onChange={(e) => setServerForm({ ...serverForm, ip_address: e.target.value })} /></div>
+              <div><Label>VLAN</Label><Input value={serverForm.vlan} onChange={(e) => setServerForm({ ...serverForm, vlan: e.target.value })} /></div>
+              <div>
+                <Label>Status</Label>
+                <Select value={serverForm.status} onValueChange={(v) => setServerForm({ ...serverForm, status: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Aktiv</SelectItem>
+                    <SelectItem value="inactive">Inaktiv</SelectItem>
+                    <SelectItem value="decommissioned">Avvecklad</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2"><Label>Anteckningar</Label><Input value={serverForm.notes} onChange={(e) => setServerForm({ ...serverForm, notes: e.target.value })} /></div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setServerDialogOpen(false)}>Avbryt</Button>
+              <Button type="submit" disabled={upsertServer.isPending}>{editingServer ? 'Spara' : 'Lägg till'}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
