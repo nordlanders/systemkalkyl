@@ -95,6 +95,7 @@ export default function EditUserDialog({
       setPermissionLevel(user.permission_level);
       setCanApprove(user.can_approve ?? false);
       setApprovalOrganizations(user.approval_organizations ?? []);
+      setDeactivatedAt(user.deactivated_at ? new Date(user.deactivated_at) : undefined);
       setNewPassword('');
       setShowPassword(false);
       setCopied(false);
