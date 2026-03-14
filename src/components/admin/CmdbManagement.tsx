@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/collapsible';
 import {
   Upload, Search, Trash2, Edit, Plus, Server, Cpu, HardDrive, MemoryStick,
-  Download, ChevronRight, ChevronDown, Monitor, Network, Info,
+  Download, ChevronRight, ChevronDown, Monitor, Network, Info, Users, Shield,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SystemRelationshipGraph from './SystemRelationshipGraph';
@@ -318,13 +318,29 @@ export default function CmdbManagement() {
   const filtered = systems.filter((s) => {
     const term = searchTerm.toLowerCase();
     const sysServers = serversBySystem[s.id] || [];
-    const matchesSearch = !term || [s.system_name, s.responsible_person, s.system_owner]
+    const matchesSearch = !term || [s.system_name, s.responsible_person, s.system_owner, s.system_administrator, s.ops_responsible, s.ops_team]
       .some((v) => v?.toLowerCase().includes(term)) ||
       sysServers.some((srv) => [srv.hostname, srv.ip_address, srv.os].some((v) => v?.toLowerCase().includes(term)));
     const matchesEnv = envFilter === 'all' || s.environment === envFilter;
     const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-    return matchesSearch && matchesEnv && matchesStatus;
+    const matchesOwner = ownerFilter === 'all' || s.system_owner === ownerFilter;
+    const matchesAdmin = adminFilter === 'all' || s.system_administrator === adminFilter;
+    const matchesOpsResp = opsResponsibleFilter === 'all' || s.ops_responsible === opsResponsibleFilter;
+    const matchesOpsTeam = opsTeamFilter === 'all' || s.ops_team === opsTeamFilter;
+    return matchesSearch && matchesEnv && matchesStatus && matchesOwner && matchesAdmin && matchesOpsResp && matchesOpsTeam;
   });
+
+  // Filters for new fields
+  const [ownerFilter, setOwnerFilter] = useState('all');
+  const [adminFilter, setAdminFilter] = useState('all');
+  const [opsResponsibleFilter, setOpsResponsibleFilter] = useState('all');
+  const [opsTeamFilter, setOpsTeamFilter] = useState('all');
+
+  // Unique values for filters
+  const uniqueOwners = useMemo(() => [...new Set(systems.map(s => s.system_owner).filter(Boolean))].sort() as string[], [systems]);
+  const uniqueAdmins = useMemo(() => [...new Set(systems.map(s => s.system_administrator).filter(Boolean))].sort() as string[], [systems]);
+  const uniqueOpsResponsible = useMemo(() => [...new Set(systems.map(s => s.ops_responsible).filter(Boolean))].sort() as string[], [systems]);
+  const uniqueOpsTeams = useMemo(() => [...new Set(systems.map(s => s.ops_team).filter(Boolean))].sort() as string[], [systems]);
 
   // Stats
   const totalVcpu = servers.reduce((s, a) => s + (a.vcpu ?? 0), 0);
@@ -399,7 +415,7 @@ export default function CmdbManagement() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <Card><CardContent className="p-4 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10"><Monitor className="h-5 w-5 text-primary" /></div>
           <div><p className="text-sm text-muted-foreground">System</p><p className="text-2xl font-bold">{systems.length}</p></div>
@@ -415,6 +431,14 @@ export default function CmdbManagement() {
         <Card><CardContent className="p-4 flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10"><HardDrive className="h-5 w-5 text-primary" /></div>
           <div><p className="text-sm text-muted-foreground">Totalt disk</p><p className="text-2xl font-bold">{totalDisk} GB</p></div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">Systemägare</p><p className="text-2xl font-bold">{uniqueOwners.length}</p></div>
+        </CardContent></Card>
+        <Card><CardContent className="p-4 flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10"><Shield className="h-5 w-5 text-primary" /></div>
+          <div><p className="text-sm text-muted-foreground">Driftteam</p><p className="text-2xl font-bold">{uniqueOpsTeams.length}</p></div>
         </CardContent></Card>
       </div>
 
@@ -450,30 +474,62 @@ export default function CmdbManagement() {
         </CardHeader>
         <CardContent>
           {/* Filters */}
-          <div className="flex flex-col md:flex-row gap-3 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Sök system, hostname, IP..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" />
+          <div className="flex flex-col gap-3 mb-4">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Sök system, hostname, IP, ägare, driftansvarig..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" />
+              </div>
+              <Select value={envFilter} onValueChange={setEnvFilter}>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Miljö" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla miljöer</SelectItem>
+                  <SelectItem value="production">Produktion</SelectItem>
+                  <SelectItem value="test">Test</SelectItem>
+                  <SelectItem value="development">Utveckling</SelectItem>
+                  <SelectItem value="staging">Staging</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla statusar</SelectItem>
+                  <SelectItem value="active">Aktiv</SelectItem>
+                  <SelectItem value="inactive">Inaktiv</SelectItem>
+                  <SelectItem value="decommissioned">Avvecklad</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={envFilter} onValueChange={setEnvFilter}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Miljö" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alla miljöer</SelectItem>
-                <SelectItem value="production">Produktion</SelectItem>
-                <SelectItem value="test">Test</SelectItem>
-                <SelectItem value="development">Utveckling</SelectItem>
-                <SelectItem value="staging">Staging</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alla statusar</SelectItem>
-                <SelectItem value="active">Aktiv</SelectItem>
-                <SelectItem value="inactive">Inaktiv</SelectItem>
-                <SelectItem value="decommissioned">Avvecklad</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col md:flex-row gap-3">
+              <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Systemägare" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla systemägare</SelectItem>
+                  {uniqueOwners.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={adminFilter} onValueChange={setAdminFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Systemförvaltare" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla systemförvaltare</SelectItem>
+                  {uniqueAdmins.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={opsResponsibleFilter} onValueChange={setOpsResponsibleFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Driftansvarig" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla driftansvariga</SelectItem>
+                  {uniqueOpsResponsible.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={opsTeamFilter} onValueChange={setOpsTeamFilter}>
+                <SelectTrigger className="w-[200px]"><SelectValue placeholder="Driftteam" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alla driftteam</SelectItem>
+                  {uniqueOpsTeams.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {loadingSystems ? (
