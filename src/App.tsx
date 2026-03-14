@@ -22,6 +22,10 @@ import BudgetOutcomePage from "./pages/BudgetOutcomePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+function SessionManager() {
+  useSessionTimeout();
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
