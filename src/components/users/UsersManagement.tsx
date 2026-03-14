@@ -39,6 +39,7 @@ interface UserWithRole {
   role: 'admin' | 'user' | 'superadmin';
   can_approve: boolean;
   approval_organizations: string[];
+  deactivated_at: string | null;
 }
 
 export default function UsersManagement() {
@@ -115,6 +116,7 @@ export default function UsersManagement() {
           role: (userRole?.role as 'admin' | 'user') || 'user',
           can_approve: (profile as any).can_approve ?? false,
           approval_organizations: (profile as any).approval_organizations ?? [],
+          deactivated_at: (profile as any).deactivated_at ?? null,
         };
       });
 
@@ -384,7 +386,17 @@ export default function UsersManagement() {
                     <TableRow key={u.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{u.full_name || 'Namnlös användare'}</p>
+                          <p className="font-medium">
+                            {u.full_name || 'Namnlös användare'}
+                            {u.deactivated_at && new Date(u.deactivated_at) <= new Date() && (
+                              <Badge variant="destructive" className="ml-2 text-xs">Avslutad</Badge>
+                            )}
+                            {u.deactivated_at && new Date(u.deactivated_at) > new Date() && (
+                              <Badge variant="outline" className="ml-2 text-xs border-amber-500 text-amber-600">
+                                Avslutas {new Date(u.deactivated_at).toLocaleDateString('sv-SE')}
+                              </Badge>
+                            )}
+                          </p>
                           <p className="text-sm text-muted-foreground">{u.email}</p>
                         </div>
                       </TableCell>

@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
     const requestingUserRole = roleData.role;
 
-    const { userId, role, permissionLevel, canApprove, approvalOrganizations } = await req.json();
+    const { userId, role, permissionLevel, canApprove, approvalOrganizations, deactivatedAt } = await req.json();
 
     if (!userId) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
     // Get old values for audit
     const { data: oldProfile } = await supabaseAdmin
       .from("profiles")
-      .select("permission_level, can_approve, approval_organizations")
+      .select("permission_level, can_approve, approval_organizations, deactivated_at")
       .eq("user_id", userId)
       .single();
 
@@ -113,6 +113,9 @@ Deno.serve(async (req) => {
     }
     if (approvalOrganizations !== undefined) {
       profileUpdates.approval_organizations = approvalOrganizations;
+    }
+    if (deactivatedAt !== undefined) {
+      profileUpdates.deactivated_at = deactivatedAt;
     }
 
     if (Object.keys(profileUpdates).length > 0) {
@@ -145,8 +148,9 @@ Deno.serve(async (req) => {
         permissionLevel: oldProfile?.permission_level,
         canApprove: oldProfile?.can_approve,
         approvalOrganizations: oldProfile?.approval_organizations,
+        deactivatedAt: oldProfile?.deactivated_at,
       },
-      new_values: { role, permissionLevel, canApprove, approvalOrganizations },
+      new_values: { role, permissionLevel, canApprove, approvalOrganizations, deactivatedAt },
     });
 
     return new Response(JSON.stringify({ success: true }), {

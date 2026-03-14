@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Key, Eye, EyeOff, Copy, Check, FileCheck } from 'lucide-react';
+import { Loader2, Key, Eye, EyeOff, Copy, Check, FileCheck, CalendarOff } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
 
 interface OwningOrganization {
   id: string;
@@ -24,6 +26,7 @@ interface UserData {
   permission_level: 'read_only' | 'read_write';
   can_approve?: boolean;
   approval_organizations?: string[];
+  deactivated_at?: string | null;
 }
 
 interface EditUserDialogProps {
@@ -59,6 +62,7 @@ export default function EditUserDialog({
   const [permissionLevel, setPermissionLevel] = useState<'read_only' | 'read_write'>('read_write');
   const [canApprove, setCanApprove] = useState(false);
   const [approvalOrganizations, setApprovalOrganizations] = useState<string[]>([]);
+  const [deactivatedAt, setDeactivatedAt] = useState<Date | undefined>(undefined);
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -92,6 +96,7 @@ export default function EditUserDialog({
       setPermissionLevel(user.permission_level);
       setCanApprove(user.can_approve ?? false);
       setApprovalOrganizations(user.approval_organizations ?? []);
+      setDeactivatedAt(user.deactivated_at ? new Date(user.deactivated_at) : undefined);
       setNewPassword('');
       setShowPassword(false);
       setCopied(false);
@@ -120,6 +125,7 @@ export default function EditUserDialog({
           permissionLevel,
           canApprove,
           approvalOrganizations: canApprove ? approvalOrganizations : [],
+          deactivatedAt: deactivatedAt ? deactivatedAt.toISOString().split('T')[0] : null,
         },
       });
 
@@ -311,6 +317,63 @@ export default function EditUserDialog({
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Deactivation section */}
+          <div className="space-y-3">
+            <div className="space-y-0.5">
+              <Label className="flex items-center gap-2">
+                <CalendarOff className="h-4 w-4 text-destructive" />
+                Avsluta användare
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Ange sista arbetsdag. Efter detta datum kan användaren inte logga in.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isCurrentUser}
+                    className={`w-[200px] justify-start text-left font-normal ${!deactivatedAt ? 'text-muted-foreground' : ''}`}
+                  >
+                    {deactivatedAt 
+                      ? deactivatedAt.toLocaleDateString('sv-SE')
+                      : 'Välj datum...'
+                    }
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={deactivatedAt}
+                    onSelect={setDeactivatedAt}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              {deactivatedAt && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDeactivatedAt(undefined)}
+                  disabled={isCurrentUser}
+                  className="text-destructive hover:text-destructive"
+                >
+                  Ta bort datum
+                </Button>
+              )}
+            </div>
+            {deactivatedAt && new Date(deactivatedAt) <= new Date() && (
+              <p className="text-xs text-destructive font-medium">
+                ⚠️ Användaren är avslutad och kan inte logga in.
+              </p>
             )}
           </div>
 
