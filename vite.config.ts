@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+    'import.meta.env.VITE_BUILD_DATE': JSON.stringify(new Date().toISOString()),
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
