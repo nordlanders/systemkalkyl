@@ -36,8 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [approvalOrganizations, setApprovalOrganizations] = useState<string[]>([]);
   const [fullName, setFullName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordExpired, setPasswordExpired] = useState(false);
 
   const canWrite = permissionLevel === 'read_write';
+  const clearPasswordExpired = () => setPasswordExpired(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
