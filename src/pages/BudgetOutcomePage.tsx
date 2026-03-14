@@ -6,7 +6,7 @@ import BudgetOutcomeManagement from '@/components/admin/BudgetOutcomeManagement'
 import { Loader2 } from 'lucide-react';
 
 export default function BudgetOutcomePage() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
