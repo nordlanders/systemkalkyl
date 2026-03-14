@@ -44,6 +44,7 @@ import {
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import BudgetComparisonTab from '@/components/analytics/BudgetComparisonTab';
+import ServiceCostTab from '@/components/analytics/ServiceCostTab';
 
 interface CalculationItem {
   price_type: string;
@@ -602,6 +603,10 @@ export default function AnalyticsPage() {
                   <GitCompareArrows className="h-4 w-4" />
                   Jämför med budget & utfall
                 </TabsTrigger>
+                <TabsTrigger value="service-cost" className="gap-2">
+                  <Layers className="h-4 w-4" />
+                  Kostnad per bastjänst
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="service-type">
@@ -819,6 +824,9 @@ export default function AnalyticsPage() {
               </TabsContent>
               <TabsContent value="budget-comparison">
                 <BudgetComparisonTab />
+              </TabsContent>
+              <TabsContent value="service-cost">
+                <ServiceCostTab />
               </TabsContent>
             </Tabs>
           </>
