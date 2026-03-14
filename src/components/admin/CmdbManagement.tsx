@@ -326,6 +326,18 @@ export default function CmdbManagement() {
     return matchesSearch && matchesEnv && matchesStatus;
   });
 
+  // Filters for new fields
+  const [ownerFilter, setOwnerFilter] = useState('all');
+  const [adminFilter, setAdminFilter] = useState('all');
+  const [opsResponsibleFilter, setOpsResponsibleFilter] = useState('all');
+  const [opsTeamFilter, setOpsTeamFilter] = useState('all');
+
+  // Unique values for filters
+  const uniqueOwners = useMemo(() => [...new Set(systems.map(s => s.system_owner).filter(Boolean))].sort() as string[], [systems]);
+  const uniqueAdmins = useMemo(() => [...new Set(systems.map(s => s.system_administrator).filter(Boolean))].sort() as string[], [systems]);
+  const uniqueOpsResponsible = useMemo(() => [...new Set(systems.map(s => s.ops_responsible).filter(Boolean))].sort() as string[], [systems]);
+  const uniqueOpsTeams = useMemo(() => [...new Set(systems.map(s => s.ops_team).filter(Boolean))].sort() as string[], [systems]);
+
   // Stats
   const totalVcpu = servers.reduce((s, a) => s + (a.vcpu ?? 0), 0);
   const totalRam = servers.reduce((s, a) => s + Number(a.ram_gb ?? 0), 0);
