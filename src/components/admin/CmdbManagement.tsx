@@ -627,6 +627,8 @@ export default function CmdbManagement() {
               </div>
               <div><Label>Systemägare</Label><Input value={systemForm.system_owner} onChange={(e) => setSystemForm({ ...systemForm, system_owner: e.target.value })} /></div>
               <div><Label>Systemförvaltare</Label><Input value={systemForm.system_administrator} onChange={(e) => setSystemForm({ ...systemForm, system_administrator: e.target.value })} /></div>
+              <div><Label>Driftansvarig</Label><Input value={systemForm.ops_responsible} onChange={(e) => setSystemForm({ ...systemForm, ops_responsible: e.target.value })} /></div>
+              <div><Label>Driftansvarigt team</Label><Input value={systemForm.ops_team} onChange={(e) => setSystemForm({ ...systemForm, ops_team: e.target.value })} /></div>
               <div><Label>Ansvarig</Label><Input value={systemForm.responsible_person} onChange={(e) => setSystemForm({ ...systemForm, responsible_person: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Beskrivning</Label><Input value={systemForm.description} onChange={(e) => setSystemForm({ ...systemForm, description: e.target.value })} /></div>
               <div className="md:col-span-2"><Label>Anteckningar</Label><Input value={systemForm.notes} onChange={(e) => setSystemForm({ ...systemForm, notes: e.target.value })} /></div>
