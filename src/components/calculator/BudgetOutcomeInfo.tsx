@@ -138,7 +138,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
       if (cost !== 0 && !matchedPricingUkontos.has(pricingUkonto)) {
         const isNoUkonto = pricingUkonto.startsWith('_noukonto_');
         const label = isNoUkonto
-          ? pricingUkonto.replace('_noukonto_', '') + ' (utan ukonto)'
+          ? pricingUkonto.replace('_noukonto_', '')
           : pricingUkonto + ' (enbart kalkyl)';
         const isIncome = accountTypesByUkonto[pricingUkonto] === 'intäkt';
         map.set(label, {
