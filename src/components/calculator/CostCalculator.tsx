@@ -778,7 +778,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     yPos += 6;
     doc.setFontSize(10);
     doc.setFont('Roboto', 'normal');
-    doc.text('per månad', 170, yPos);
+    doc.text(`per år (${formatCurrencyForPdf(calculateTotalCost() / 12)}/mån)`, 170, yPos);
 
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20;
