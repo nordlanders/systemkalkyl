@@ -241,6 +241,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     let html = `<!DOCTYPE html><html><head><title>Budget, utfall och kalkyler – Objekt ${objectNumber}</title>
 <style>
 body{font-family:system-ui,sans-serif;margin:20px;color:#333}
+.legend{font-size:12px;color:#666;margin-bottom:12px;font-style:italic}
 table{width:100%;border-collapse:collapse;margin-top:12px}
 th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}
 th{background:#f3f4f6;font-weight:600;font-size:13px}
