@@ -29,6 +29,7 @@ interface UkontoRow {
   kalkyl: number;
   onlyKalkyl?: boolean;
   isIncome?: boolean;
+  noUkonto?: boolean;
 }
 
 export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkonto = {}, accountTypesByUkonto = {} }: BudgetOutcomeInfoProps) {
@@ -138,7 +139,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
       if (cost !== 0 && !matchedPricingUkontos.has(pricingUkonto)) {
         const isNoUkonto = pricingUkonto.startsWith('_noukonto_');
         const label = isNoUkonto
-          ? pricingUkonto.replace('_noukonto_', '') + ' (utan ukonto)'
+          ? pricingUkonto.replace('_noukonto_', '')
           : pricingUkonto + ' (enbart kalkyl)';
         const isIncome = accountTypesByUkonto[pricingUkonto] === 'intäkt';
         map.set(label, {
@@ -149,6 +150,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
           kalkyl: cost,
           onlyKalkyl: true,
           isIncome,
+          noUkonto: isNoUkonto,
         });
       }
     }
@@ -241,6 +243,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
     let html = `<!DOCTYPE html><html><head><title>Budget, utfall och kalkyler – Objekt ${objectNumber}</title>
 <style>
 body{font-family:system-ui,sans-serif;margin:20px;color:#333}
+.legend{font-size:12px;color:#666;margin-bottom:12px;font-style:italic}
 table{width:100%;border-collapse:collapse;margin-top:12px}
 th,td{padding:8px 12px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:14px}
 th{background:#f3f4f6;font-weight:600;font-size:13px}
@@ -262,6 +265,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
 </style></head><body>`;
 
     html += `<h2>Budget, utfall och kalkyler – Objekt ${objectNumber}</h2>`;
+    html += '<p class="legend">Rader i <em>kursiv stil</em> saknar mappat ukonto i priskonfigurationen.</p>';
 
     // Ansvar filter
     html += '<div class="filter-box"><h3>Inkluderade ansvar</h3><div class="filter-items">';
@@ -286,7 +290,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
     html += '  var map = {}; var matched = {};';
     html += '  filtered.forEach(function(r) { var k = r.ukonto; if (!map[k]) { map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: getKalkylForUkonto(r.ukontoCode, matched) }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
-    html += '  for (var u in kalkylMap) { if (kalkylMap[u] !== 0 && !matched[u]) { var label = u + " (enbart kalkyl)"; map[label] = { ukonto: label, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[u], onlyKalkyl: true }; } }';
+    html += '  for (var u in kalkylMap) { if (kalkylMap[u] !== 0 && !matched[u]) { var isNoUkonto = u.indexOf("_noukonto_") === 0; var label = isNoUkonto ? u.replace("_noukonto_", "") : u + " (enbart kalkyl)"; map[label] = { ukonto: label, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[u], onlyKalkyl: true, noUkonto: isNoUkonto }; } }';
     html += '  var grouped = Object.values(map).sort(function(a, b) { return a.ukonto.localeCompare(b.ukonto, "sv"); });';
     html += '  function isExpense(u) { var m = u.match(/^(\\d+)/); var c = m ? m[1] : ""; return c.charAt(0)==="6"||c.charAt(0)==="7"||c.charAt(0)==="8"; }';
     html += '  var costRows = grouped.filter(function(r) { return r.onlyKalkyl || isExpense(r.ukonto); });';
@@ -299,7 +303,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  function renderSection(title, sRows) {';
     html += '    var t = sumArr(sRows);';
     html += '    h += "<tr><td colspan=\\"" + cols + "\\" class=\\"section\\">" + title + "</td></tr>";';
-    html += '    sRows.forEach(function(r) { h += "<tr><td class=\\"indent\\">" + r.ukonto + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td>"; if (hasKalkyl) h += "<td class=\\"right primary\\">" + (r.kalkyl !== 0 ? fmt(r.kalkyl) : "–") + "</td>"; h += "</tr>"; });';
+    html += '    sRows.forEach(function(r) { var nameHtml = r.noUkonto ? "<em>" + r.ukonto + "</em>" : r.ukonto; h += "<tr><td class=\\"indent\\">" + nameHtml + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td>"; if (hasKalkyl) h += "<td class=\\"right primary\\">" + (r.kalkyl !== 0 ? fmt(r.kalkyl) : "–") + "</td>"; h += "</tr>"; });';
     html += '    h += "<tr class=\\"subtotal\\"><td class=\\"indent\\">Summa " + title.toLowerCase() + "</td><td class=\\"right\\">" + fmt(t.utfall_ack) + "</td><td class=\\"right\\">" + fmt(t.budget_2025) + "</td><td class=\\"right\\">" + fmt(t.budget_2026) + "</td>";';
     html += '    if (hasKalkyl) h += "<td class=\\"right primary\\">" + (t.kalkyl !== 0 ? fmt(t.kalkyl) : "–") + "</td>";';
     html += '    h += "</tr>";';
