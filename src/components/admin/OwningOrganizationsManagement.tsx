@@ -144,11 +144,11 @@ export default function OwningOrganizationsManagement() {
   async function handleDelete(id: string, orgName: string) {
     if (!isAdmin) return;
 
-    // Check if organization is used in calculations
+    // Check if organization is used in calculations (by UUID reference)
     const { data: calculations } = await supabase
       .from('calculations')
       .select('id')
-      .eq('owning_organization', orgName)
+      .eq('owning_organization_id', id)
       .limit(1);
 
     if (calculations && calculations.length > 0) {
