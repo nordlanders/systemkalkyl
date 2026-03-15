@@ -262,7 +262,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
   function addRow() {
     const newRow: CalculationRow = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       pricingConfigId: '',
       priceType: '',
       quantity: 0,
