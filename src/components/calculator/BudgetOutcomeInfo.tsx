@@ -29,6 +29,7 @@ interface UkontoRow {
   kalkyl: number;
   onlyKalkyl?: boolean;
   isIncome?: boolean;
+  noUkonto?: boolean;
 }
 
 export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkonto = {}, accountTypesByUkonto = {} }: BudgetOutcomeInfoProps) {
