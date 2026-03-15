@@ -56,7 +56,7 @@ const adminNavItems = [
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, isSuperAdmin } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
