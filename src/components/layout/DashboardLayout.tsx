@@ -38,11 +38,11 @@ interface DashboardLayoutProps {
 }
 
 const mainNavItems = [
-  { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false },
-  { href: '/cmdb', icon: Server, label: 'CMDB', adminOnly: false },
-  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
-  { href: '/history', icon: History, label: 'Historik', adminOnly: true },
-  { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true },
+  { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false, superAdminOnly: false },
+  { href: '/cmdb', icon: Server, label: 'CMDB', adminOnly: false, superAdminOnly: true },
+  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true, superAdminOnly: false },
+  { href: '/history', icon: History, label: 'Historik', adminOnly: true, superAdminOnly: false },
+  { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true, superAdminOnly: false },
 ];
 
 const adminNavItems = [
@@ -56,7 +56,7 @@ const adminNavItems = [
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, isSuperAdmin } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -84,7 +84,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
             {mainNavItems
-              .filter((item) => !item.adminOnly || isAdmin)
+              .filter((item) => (!item.adminOnly || isAdmin) && (!item.superAdminOnly || isSuperAdmin))
               .map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
@@ -172,7 +172,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="lg:hidden fixed inset-0 top-16 z-40 bg-background/95 backdrop-blur">
           <nav className="flex flex-col p-4 gap-2">
             {mainNavItems
-              .filter((item) => !item.adminOnly || isAdmin)
+              .filter((item) => (!item.adminOnly || isAdmin) && (!item.superAdminOnly || isSuperAdmin))
               .map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
