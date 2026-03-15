@@ -1565,7 +1565,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">CI-identitet</p>
-                  <p className="font-mono">{ciIdentity}</p>
+                  <p className="font-mono">{selectedCI?.system_name || ciIdentity}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Tjänstetyp</p>
