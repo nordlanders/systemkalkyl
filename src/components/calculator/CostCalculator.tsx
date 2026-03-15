@@ -1449,10 +1449,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
                 <div className="pt-4 border-t-2 border-primary/20">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">Total kostnad</span>
-                    <span className="text-2xl font-bold font-mono text-primary">
-                      {formatCurrency(calculateTotalCost())}
-                    </span>
+                    <span className="text-lg font-semibold">Total kostnad per år</span>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold font-mono text-primary">
+                        {formatCurrency(calculateTotalCost())}
+                      </span>
+                      <span className="block text-xs text-muted-foreground font-mono">
+                        ({formatCurrency(calculateTotalCost() / 12)}/mån)
+                      </span>
+                    </div>
                   </div>
                   {approvedVersionItems.length > 0 && (
                     <div className="flex justify-between items-center mt-1">
