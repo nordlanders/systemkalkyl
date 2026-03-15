@@ -263,6 +263,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
 </style></head><body>`;
 
     html += `<h2>Budget, utfall och kalkyler – Objekt ${objectNumber}</h2>`;
+    html += '<p class="legend">Rader i <em>kursiv stil</em> saknar mappat ukonto i priskonfigurationen.</p>';
 
     // Ansvar filter
     html += '<div class="filter-box"><h3>Inkluderade ansvar</h3><div class="filter-items">';
