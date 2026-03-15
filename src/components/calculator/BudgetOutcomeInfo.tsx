@@ -287,7 +287,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  var filtered = allRows.filter(function(r) { return checked.indexOf(r.ansvar) >= 0; });';
     html += '  var map = {}; var matched = {};';
     html += '  filtered.forEach(function(r) { var k = r.ukonto; if (!map[k]) { map[k] = { ukonto: k, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: getKalkylForUkonto(r.ukontoCode, matched) }; } map[k].utfall_ack += r.utfall_ack; map[k].budget_2025 += r.budget_2025; map[k].budget_2026 += r.budget_2026; });';
-    html += '  for (var u in kalkylMap) { if (kalkylMap[u] !== 0 && !matched[u]) { var label = u + " (enbart kalkyl)"; map[label] = { ukonto: label, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[u], onlyKalkyl: true }; } }';
+    html += '  for (var u in kalkylMap) { if (kalkylMap[u] !== 0 && !matched[u]) { var isNoUkonto = u.indexOf("_noukonto_") === 0; var label = isNoUkonto ? u.replace("_noukonto_", "") : u + " (enbart kalkyl)"; map[label] = { ukonto: label, utfall_ack: 0, budget_2025: 0, budget_2026: 0, kalkyl: kalkylMap[u], onlyKalkyl: true, noUkonto: isNoUkonto }; } }';
     html += '  var grouped = Object.values(map).sort(function(a, b) { return a.ukonto.localeCompare(b.ukonto, "sv"); });';
     html += '  function isExpense(u) { var m = u.match(/^(\\d+)/); var c = m ? m[1] : ""; return c.charAt(0)==="6"||c.charAt(0)==="7"||c.charAt(0)==="8"; }';
     html += '  var costRows = grouped.filter(function(r) { return r.onlyKalkyl || isExpense(r.ukonto); });';
