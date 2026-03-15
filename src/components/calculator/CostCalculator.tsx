@@ -248,7 +248,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     });
     
     const newRows: CalculationRow[] = defaultPricing.map(p => ({
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       pricingConfigId: p.id,
       priceType: p.price_type,
       quantity: 0,
