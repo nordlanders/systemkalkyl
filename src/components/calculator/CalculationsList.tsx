@@ -447,7 +447,7 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
     yPos += 6;
     doc.setFontSize(10);
     doc.setFont('Roboto', 'normal');
-    doc.text('per månad', 170, yPos);
+    doc.text(`per år (${formatCurrencyForPdf(Number(calc.total_cost) / 12)}/mån)`, 170, yPos);
 
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20;

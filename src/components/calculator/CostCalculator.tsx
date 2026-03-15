@@ -778,7 +778,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     yPos += 6;
     doc.setFontSize(10);
     doc.setFont('Roboto', 'normal');
-    doc.text('per månad', 170, yPos);
+    doc.text(`per år (${formatCurrencyForPdf(calculateTotalCost() / 12)}/mån)`, 170, yPos);
 
     // Footer
     yPos = doc.internal.pageSize.getHeight() - 20;
@@ -1708,7 +1708,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 <span className="text-4xl font-bold font-mono text-primary">
                   {formatCurrency(calculateTotalCost())}
                 </span>
-                <p className="text-muted-foreground mt-2">per månad</p>
+                <p className="text-muted-foreground mt-2">per år ({formatCurrency(calculateTotalCost() / 12)}/mån)</p>
                 {approvedVersionItems.length > 0 && (() => {
                   const approvedTotal = approvedVersionItems.reduce((sum, i) => sum + Number(i.total_price), 0);
                   const totalDiff = calculateTotalCost() - approvedTotal;
