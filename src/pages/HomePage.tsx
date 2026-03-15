@@ -210,7 +210,7 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-md">
             <Info className="h-4 w-4 text-primary" />
-            <span>Systemversion {import.meta.env.VITE_BUILD_VERSION || '0.0.0'} • Uppdaterad {format(new Date(import.meta.env.VITE_BUILD_DATE || new Date().toISOString()), 'd MMMM yyyy', { locale: sv })}</span>
+            <span>Systemversion 1.0.0 • Uppdaterad {format(new Date(import.meta.env.VITE_BUILD_DATE || new Date().toISOString()), 'd MMMM yyyy', { locale: sv })}</span>
           </div>
         </div>
 
