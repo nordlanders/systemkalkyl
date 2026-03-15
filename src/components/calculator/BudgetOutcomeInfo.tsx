@@ -149,6 +149,7 @@ export default function BudgetOutcomeInfo({ objectNumber, calculationCostsByUkon
           kalkyl: cost,
           onlyKalkyl: true,
           isIncome,
+          noUkonto: isNoUkonto,
         });
       }
     }
