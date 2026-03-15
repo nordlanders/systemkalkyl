@@ -38,11 +38,11 @@ interface DashboardLayoutProps {
 }
 
 const mainNavItems = [
-  { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false },
-  { href: '/cmdb', icon: Server, label: 'CMDB', adminOnly: false },
-  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true },
-  { href: '/history', icon: History, label: 'Historik', adminOnly: true },
-  { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true },
+  { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false, superAdminOnly: false },
+  { href: '/cmdb', icon: Server, label: 'CMDB', adminOnly: false, superAdminOnly: true },
+  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true, superAdminOnly: false },
+  { href: '/history', icon: History, label: 'Historik', adminOnly: true, superAdminOnly: false },
+  { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true, superAdminOnly: false },
 ];
 
 const adminNavItems = [
