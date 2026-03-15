@@ -300,7 +300,7 @@ th{background:#f3f4f6;font-weight:600;font-size:13px}
     html += '  function renderSection(title, sRows) {';
     html += '    var t = sumArr(sRows);';
     html += '    h += "<tr><td colspan=\\"" + cols + "\\" class=\\"section\\">" + title + "</td></tr>";';
-    html += '    sRows.forEach(function(r) { h += "<tr><td class=\\"indent\\">" + r.ukonto + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td>"; if (hasKalkyl) h += "<td class=\\"right primary\\">" + (r.kalkyl !== 0 ? fmt(r.kalkyl) : "–") + "</td>"; h += "</tr>"; });';
+    html += '    sRows.forEach(function(r) { var nameHtml = r.noUkonto ? "<em>" + r.ukonto + "</em>" : r.ukonto; h += "<tr><td class=\\"indent\\">" + nameHtml + "</td><td class=\\"right\\">" + fmt(r.utfall_ack) + "</td><td class=\\"right\\">" + fmt(r.budget_2025) + "</td><td class=\\"right\\">" + fmt(r.budget_2026) + "</td>"; if (hasKalkyl) h += "<td class=\\"right primary\\">" + (r.kalkyl !== 0 ? fmt(r.kalkyl) : "–") + "</td>"; h += "</tr>"; });';
     html += '    h += "<tr class=\\"subtotal\\"><td class=\\"indent\\">Summa " + title.toLowerCase() + "</td><td class=\\"right\\">" + fmt(t.utfall_ack) + "</td><td class=\\"right\\">" + fmt(t.budget_2025) + "</td><td class=\\"right\\">" + fmt(t.budget_2026) + "</td>";';
     html += '    if (hasKalkyl) h += "<td class=\\"right primary\\">" + (t.kalkyl !== 0 ? fmt(t.kalkyl) : "–") + "</td>";';
     html += '    h += "</tr>";';
