@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -247,7 +248,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     });
     
     const newRows: CalculationRow[] = defaultPricing.map(p => ({
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       pricingConfigId: p.id,
       priceType: p.price_type,
       quantity: 0,
@@ -261,7 +262,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
   function addRow() {
     const newRow: CalculationRow = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       pricingConfigId: '',
       priceType: '',
       quantity: 0,
