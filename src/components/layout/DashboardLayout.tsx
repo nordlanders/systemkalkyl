@@ -172,7 +172,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="lg:hidden fixed inset-0 top-16 z-40 bg-background/95 backdrop-blur">
           <nav className="flex flex-col p-4 gap-2">
             {mainNavItems
-              .filter((item) => !item.adminOnly || isAdmin)
+              .filter((item) => (!item.adminOnly || isAdmin) && (!item.superAdminOnly || isSuperAdmin))
               .map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
