@@ -4,10 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 
 export default function CmdbPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, isSuperAdmin } = useAuth();
 
   if (loading) return null;
-  if (!user) return <Navigate to="/auth" replace />;
+  if (!user || !isSuperAdmin) return <Navigate to="/" replace />;
 
   return (
     <DashboardLayout>

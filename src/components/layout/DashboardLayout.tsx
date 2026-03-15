@@ -84,7 +84,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
             {mainNavItems
-              .filter((item) => !item.adminOnly || isAdmin)
+              .filter((item) => (!item.adminOnly || isAdmin) && (!item.superAdminOnly || isSuperAdmin))
               .map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
