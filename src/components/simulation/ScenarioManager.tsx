@@ -221,7 +221,7 @@ export default function ScenarioManager({ selectedScenarioId, onSelectScenario }
                   <TableHead className="text-right">Prisrader</TableHead>
                   <TableHead>Skapad av</TableHead>
                   <TableHead>Skapad</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
+                  <TableHead className="w-[120px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
