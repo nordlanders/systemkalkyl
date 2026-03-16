@@ -237,12 +237,16 @@ export default function ScenarioManager({ selectedScenarioId, onSelectScenario }
                     <TableCell>{s.created_by_name || '–'}</TableCell>
                     <TableCell>{new Date(s.created_at).toLocaleDateString('sv-SE')}</TableCell>
                     <TableCell>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={e => e.stopPropagation()}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" title="Synkronisera med aktuell prislista" onClick={e => { e.stopPropagation(); syncScenarioPrices(s.id, s.name); }}>
+                          <RefreshCw className="h-4 w-4 text-primary" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={e => e.stopPropagation()}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Ta bort scenario?</AlertDialogTitle>
