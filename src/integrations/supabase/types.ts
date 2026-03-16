@@ -801,6 +801,93 @@ export type Database = {
         }
         Relationships: []
       }
+      simulation_prices: {
+        Row: {
+          account_type: string
+          category: string | null
+          created_at: string
+          id: string
+          original_price_per_unit: number
+          price_type: string
+          pricing_config_id: string | null
+          scenario_id: string
+          simulated_price_per_unit: number
+          ukonto: string | null
+          unit: string | null
+        }
+        Insert: {
+          account_type?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          original_price_per_unit?: number
+          price_type: string
+          pricing_config_id?: string | null
+          scenario_id: string
+          simulated_price_per_unit?: number
+          ukonto?: string | null
+          unit?: string | null
+        }
+        Update: {
+          account_type?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          original_price_per_unit?: number
+          price_type?: string
+          pricing_config_id?: string | null
+          scenario_id?: string
+          simulated_price_per_unit?: number
+          ukonto?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulation_prices_pricing_config_id_fkey"
+            columns: ["pricing_config_id"]
+            isOneToOne: false
+            referencedRelation: "pricing_config"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulation_prices_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "simulation_scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      simulation_scenarios: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
