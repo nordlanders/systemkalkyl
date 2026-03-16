@@ -29,7 +29,8 @@ import {
   Server,
   FileSpreadsheet,
   DollarSign,
-  Key
+  Key,
+  FlaskConical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
