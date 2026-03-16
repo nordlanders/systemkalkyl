@@ -3,7 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, FlaskConical, Settings, BarChart3 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, FlaskConical, Settings, BarChart3, Calendar } from 'lucide-react';
 import ScenarioManager from '@/components/simulation/ScenarioManager';
 import SimulationPriceEditor from '@/components/simulation/SimulationPriceEditor';
 import SimulationAnalysis from '@/components/simulation/SimulationAnalysis';
@@ -14,6 +15,16 @@ export default function SimulationPage() {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string | null>(null);
   const [scenarioName, setScenarioName] = useState('');
   const [activeTab, setActiveTab] = useState('scenarios');
+  const currentYear = new Date().getFullYear();
+  const [calculationYear, setCalculationYear] = useState(currentYear);
+  const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
+
+  useEffect(() => {
+    supabase.from('calculations').select('calculation_year').then(({ data }) => {
+      const years = [...new Set((data || []).map(c => c.calculation_year))].sort((a, b) => b - a);
+      if (years.length) setAvailableYears(years);
+    });
+  }, []);
 
   useEffect(() => {
     if (selectedScenarioId) {
@@ -33,14 +44,26 @@ export default function SimulationPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8 fade-in">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <FlaskConical className="h-8 w-8 text-primary" />
-            Simulering
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Simulera prisändringar och analysera deras påverkan på kalkyler
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <FlaskConical className="h-8 w-8 text-primary" />
+              Simulering
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Simulera prisändringar och analysera deras påverkan på kalkyler
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Kalkylår:</span>
+            <Select value={calculationYear.toString()} onValueChange={v => setCalculationYear(Number(v))}>
+              <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -77,7 +100,7 @@ export default function SimulationPage() {
 
           <TabsContent value="analysis">
             {selectedScenarioId && (
-              <SimulationAnalysis scenarioId={selectedScenarioId} scenarioName={scenarioName} />
+              <SimulationAnalysis scenarioId={selectedScenarioId} scenarioName={scenarioName} calculationYear={calculationYear} />
             )}
           </TabsContent>
         </Tabs>

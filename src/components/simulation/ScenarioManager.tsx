@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Edit, Copy, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit, Copy, Loader2, RefreshCw } from 'lucide-react';
 
 interface Scenario {
   id: string;
@@ -107,6 +107,54 @@ export default function ScenarioManager({ selectedScenarioId, onSelectScenario }
     }
   }
 
+  async function syncScenarioPrices(id: string, name: string) {
+    try {
+      // Get current active pricing configs
+      const { data: pricingConfigs, error: pricingError } = await supabase
+        .from('pricing_config')
+        .select('id, price_type, price_per_unit, unit, category, ukonto, account_type')
+        .is('effective_to', null);
+      if (pricingError) throw pricingError;
+
+      // Get existing simulation prices for this scenario
+      const { data: existingPrices } = await supabase
+        .from('simulation_prices')
+        .select('pricing_config_id, simulated_price_per_unit')
+        .eq('scenario_id', id);
+
+      // Build map of existing customized prices (to preserve user edits)
+      const existingMap: Record<string, number> = {};
+      (existingPrices || []).forEach(ep => {
+        if (ep.pricing_config_id) existingMap[ep.pricing_config_id] = ep.simulated_price_per_unit;
+      });
+
+      // Delete old prices and re-insert from current config
+      const { error: delError } = await supabase.from('simulation_prices').delete().eq('scenario_id', id);
+      if (delError) throw delError;
+
+      if (pricingConfigs && pricingConfigs.length > 0) {
+        const simPrices = pricingConfigs.map(pc => ({
+          scenario_id: id,
+          pricing_config_id: pc.id,
+          price_type: pc.price_type,
+          original_price_per_unit: pc.price_per_unit,
+          simulated_price_per_unit: existingMap[pc.id] ?? pc.price_per_unit,
+          unit: pc.unit,
+          category: pc.category,
+          ukonto: pc.ukonto,
+          account_type: pc.account_type,
+        }));
+        const { error: insertError } = await supabase.from('simulation_prices').insert(simPrices);
+        if (insertError) throw insertError;
+      }
+
+      toast({ title: 'Scenario synkroniserat', description: `"${name}" uppdaterat med ${pricingConfigs?.length || 0} prisrader. Tidigare prisjusteringar har bevarats.` });
+      loadScenarios();
+    } catch (err: any) {
+      toast({ title: 'Fel', description: err.message, variant: 'destructive' });
+    }
+  }
+
   async function deleteScenario(id: string) {
     const { error } = await supabase.from('simulation_scenarios').delete().eq('id', id);
     if (error) {
@@ -173,7 +221,7 @@ export default function ScenarioManager({ selectedScenarioId, onSelectScenario }
                   <TableHead className="text-right">Prisrader</TableHead>
                   <TableHead>Skapad av</TableHead>
                   <TableHead>Skapad</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
+                  <TableHead className="w-[120px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -189,12 +237,16 @@ export default function ScenarioManager({ selectedScenarioId, onSelectScenario }
                     <TableCell>{s.created_by_name || '–'}</TableCell>
                     <TableCell>{new Date(s.created_at).toLocaleDateString('sv-SE')}</TableCell>
                     <TableCell>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={e => e.stopPropagation()}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" title="Synkronisera med aktuell prislista" onClick={e => { e.stopPropagation(); syncScenarioPrices(s.id, s.name); }}>
+                          <RefreshCw className="h-4 w-4 text-primary" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={e => e.stopPropagation()}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Ta bort scenario?</AlertDialogTitle>
@@ -206,6 +258,7 @@ export default function ScenarioManager({ selectedScenarioId, onSelectScenario }
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

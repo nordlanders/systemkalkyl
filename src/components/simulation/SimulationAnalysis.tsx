@@ -47,12 +47,11 @@ const formatCurrency = (v: number) =>
 interface SimulationAnalysisProps {
   scenarioId: string;
   scenarioName: string;
+  calculationYear: number;
 }
 
-export default function SimulationAnalysis({ scenarioId, scenarioName }: SimulationAnalysisProps) {
-  const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState(currentYear);
-  const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
+export default function SimulationAnalysis({ scenarioId, scenarioName, calculationYear }: SimulationAnalysisProps) {
+  const year = calculationYear;
   const [loading, setLoading] = useState(true);
   const [simPrices, setSimPrices] = useState<SimPrice[]>([]);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
@@ -71,10 +70,7 @@ export default function SimulationAnalysis({ scenarioId, scenarioName }: Simulat
         .eq('scenario_id', scenarioId);
       setSimPrices((sp || []) as SimPrice[]);
 
-      // Load years
-      const { data: yData } = await supabase.from('calculations').select('calculation_year');
-      const years = [...new Set((yData || []).map(c => c.calculation_year))].sort((a, b) => b - a);
-      if (years.length) setAvailableYears(years);
+      // Calculations for selected year
 
       // Load approved calculations
       const { data: calcs } = await supabase
@@ -200,15 +196,8 @@ export default function SimulationAnalysis({ scenarioId, scenarioName }: Simulat
 
   return (
     <div className="space-y-6">
-      {/* Year selector */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Analys – {scenarioName}</h3>
-        <Select value={year.toString()} onValueChange={v => setYear(Number(v))}>
-          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <h3 className="text-lg font-semibold">Analys – {scenarioName} ({year})</h3>
       </div>
 
       {/* Summary cards */}
