@@ -55,6 +55,7 @@ const App = () => (
             <Route path="/budget-outcome" element={<BudgetOutcomePage />} />
             <Route path="/budget-compensations" element={<BudgetCompensationsPage />} />
             <Route path="/cmdb" element={<CmdbPage />} />
+            <Route path="/simulation" element={<SimulationPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

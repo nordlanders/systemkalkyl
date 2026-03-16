@@ -44,6 +44,7 @@ const mainNavItems = [
   { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true, superAdminOnly: false },
   { href: '/history', icon: History, label: 'Historik', adminOnly: true, superAdminOnly: false },
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true, superAdminOnly: false },
+  { href: '/simulation', icon: FlaskConical, label: 'Simulering', adminOnly: true, superAdminOnly: false },
 ];
 
 const adminNavItems = [
