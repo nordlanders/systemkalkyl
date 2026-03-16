@@ -47,12 +47,11 @@ const formatCurrency = (v: number) =>
 interface SimulationAnalysisProps {
   scenarioId: string;
   scenarioName: string;
+  calculationYear: number;
 }
 
-export default function SimulationAnalysis({ scenarioId, scenarioName }: SimulationAnalysisProps) {
-  const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState(currentYear);
-  const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
+export default function SimulationAnalysis({ scenarioId, scenarioName, calculationYear }: SimulationAnalysisProps) {
+  const year = calculationYear;
   const [loading, setLoading] = useState(true);
   const [simPrices, setSimPrices] = useState<SimPrice[]>([]);
   const [calculations, setCalculations] = useState<Calculation[]>([]);
