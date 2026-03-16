@@ -70,10 +70,7 @@ export default function SimulationAnalysis({ scenarioId, scenarioName, calculati
         .eq('scenario_id', scenarioId);
       setSimPrices((sp || []) as SimPrice[]);
 
-      // Load years
-      const { data: yData } = await supabase.from('calculations').select('calculation_year');
-      const years = [...new Set((yData || []).map(c => c.calculation_year))].sort((a, b) => b - a);
-      if (years.length) setAvailableYears(years);
+      // Calculations for selected year
 
       // Load approved calculations
       const { data: calcs } = await supabase
