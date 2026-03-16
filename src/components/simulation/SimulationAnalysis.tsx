@@ -196,15 +196,8 @@ export default function SimulationAnalysis({ scenarioId, scenarioName, calculati
 
   return (
     <div className="space-y-6">
-      {/* Year selector */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Analys – {scenarioName}</h3>
-        <Select value={year.toString()} onValueChange={v => setYear(Number(v))}>
-          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <h3 className="text-lg font-semibold">Analys – {scenarioName} ({year})</h3>
       </div>
 
       {/* Summary cards */}
