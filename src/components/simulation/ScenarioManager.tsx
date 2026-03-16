@@ -258,6 +258,7 @@ export default function ScenarioManager({ selectedScenarioId, onSelectScenario }
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
