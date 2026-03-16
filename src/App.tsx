@@ -21,6 +21,7 @@ import ApprovalsPage from "./pages/ApprovalsPage";
 import BudgetOutcomePage from "./pages/BudgetOutcomePage";
 import BudgetCompensationsPage from "./pages/BudgetCompensationsPage";
 import CmdbPage from "./pages/CmdbPage";
+import SimulationPage from "./pages/SimulationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/budget-outcome" element={<BudgetOutcomePage />} />
             <Route path="/budget-compensations" element={<BudgetCompensationsPage />} />
             <Route path="/cmdb" element={<CmdbPage />} />
+            <Route path="/simulation" element={<SimulationPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
