@@ -95,9 +95,14 @@ export default function CalculationGuide({ open, onClose, onNavigateToCalculator
               <p className="text-sm text-muted-foreground">{step.description}</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={() => generateGuidePdf(steps)} title="Ladda ner som PDF">
+              <Download className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         <CardContent className="p-6">
