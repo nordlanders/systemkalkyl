@@ -31,7 +31,8 @@ import {
   Archive,
   Users,
   Eye,
-  Copy
+  Copy,
+  Info
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -56,9 +57,10 @@ import VersionHistoryDialog from './VersionHistoryDialog';
 interface CalculationsListProps {
   onEdit: (calculation: Calculation) => void;
   onCreateNew: () => void;
+  onShowGuide?: () => void;
 }
 
-export default function CalculationsList({ onEdit, onCreateNew }: CalculationsListProps) {
+export default function CalculationsList({ onEdit, onCreateNew, onShowGuide }: CalculationsListProps) {
   const currentYear = new Date().getFullYear();
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -497,12 +499,20 @@ export default function CalculationsList({ onEdit, onCreateNew }: CalculationsLi
               Visa alla
             </label>
           </div>
-          {canWrite && (
-            <Button onClick={onCreateNew} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Skapa ny kalkyl
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {onShowGuide && (
+              <Button variant="outline" onClick={onShowGuide} className="gap-2">
+                <Info className="h-4 w-4" />
+                Guide
+              </Button>
+            )}
+            {canWrite && (
+              <Button onClick={onCreateNew} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Skapa ny kalkyl
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

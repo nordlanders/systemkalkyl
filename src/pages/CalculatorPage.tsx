@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import CostCalculator from '@/components/calculator/CostCalculator';
 import CalculationsList from '@/components/calculator/CalculationsList';
+import CalculationGuide from '@/components/guide/CalculationGuide';
 import { Loader2 } from 'lucide-react';
 import { type Calculation } from '@/lib/supabase';
 
@@ -13,6 +14,7 @@ export default function CalculatorPage() {
   const [view, setView] = useState<'list' | 'calculator'>('list');
   const [editingCalculation, setEditingCalculation] = useState<Calculation | null>(null);
   const [readOnly, setReadOnly] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -36,7 +38,6 @@ export default function CalculatorPage() {
     const isOwner = calculation.user_id === user?.id;
     const isApproved = calculation.status === 'approved';
     setEditingCalculation(calculation);
-    // Read-only if: approved OR not the owner
     setReadOnly(isApproved || !isOwner);
     setView('calculator');
   };
@@ -66,7 +67,11 @@ export default function CalculatorPage() {
   return (
     <DashboardLayout>
       {view === 'list' ? (
-        <CalculationsList onEdit={handleEdit} onCreateNew={handleCreateNew} />
+        <CalculationsList 
+          onEdit={handleEdit} 
+          onCreateNew={handleCreateNew}
+          onShowGuide={() => setShowGuide(true)}
+        />
       ) : (
         <CostCalculator 
           editCalculation={editingCalculation} 
@@ -76,6 +81,11 @@ export default function CalculatorPage() {
           onCreateNewVersion={handleCreateNewVersion}
         />
       )}
+      <CalculationGuide 
+        open={showGuide} 
+        onClose={() => setShowGuide(false)}
+        onNavigateToCalculator={handleCreateNew}
+      />
     </DashboardLayout>
   );
 }
