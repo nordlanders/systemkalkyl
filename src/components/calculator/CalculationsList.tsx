@@ -56,6 +56,7 @@ import VersionHistoryDialog from './VersionHistoryDialog';
 interface CalculationsListProps {
   onEdit: (calculation: Calculation) => void;
   onCreateNew: () => void;
+  onShowGuide?: () => void;
 }
 
 export default function CalculationsList({ onEdit, onCreateNew }: CalculationsListProps) {
