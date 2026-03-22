@@ -579,6 +579,48 @@ export type Database = {
         }
         Relationships: []
       }
+      guide_steps: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          details: Json
+          icon_name: string
+          id: string
+          is_active: boolean
+          step_order: number
+          tip: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          details?: Json
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          step_order: number
+          tip?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          details?: Json
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          step_order?: number
+          tip?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       news: {
         Row: {
           content: string
