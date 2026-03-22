@@ -7,8 +7,10 @@ import {
   FileText, Settings, BarChart3, 
   Save, CheckCircle2, ListPlus, 
   MousePointerClick, ArrowRight,
-  Calculator, Users, Shield, Server, Building2
+  Calculator, Users, Shield, Server, Building2,
+  Download
 } from 'lucide-react';
+import { generateGuidePdf } from '@/lib/guide-pdf';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   FileText: <FileText className="h-8 w-8 text-accent" />,
