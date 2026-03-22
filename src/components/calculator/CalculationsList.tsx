@@ -498,12 +498,20 @@ export default function CalculationsList({ onEdit, onCreateNew, onShowGuide }: C
               Visa alla
             </label>
           </div>
-          {canWrite && (
-            <Button onClick={onCreateNew} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Skapa ny kalkyl
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {onShowGuide && (
+              <Button variant="outline" onClick={onShowGuide} className="gap-2">
+                <Info className="h-4 w-4" />
+                Guide
+              </Button>
+            )}
+            {canWrite && (
+              <Button onClick={onCreateNew} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Skapa ny kalkyl
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
