@@ -22,6 +22,7 @@ import BudgetOutcomePage from "./pages/BudgetOutcomePage";
 import BudgetCompensationsPage from "./pages/BudgetCompensationsPage";
 import CmdbPage from "./pages/CmdbPage";
 import SimulationPage from "./pages/SimulationPage";
+import GuideManagementPage from "./pages/GuideManagementPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
