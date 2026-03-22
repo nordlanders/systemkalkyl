@@ -59,7 +59,7 @@ interface CalculationsListProps {
   onShowGuide?: () => void;
 }
 
-export default function CalculationsList({ onEdit, onCreateNew }: CalculationsListProps) {
+export default function CalculationsList({ onEdit, onCreateNew, onShowGuide }: CalculationsListProps) {
   const currentYear = new Date().getFullYear();
   const [calculations, setCalculations] = useState<Calculation[]>([]);
   const [loading, setLoading] = useState(true);
