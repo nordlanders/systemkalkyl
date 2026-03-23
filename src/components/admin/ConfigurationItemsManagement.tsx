@@ -717,7 +717,7 @@ export default function ConfigurationItemsManagement() {
             </div>
             <div className="space-y-2">
               <Label>Tjänstetyp</Label>
-              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v, organization: '' })}>
+              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v, organization: '', customer_id: '' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj tjänstetyp" />
                 </SelectTrigger>
@@ -730,24 +730,36 @@ export default function ConfigurationItemsManagement() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-org">
-                {isBastjanst ? 'Ägande organisation inom DigIT av system och/eller kalkyl' : 'Organisation'}
-                {isBastjanst && <span className="text-destructive"> *</span>}
+                Ägande organisation inom DigIT av system och/eller kalkyl <span className="text-destructive">*</span>
               </Label>
-              {isBastjanst ? (
-                <Select value={editForm.organization} onValueChange={(v) => setEditForm({ ...editForm, organization: v })}>
+              <Select value={editForm.organization} onValueChange={(v) => setEditForm({ ...editForm, organization: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj ägande organisation" />
+                </SelectTrigger>
+                <SelectContent>
+                  {owningOrgs.map((org) => (
+                    <SelectItem key={org.id} value={org.name}>{org.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {isAnpassad && (
+              <div className="space-y-2">
+                <Label>
+                  Kund <span className="text-destructive">*</span>
+                </Label>
+                <Select value={editForm.customer_id} onValueChange={(v) => setEditForm({ ...editForm, customer_id: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj ägande organisation" />
+                    <SelectValue placeholder="Välj kund" />
                   </SelectTrigger>
                   <SelectContent>
-                    {owningOrgs.map((org) => (
-                      <SelectItem key={org.id} value={org.name}>{org.name}</SelectItem>
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              ) : (
-                <Input id="edit-org" value={editForm.organization} onChange={(e) => setEditForm({ ...editForm, organization: e.target.value })} />
-              )}
-            </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="edit-obj">Objektnummer</Label>
               <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} placeholder="Krävs om CI nummer saknas" />
