@@ -55,6 +55,7 @@ interface ImportResult {
 type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'service_type' | 'is_active';
 type SortDir = 'asc' | 'desc';
 
+const ANPASSAD_TYPES = ['Anpassad drift', 'Anpassad förvaltning'];
 const BASTJANST_TYPES = ['Bastjänst Digital infrastruktur', 'Bastjänst IT infrastruktur'];
 
 interface OwningOrg {
