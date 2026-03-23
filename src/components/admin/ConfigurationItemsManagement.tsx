@@ -636,8 +636,8 @@ export default function ConfigurationItemsManagement() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="edit-ci">CI nummer *</Label>
-              <Input id="edit-ci" value={editForm.ci_number} onChange={(e) => setEditForm({ ...editForm, ci_number: e.target.value })} />
+              <Label htmlFor="edit-ci">CI nummer</Label>
+              <Input id="edit-ci" value={editForm.ci_number} onChange={(e) => setEditForm({ ...editForm, ci_number: e.target.value })} placeholder="Krävs om objektnummer saknas" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-name">Systemnamn *</Label>
