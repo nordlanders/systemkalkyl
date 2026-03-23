@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Check, ChevronsUpDown, Search, Server } from 'lucide-react';
+import { Check, ChevronsUpDown, Search, Server, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,6 +9,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -16,6 +17,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
+
+export const NEW_CI_VALUE = '__new__';
 
 export interface ConfigurationItem {
   id: string;
@@ -25,6 +28,7 @@ export interface ConfigurationItem {
   system_administrator: string | null;
   organization: string | null;
   object_number: string | null;
+  service_type: string | null;
   is_active: boolean;
 }
 
@@ -36,7 +40,7 @@ interface CISelectorProps {
   disabled?: boolean;
 }
 
-export default function CISelector({ value, onChange, onItemChange, placeholder = 'Sök CI nummer eller systemnamn...', disabled }: CISelectorProps) {
+export default function CISelector({ value, onChange, onItemChange, placeholder = 'Sök objekt eller CI...', disabled }: CISelectorProps) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<ConfigurationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,9 +54,9 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
     try {
       const { data, error } = await supabase
         .from('configuration_items')
-        .select('id, ci_number, system_name, system_owner, system_administrator, organization, object_number, is_active')
+        .select('id, ci_number, system_name, system_owner, system_administrator, organization, object_number, service_type, is_active')
         .eq('is_active', true)
-        .order('ci_number');
+        .order('system_name');
 
       if (error) throw error;
       setItems(data || []);
@@ -66,8 +70,12 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
   // Notify parent when selected item changes
   useEffect(() => {
     if (onItemChange) {
-      const selectedItem = items.find(item => item.id === value) || null;
-      onItemChange(selectedItem);
+      if (value === NEW_CI_VALUE) {
+        onItemChange(null);
+      } else {
+        const selectedItem = items.find(item => item.id === value) || null;
+        onItemChange(selectedItem);
+      }
     }
   }, [value, items, onItemChange]);
 
@@ -75,14 +83,16 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
     if (!searchQuery) return items;
     const query = searchQuery.toLowerCase();
     return items.filter(item =>
-      item.ci_number.toLowerCase().includes(query) ||
+      (item.ci_number || '').toLowerCase().includes(query) ||
       item.system_name.toLowerCase().includes(query) ||
       (item.system_owner?.toLowerCase().includes(query)) ||
-      (item.organization?.toLowerCase().includes(query))
+      (item.organization?.toLowerCase().includes(query)) ||
+      (item.object_number?.toLowerCase().includes(query))
     );
   }, [items, searchQuery]);
 
-  const selectedItem = items.find(item => item.id === value);
+  const selectedItem = value === NEW_CI_VALUE ? null : items.find(item => item.id === value);
+  const isNew = value === NEW_CI_VALUE;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -94,7 +104,12 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
           className="w-full justify-between font-normal"
           disabled={disabled || loading}
         >
-          {selectedItem ? (
+          {isNew ? (
+            <span className="flex items-center gap-2 truncate">
+              <Plus className="h-4 w-4 text-primary shrink-0" />
+              <span className="truncate font-medium text-primary">Nytt objekt (manuellt)</span>
+            </span>
+          ) : selectedItem ? (
             <span className="flex items-center gap-2 truncate">
               <Server className="h-4 w-4 text-muted-foreground shrink-0" />
               <span className="truncate">
@@ -106,11 +121,6 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
                 )}
               </span>
             </span>
-          ) : value ? (
-            <span className="flex items-center gap-2 truncate">
-              <Server className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="truncate">{value}</span>
-            </span>
           ) : (
             <span className="text-muted-foreground">{placeholder}</span>
           )}
@@ -120,15 +130,38 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
       <PopoverContent className="w-[400px] p-0 bg-popover border shadow-md z-50" align="start">
         <Command shouldFilter={false}>
           <CommandInput 
-            placeholder="Sök på CI nummer, systemnamn..." 
+            placeholder="Sök på objektnummer, CI nummer, systemnamn..." 
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
           <CommandList>
-            <CommandEmpty>
-              {loading ? 'Laddar...' : 'Ingen CI hittades.'}
-            </CommandEmpty>
             <CommandGroup>
+              <CommandItem
+                value={NEW_CI_VALUE}
+                onSelect={() => {
+                  onChange(NEW_CI_VALUE);
+                  setOpen(false);
+                  setSearchQuery('');
+                }}
+                className="flex items-center gap-2 py-3 text-primary font-medium"
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4 shrink-0",
+                    isNew ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                <Plus className="h-4 w-4" />
+                Nytt (ange manuellt)
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
+            <CommandGroup heading="Befintliga objekt">
+              {filteredItems.length === 0 && (
+                <CommandEmpty>
+                  {loading ? 'Laddar...' : 'Ingen CI hittades.'}
+                </CommandEmpty>
+              )}
               {filteredItems.map((item) => (
                 <CommandItem
                   key={item.id}
@@ -165,7 +198,7 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
         {items.length > 0 && (
           <div className="border-t p-2">
             <p className="text-xs text-muted-foreground text-center">
-              {filteredItems.length} av {items.length} CI-poster
+              {filteredItems.length} av {items.length} objekt
             </p>
           </div>
         )}
