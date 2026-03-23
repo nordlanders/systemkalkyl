@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
@@ -110,6 +111,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(readOnly ? 3 : editCalculation ? 2 : 1);
+  const [priceTypeSelectionDone, setPriceTypeSelectionDone] = useState(!!editCalculation);
+  const [selectedPriceTypeIds, setSelectedPriceTypeIds] = useState<Set<string>>(new Set());
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>(editCalculation?.status === 'approved' || editCalculation?.status === 'closed' ? 'pending_approval' : (editCalculation?.status as 'draft' | 'pending_approval') ?? 'draft');
   
@@ -258,16 +261,19 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     }
   }
 
-  function populateDefaultRows() {
-    // Filter pricing that has the selected serviceType in their service_types array
-    // and is NOT in disallowed_service_types
-    const defaultPricing = pricing.filter(p => {
+  // Available pricing for the selected service type
+  const availablePricing = useMemo(() => {
+    return pricing.filter(p => {
       const isDisallowed = (p as any).disallowed_service_types?.includes(serviceType);
       if (isDisallowed) return false;
       return p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType);
     });
+  }, [pricing, serviceType]);
+
+  function populateDefaultRows() {
+    const selectedPricing = availablePricing.filter(p => selectedPriceTypeIds.has(p.id));
     
-    const newRows: CalculationRow[] = defaultPricing.map(p => ({
+    const newRows: CalculationRow[] = selectedPricing.map(p => ({
       id: uuidv4(),
       pricingConfigId: p.id,
       priceType: p.price_type,
@@ -1145,9 +1151,9 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               <div className="pt-4">
                 <Button 
                   onClick={() => {
-                    if (!isEditing && rows.length === 0) {
-                      populateDefaultRows();
-                    }
+                    // Pre-select all available price types
+                    setSelectedPriceTypeIds(new Set(availablePricing.map(p => p.id)));
+                    setPriceTypeSelectionDone(false);
                     setStep(2);
                   }} 
                   disabled={!canProceedToStep2}
@@ -1221,8 +1227,105 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
             )}
           </div>
         </div>
+      ) : step === 2 && !priceTypeSelectionDone && !isEditing ? (
+        /* Step 2a: Price type selection */
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-primary" />
+                  Välj pristyper
+                </CardTitle>
+                <CardDescription>
+                  Markera vilka pristyper som ska ingå i kalkylen
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Checkbox
+                    id="select-all"
+                    checked={selectedPriceTypeIds.size === availablePricing.length && availablePricing.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPriceTypeIds(new Set(availablePricing.map(p => p.id)));
+                      } else {
+                        setSelectedPriceTypeIds(new Set());
+                      }
+                    }}
+                  />
+                  <Label htmlFor="select-all" className="font-medium cursor-pointer">
+                    Välj alla ({availablePricing.length} st)
+                  </Label>
+                </div>
+                {availablePricing.map((p) => (
+                  <div key={p.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`pt-${p.id}`}
+                      checked={selectedPriceTypeIds.has(p.id)}
+                      onCheckedChange={(checked) => {
+                        const next = new Set(selectedPriceTypeIds);
+                        if (checked) {
+                          next.add(p.id);
+                        } else {
+                          next.delete(p.id);
+                        }
+                        setSelectedPriceTypeIds(next);
+                      }}
+                    />
+                    <Label htmlFor={`pt-${p.id}`} className="font-normal cursor-pointer">
+                      {p.price_type}
+                    </Label>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setStep(1)} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Tillbaka
+              </Button>
+              <Button
+                onClick={() => {
+                  populateDefaultRows();
+                  setPriceTypeSelectionDone(true);
+                }}
+                disabled={selectedPriceTypeIds.size === 0}
+                className="gap-2"
+              >
+                Fortsätt med {selectedPriceTypeIds.size} pristyper
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          {/* CI Information Panel */}
+          <div className="lg:col-span-1">
+            {selectedCI ? (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Server className="h-5 w-5 text-primary" />
+                    Objekt och CI-information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Systemnamn</p>
+                    <p className="font-medium">{selectedCI.system_name}</p>
+                  </div>
+                  {selectedCI.object_number && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Objektnummer</p>
+                      <p className="font-medium">{selectedCI.object_number}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : null}
+          </div>
+        </div>
       ) : step === 2 ? (
-        /* Step 2: Price type rows */
+        /* Step 2b: Price type rows */
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Rows Section */}
           <div className="lg:col-span-2 space-y-6">
