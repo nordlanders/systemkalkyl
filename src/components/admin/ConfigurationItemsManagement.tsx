@@ -327,6 +327,7 @@ export default function ConfigurationItemsManagement() {
       organization: item.organization || '',
       object_number: item.object_number || '',
       service_type: item.service_type || '',
+      customer_id: item.customer_id || '',
     });
   }
 
