@@ -657,8 +657,9 @@ export default function ConfigurationItemsManagement() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-obj">Objektnummer</Label>
-              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} />
+              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} placeholder="Krävs om CI nummer saknas" />
             </div>
+            <p className="text-xs text-muted-foreground">Minst ett av CI nummer eller Objektnummer måste anges.</p>
             <div className="space-y-2">
               <Label>Tjänstetyp</Label>
               <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v })}>
