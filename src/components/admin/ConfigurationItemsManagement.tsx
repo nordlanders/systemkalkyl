@@ -272,6 +272,7 @@ export default function ConfigurationItemsManagement() {
       system_administrator: item.system_administrator || '',
       organization: item.organization || '',
       object_number: item.object_number || '',
+      service_type: item.service_type || '',
     });
   }
 
