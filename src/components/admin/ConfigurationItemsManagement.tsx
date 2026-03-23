@@ -178,17 +178,23 @@ export default function ConfigurationItemsManagement() {
 
       for (let i = 0; i < dataRows.length; i++) {
         const row = dataRows[i];
-        const ciNumber = row[ciNumberIdx]?.trim();
+        const ciNumber = ciNumberIdx >= 0 ? row[ciNumberIdx]?.trim() : '';
         const systemName = row[systemNameIdx]?.trim();
+        const objectNumber = objectNumberIdx >= 0 ? row[objectNumberIdx]?.trim() : '';
 
-        if (!ciNumber || !systemName) {
-          errors.push(`Rad ${i + 2}: CI nummer eller Systemnamn saknas.`);
+        if (!ciNumber && !objectNumber) {
+          errors.push(`Rad ${i + 2}: Varken CI nummer eller Objektnummer angivet.`);
+          failed++;
+          continue;
+        }
+        if (!systemName) {
+          errors.push(`Rad ${i + 2}: Systemnamn saknas.`);
           failed++;
           continue;
         }
 
         const itemData = {
-          ci_number: ciNumber,
+          ci_number: ciNumber || null,
           system_name: systemName,
           system_owner: systemOwnerIdx >= 0 ? row[systemOwnerIdx]?.trim() || null : null,
           system_administrator: systemAdminIdx >= 0 ? row[systemAdminIdx]?.trim() || null : null,
