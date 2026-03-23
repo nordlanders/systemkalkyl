@@ -48,6 +48,9 @@ const SERVICE_TYPES = [
   { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
 ];
 
+const BASTJANST_TYPES = ['Bastjänst Digital infrastruktur', 'Bastjänst IT infrastruktur'];
+const INTERNA_KALKYLER_NAME = 'Interna kalkyler';
+
 
 interface Organization {
   id: string;
@@ -128,6 +131,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   
   const canProceedToStep2 = (isNewCI ? calculationName.trim() !== '' : ciIdentity.trim() !== '') && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
+
+  // Auto-set customer to "Interna kalkyler" for bastjänst types
+  useEffect(() => {
+    if (BASTJANST_TYPES.includes(serviceType) && customers.length > 0) {
+      const internaCustomer = customers.find(c => c.name === INTERNA_KALKYLER_NAME);
+      if (internaCustomer) setCustomerId(internaCustomer.id);
+    }
+  }, [serviceType, customers]);
 
   useEffect(() => {
     if (!readOnly) {
@@ -952,6 +963,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     setSelectedCI(item);
                     if (item?.service_type) {
                       setServiceType(item.service_type);
+                      // Auto-set customer for bastjänst types
+                      if (BASTJANST_TYPES.includes(item.service_type)) {
+                        const internaCustomer = customers.find(c => c.name === INTERNA_KALKYLER_NAME);
+                        if (internaCustomer) setCustomerId(internaCustomer.id);
+                      }
                     }
                     if (item?.organization) {
                       const matchingOrg = owningOrganizations.find(
@@ -1002,25 +1018,38 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 <Label htmlFor="customer">
                   Kund <span className="text-destructive">*</span>
                 </Label>
-                <Select 
-                  value={customerId || ''} 
-                  onValueChange={(val) => setCustomerId(val || null)}
-                  disabled={readOnly}
-                >
-                  <SelectTrigger id="customer" className="w-full">
-                    <SelectValue placeholder="Välj kund" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">
-                  Välj vilken kund kalkylen avser
-                </p>
+                {BASTJANST_TYPES.includes(serviceType) ? (
+                  <>
+                    <div className="p-3 bg-muted/50 rounded-md border">
+                      <p className="font-medium text-muted-foreground">{INTERNA_KALKYLER_NAME}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Sätts automatiskt för bastjänster
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Select 
+                      value={customerId || ''} 
+                      onValueChange={(val) => setCustomerId(val || null)}
+                      disabled={readOnly}
+                    >
+                      <SelectTrigger id="customer" className="w-full">
+                        <SelectValue placeholder="Välj kund" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Välj vilken kund kalkylen avser
+                    </p>
+                  </>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="owningOrganization">
