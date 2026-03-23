@@ -21,6 +21,8 @@ interface Calculation {
   created_by_name: string | null;
   version: number;
   owning_organization: string | null;
+  updated_at: string | null;
+  approved_at: string | null;
 }
 
 interface ConfigurationItem {
