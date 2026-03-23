@@ -287,8 +287,12 @@ export default function ConfigurationItemsManagement() {
 
   async function handleSaveEdit() {
     if (!editingItem) return;
-    if (!editForm.ci_number.trim() || !editForm.system_name.trim()) {
-      toast({ title: 'Validering', description: 'CI nummer och Systemnamn är obligatoriska.', variant: 'destructive' });
+    if (!editForm.ci_number.trim() && !editForm.object_number.trim()) {
+      toast({ title: 'Validering', description: 'Antingen CI nummer eller Objektnummer måste anges.', variant: 'destructive' });
+      return;
+    }
+    if (!editForm.system_name.trim()) {
+      toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
     setSaving(true);
