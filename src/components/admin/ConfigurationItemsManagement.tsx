@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
   Upload,
   FileSpreadsheet,
@@ -19,7 +20,8 @@ import {
   Search,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown } from
+  ArrowDown,
+  Pencil } from
 'lucide-react';
 
 interface ConfigurationItem {
