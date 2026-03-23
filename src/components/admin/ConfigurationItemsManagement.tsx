@@ -54,8 +54,17 @@ interface ImportResult {
 type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'service_type' | 'is_active';
 type SortDir = 'asc' | 'desc';
 
+const BASTJANST_TYPES = ['Bastjänst Digital infrastruktur', 'Bastjänst IT infrastruktur'];
+
+interface OwningOrg {
+  id: string;
+  name: string;
+  is_active: boolean;
+}
+
 export default function ConfigurationItemsManagement() {
   const [items, setItems] = useState<ConfigurationItem[]>([]);
+  const [owningOrgs, setOwningOrgs] = useState<OwningOrg[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,8 +80,11 @@ export default function ConfigurationItemsManagement() {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
+  const isBastjanst = BASTJANST_TYPES.includes(editForm.service_type);
+
   useEffect(() => {
     loadItems();
+    loadOwningOrgs();
   }, []);
 
   async function loadItems() {
@@ -93,6 +105,20 @@ export default function ConfigurationItemsManagement() {
       });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadOwningOrgs() {
+    try {
+      const { data, error } = await supabase
+        .from('owning_organizations')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setOwningOrgs(data || []);
+    } catch (error) {
+      console.error('Error loading owning organizations:', error);
     }
   }
 
@@ -295,6 +321,10 @@ export default function ConfigurationItemsManagement() {
       toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
+    if (BASTJANST_TYPES.includes(editForm.service_type) && !editForm.organization.trim()) {
+      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk för bastjänster.', variant: 'destructive' });
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
@@ -336,6 +366,10 @@ export default function ConfigurationItemsManagement() {
     }
     if (!editForm.system_name.trim()) {
       toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
+      return;
+    }
+    if (BASTJANST_TYPES.includes(editForm.service_type) && !editForm.organization.trim()) {
+      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk för bastjänster.', variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -652,17 +686,8 @@ export default function ConfigurationItemsManagement() {
               <Input id="edit-admin" value={editForm.system_administrator} onChange={(e) => setEditForm({ ...editForm, system_administrator: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-org">Organisation</Label>
-              <Input id="edit-org" value={editForm.organization} onChange={(e) => setEditForm({ ...editForm, organization: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-obj">Objektnummer</Label>
-              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} placeholder="Krävs om CI nummer saknas" />
-            </div>
-            <p className="text-xs text-muted-foreground">Minst ett av CI nummer eller Objektnummer måste anges.</p>
-            <div className="space-y-2">
               <Label>Tjänstetyp</Label>
-              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v })}>
+              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v, organization: '' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj tjänstetyp" />
                 </SelectTrigger>
@@ -673,6 +698,31 @@ export default function ConfigurationItemsManagement() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-org">
+                {isBastjanst ? 'Ägande organisation inom DigIT av system och/eller kalkyl' : 'Organisation'}
+                {isBastjanst && <span className="text-destructive"> *</span>}
+              </Label>
+              {isBastjanst ? (
+                <Select value={editForm.organization} onValueChange={(v) => setEditForm({ ...editForm, organization: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Välj ägande organisation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {owningOrgs.map((org) => (
+                      <SelectItem key={org.id} value={org.name}>{org.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input id="edit-org" value={editForm.organization} onChange={(e) => setEditForm({ ...editForm, organization: e.target.value })} />
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-obj">Objektnummer</Label>
+              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} placeholder="Krävs om CI nummer saknas" />
+            </div>
+            <p className="text-xs text-muted-foreground">Minst ett av CI nummer eller Objektnummer måste anges.</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setEditingItem(null); setIsCreating(false); }}>Avbryt</Button>
