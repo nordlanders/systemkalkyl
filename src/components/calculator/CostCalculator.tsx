@@ -1089,16 +1089,22 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 <Label>
                   Tjänstetyp <span className="text-destructive">*</span>
                 </Label>
-                <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2" disabled={readOnly}>
-                  {SERVICE_TYPES.map((type) => (
-                    <div key={type.value} className="flex items-center space-x-3">
-                      <RadioGroupItem value={type.value} id={type.value} />
-                      <Label htmlFor={type.value} className="font-normal cursor-pointer">
-                        {type.label}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
+                {(!isNewCI && selectedCI?.service_type) ? (
+                  <div className="p-3 bg-muted/50 rounded-md border">
+                    <p className="font-medium text-muted-foreground">{serviceType}</p>
+                  </div>
+                ) : (
+                  <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2" disabled={readOnly}>
+                    {SERVICE_TYPES.map((type) => (
+                      <div key={type.value} className="flex items-center space-x-3">
+                        <RadioGroupItem value={type.value} id={type.value} />
+                        <Label htmlFor={type.value} className="font-normal cursor-pointer">
+                          {type.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                )}
               </div>
               <div className="pt-4">
                 <Button 
