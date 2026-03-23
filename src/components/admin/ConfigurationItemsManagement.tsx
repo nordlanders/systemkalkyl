@@ -89,6 +89,7 @@ export default function ConfigurationItemsManagement() {
   useEffect(() => {
     loadItems();
     loadOwningOrgs();
+    loadCustomers();
   }, []);
 
   async function loadItems() {
