@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import CISelector, { type ConfigurationItem } from './CISelector';
+import CISelector, { type ConfigurationItem, NEW_CI_VALUE } from './CISelector';
 import BudgetOutcomeInfo from './BudgetOutcomeInfo';
 import { 
   Calculator,
@@ -114,10 +114,19 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
+  const isNewCI = ciIdentity === NEW_CI_VALUE;
   const isOwner = !editCalculation || editCalculation.user_id === user?.id;
   const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | 'closed' | undefined;
   const isApproved = currentStatus === 'approved' || currentStatus === 'closed';
-  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
+  
+  // For "Nytt" — require a manual name. For existing CI — name is auto-generated.
+  const effectiveCalculationName = isNewCI 
+    ? calculationName 
+    : (selectedCI 
+        ? `${selectedCI.system_name} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}`
+        : calculationName);
+  
+  const canProceedToStep2 = (isNewCI ? calculationName.trim() !== '' : ciIdentity.trim() !== '') && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
@@ -351,13 +360,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   async function saveCalculation() {
     if (!user) return;
 
-    if (!ciIdentity.trim()) {
-      toast({
-        title: 'CI-identitet krävs',
-        description: 'Du måste ange en CI-identitet för systemet i CMDB.',
-        variant: 'destructive',
-      });
-      return;
+    if (!ciIdentity.trim() || ciIdentity === NEW_CI_VALUE) {
+      if (ciIdentity !== NEW_CI_VALUE && !ciIdentity.trim()) {
+        toast({
+          title: 'Objekt/CI krävs',
+          description: 'Du måste välja ett objekt eller CI, eller välja "Nytt".',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     if (rows.length === 0) {
@@ -381,8 +392,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       const selectedOwningOrg = owningOrganizations.find(o => o.id === owningOrganizationId);
       
       const calculationData = {
-        name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
-        ci_identity: ciIdentity.trim(),
+        name: effectiveCalculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
+        ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
         service_type: serviceType,
         customer_id: customerId,
         organization_id: null,
@@ -594,8 +605,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
         .insert({
           user_id: user.id,
           created_by_name: userName,
-          name: `${calculationName || 'Kopia'} (kopia)`,
-          ci_identity: ciIdentity.trim(),
+          name: `${effectiveCalculationName || 'Kopia'} (kopia)`,
+          ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
           service_type: serviceType,
           customer_id: customerId,
           organization_id: null,
@@ -697,7 +708,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
     doc.setFontSize(10);
     doc.setFont('Roboto', 'normal');
-    doc.text(`Namn: ${calculationName || 'Ej angivet'}`, 14, yPos);
+    doc.text(`Namn: ${effectiveCalculationName || 'Ej angivet'}`, 14, yPos);
     yPos += 6;
 
     // Show object number
@@ -868,7 +879,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   ? 'Denna kalkyl är godkänd och kan inte ändras'
                   : 'Du visar en annan användares kalkyl (skrivskyddad)')
               : step === 1 
-                ? 'Steg 1: Ange namn, CI-identitet och tjänstetyp' 
+                ? 'Steg 1: Välj objekt/CI och ange grundläggande information' 
                 : step === 2 
                   ? 'Steg 2: Välj pristyper och ange antal'
                   : 'Steg 3: Granska och bekräfta'}
@@ -913,50 +924,72 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
 
       {step === 1 ? (
-        /* Step 1: Name, CI Identity and Service Type */
+        /* Step 1: Select object/CI first, then details */
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Grundläggande information
+                <Server className="h-5 w-5 text-primary" />
+                Välj objekt eller CI
               </CardTitle>
               <CardDescription>
-                Ange namn, CI-identitet och tjänstetyp för kalkylen
+                Sök upp ditt objekt eller CI, eller välj "Nytt" för att skapa en kalkyl utan koppling
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="calcName">
-                  Namn på kalkyl <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="calcName"
-                  placeholder="T.ex. Produktionsmiljö Q1"
-                  value={calculationName}
-                  onChange={(e) => setCalculationName(e.target.value)}
-                  disabled={readOnly}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Ett beskrivande namn som hjälper dig identifiera kalkylen
-                </p>
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="ciIdentity">
-                  Objekt / CI-identitet <span className="text-destructive">*</span>
+                  Objekt / CI <span className="text-destructive">*</span>
                 </Label>
                 <CISelector
                   value={ciIdentity}
-                  onChange={setCiIdentity}
-                  onItemChange={setSelectedCI}
-                  placeholder="Sök på CI nummer eller systemnamn..."
+                  onChange={(val) => {
+                    setCiIdentity(val);
+                    // If selecting an existing CI, auto-set service type from CI if available
+                  }}
+                  onItemChange={(item) => {
+                    setSelectedCI(item);
+                    if (item?.service_type) {
+                      setServiceType(item.service_type);
+                    }
+                  }}
+                  placeholder="Sök på objektnummer, CI nummer eller systemnamn..."
                   disabled={readOnly}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Välj objekt eller CI-identitet från registret, eller ange manuellt
+                  Välj ett befintligt objekt eller "Nytt" för att ange uppgifter manuellt
                 </p>
               </div>
+
+              {/* Show auto-generated name for existing CI, or input for "Nytt" */}
+              {isNewCI ? (
+                <div className="space-y-2">
+                  <Label htmlFor="calcName">
+                    Namn på kalkyl <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="calcName"
+                    placeholder="T.ex. Produktionsmiljö Q1"
+                    value={calculationName}
+                    onChange={(e) => setCalculationName(e.target.value)}
+                    disabled={readOnly}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Ange ett beskrivande namn för kalkylen
+                  </p>
+                </div>
+              ) : selectedCI ? (
+                <div className="space-y-2">
+                  <Label>Kalkylnamn</Label>
+                  <div className="p-3 bg-muted/50 rounded-md border">
+                    <p className="font-medium">{effectiveCalculationName}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Namnet sätts automatiskt baserat på objektnamn och dagens datum
+                  </p>
+                </div>
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="customer">
                   Kund <span className="text-destructive">*</span>
