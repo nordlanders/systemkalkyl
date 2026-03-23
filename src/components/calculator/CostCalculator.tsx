@@ -605,8 +605,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
         .insert({
           user_id: user.id,
           created_by_name: userName,
-          name: `${calculationName || 'Kopia'} (kopia)`,
-          ci_identity: ciIdentity.trim(),
+          name: `${effectiveCalculationName || 'Kopia'} (kopia)`,
+          ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
           service_type: serviceType,
           customer_id: customerId,
           organization_id: null,
