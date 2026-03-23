@@ -879,7 +879,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   ? 'Denna kalkyl är godkänd och kan inte ändras'
                   : 'Du visar en annan användares kalkyl (skrivskyddad)')
               : step === 1 
-                ? 'Steg 1: Ange namn, CI-identitet och tjänstetyp' 
+                ? 'Steg 1: Välj objekt/CI och ange grundläggande information' 
                 : step === 2 
                   ? 'Steg 2: Välj pristyper och ange antal'
                   : 'Steg 3: Granska och bekräfta'}
