@@ -260,16 +260,19 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     }
   }
 
-  function populateDefaultRows() {
-    // Filter pricing that has the selected serviceType in their service_types array
-    // and is NOT in disallowed_service_types
-    const defaultPricing = pricing.filter(p => {
+  // Available pricing for the selected service type
+  const availablePricing = useMemo(() => {
+    return pricing.filter(p => {
       const isDisallowed = (p as any).disallowed_service_types?.includes(serviceType);
       if (isDisallowed) return false;
       return p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType);
     });
+  }, [pricing, serviceType]);
+
+  function populateDefaultRows() {
+    const selectedPricing = availablePricing.filter(p => selectedPriceTypeIds.has(p.id));
     
-    const newRows: CalculationRow[] = defaultPricing.map(p => ({
+    const newRows: CalculationRow[] = selectedPricing.map(p => ({
       id: uuidv4(),
       pricingConfigId: p.id,
       priceType: p.price_type,
