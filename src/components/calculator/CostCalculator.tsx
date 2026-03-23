@@ -140,7 +140,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     }
   }, [serviceType, customers]);
 
-
+  useEffect(() => {
     if (!readOnly) {
       setStep(1);
     }
