@@ -520,14 +520,22 @@ export default function ConfigurationItemsManagement() {
                       </TableCell>
                       {isAdmin &&
                   <TableCell>
-                          <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleToggleActive(item.id, item.is_active)}
-                      className={item.is_active ? 'text-muted-foreground hover:text-foreground' : 'text-primary hover:text-primary'}>
-
-                            {item.is_active ? 'Inaktivera' : 'Aktivera'}
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(item)}
+                              className="text-muted-foreground hover:text-foreground">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleActive(item.id, item.is_active)}
+                              className={item.is_active ? 'text-muted-foreground hover:text-foreground' : 'text-primary hover:text-primary'}>
+                              {item.is_active ? 'Inaktivera' : 'Aktivera'}
+                            </Button>
+                          </div>
                         </TableCell>
                   }
                     </TableRow>
@@ -538,6 +546,48 @@ export default function ConfigurationItemsManagement() {
           }
         </CardContent>
       </Card>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Redigera CI-post</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-ci">CI nummer *</Label>
+              <Input id="edit-ci" value={editForm.ci_number} onChange={(e) => setEditForm({ ...editForm, ci_number: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Systemnamn *</Label>
+              <Input id="edit-name" value={editForm.system_name} onChange={(e) => setEditForm({ ...editForm, system_name: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-owner">Systemägare</Label>
+              <Input id="edit-owner" value={editForm.system_owner} onChange={(e) => setEditForm({ ...editForm, system_owner: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-admin">Systemförvaltare</Label>
+              <Input id="edit-admin" value={editForm.system_administrator} onChange={(e) => setEditForm({ ...editForm, system_administrator: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-org">Organisation</Label>
+              <Input id="edit-org" value={editForm.organization} onChange={(e) => setEditForm({ ...editForm, organization: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-obj">Objektnummer</Label>
+              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingItem(null)}>Avbryt</Button>
+            <Button onClick={handleSaveEdit} disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Spara
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>);
 
 }
