@@ -573,6 +573,11 @@ export default function ConfigurationItemsManagement() {
                       <TableCell>{item.organization || '-'}</TableCell>
                       <TableCell>{item.object_number || '-'}</TableCell>
                       <TableCell>
+                        <span className="text-xs px-2 py-1 rounded bg-muted">
+                          {item.service_type || '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
                         <Badge variant={item.is_active ? 'default' : 'secondary'}>
                           {item.is_active ? 'Aktiv' : 'Inaktiv'}
                         </Badge>
