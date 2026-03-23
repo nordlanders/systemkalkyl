@@ -401,8 +401,13 @@ export default function ConfigurationItemsManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Objekt och Configuration Items (CI)</h2>
-          <p className="text-muted-foreground">Hantera CI-poster genom att importera från CSV-fil</p>
+          <p className="text-muted-foreground">Hantera CI-poster genom import eller manuellt skapande</p>
         </div>
+        {isAdmin && (
+          <Button onClick={openCreateDialog} className="gap-2">
+            + Ny CI-post
+          </Button>
+        )}
       </div>
 
       {/* Import section */}
