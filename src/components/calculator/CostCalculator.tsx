@@ -360,13 +360,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   async function saveCalculation() {
     if (!user) return;
 
-    if (!ciIdentity.trim()) {
-      toast({
-        title: 'CI-identitet krävs',
-        description: 'Du måste ange en CI-identitet för systemet i CMDB.',
-        variant: 'destructive',
-      });
-      return;
+    if (!ciIdentity.trim() || ciIdentity === NEW_CI_VALUE) {
+      if (ciIdentity !== NEW_CI_VALUE && !ciIdentity.trim()) {
+        toast({
+          title: 'Objekt/CI krävs',
+          description: 'Du måste välja ett objekt eller CI, eller välja "Nytt".',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     if (rows.length === 0) {
