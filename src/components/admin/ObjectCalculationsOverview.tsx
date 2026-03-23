@@ -337,7 +337,7 @@ export default function ObjectCalculationsOverview() {
 
                       {isExpanded && group.calculations.length === 0 && (
                         <TableRow key={`${group.objectNumber}-empty`}>
-                          <TableCell colSpan={6} className="bg-muted/30 text-center text-muted-foreground py-4 text-sm">
+                          <TableCell colSpan={5} className="bg-muted/30 text-center text-muted-foreground py-4 text-sm">
                             Inga kalkyler för detta objekt
                           </TableCell>
                         </TableRow>
