@@ -51,7 +51,7 @@ interface ImportResult {
   errors: string[];
 }
 
-type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'is_active';
+type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'service_type' | 'is_active';
 type SortDir = 'asc' | 'desc';
 
 export default function ConfigurationItemsManagement() {
