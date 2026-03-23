@@ -390,7 +390,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       const selectedOwningOrg = owningOrganizations.find(o => o.id === owningOrganizationId);
       
       const calculationData = {
-        name: calculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
+        name: effectiveCalculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
         ci_identity: ciIdentity.trim(),
         service_type: serviceType,
         customer_id: customerId,
