@@ -108,6 +108,20 @@ export default function ConfigurationItemsManagement() {
     }
   }
 
+  async function loadOwningOrgs() {
+    try {
+      const { data, error } = await supabase
+        .from('owning_organizations')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setOwningOrgs(data || []);
+    } catch (error) {
+      console.error('Error loading owning organizations:', error);
+    }
+  }
+
   function parseCSV(text: string): string[][] {
     const lines = text.split(/\r?\n/).filter((line) => line.trim());
     return lines.map((line) => {
