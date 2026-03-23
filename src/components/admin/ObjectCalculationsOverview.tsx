@@ -270,7 +270,6 @@ export default function ObjectCalculationsOverview() {
                         <TableCell className="font-medium">{group.objectNumber}</TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
                         <TableCell>
-                        <TableCell>
                           <Badge variant={group.calculations.length > 0 ? 'default' : 'outline'}>
                             {group.calculations.length}
                           </Badge>
