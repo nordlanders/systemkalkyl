@@ -516,6 +516,7 @@ export type Database = {
           is_active: boolean
           object_number: string | null
           organization: string | null
+          service_type: string | null
           system_administrator: string | null
           system_name: string
           system_owner: string | null
@@ -529,6 +530,7 @@ export type Database = {
           is_active?: boolean
           object_number?: string | null
           organization?: string | null
+          service_type?: string | null
           system_administrator?: string | null
           system_name: string
           system_owner?: string | null
@@ -542,6 +544,7 @@ export type Database = {
           is_active?: boolean
           object_number?: string | null
           organization?: string | null
+          service_type?: string | null
           system_administrator?: string | null
           system_name?: string
           system_owner?: string | null
