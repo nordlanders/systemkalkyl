@@ -1090,12 +1090,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   Tjänstetyp <span className="text-destructive">*</span>
                 </Label>
                 {(!isNewCI && selectedCI?.service_type) ? (
-                  <div className="p-3 bg-muted/50 rounded-md border">
-                    <p className="font-medium text-muted-foreground">{serviceType}</p>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Hämtas automatiskt från CI-registret
-                  </p>
+                  <>
+                    <div className="p-3 bg-muted/50 rounded-md border">
+                      <p className="font-medium text-muted-foreground">{serviceType}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Hämtas automatiskt från CI-registret
+                    </p>
+                  </>
                 ) : (
                   <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2" disabled={readOnly}>
                     {SERVICE_TYPES.map((type) => (
