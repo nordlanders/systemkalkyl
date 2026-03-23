@@ -67,6 +67,7 @@ interface OwningOrg {
 export default function ConfigurationItemsManagement() {
   const [items, setItems] = useState<ConfigurationItem[]>([]);
   const [owningOrgs, setOwningOrgs] = useState<OwningOrg[]>([]);
+  const [customers, setCustomers] = useState<{ id: string; name: string; is_active: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
