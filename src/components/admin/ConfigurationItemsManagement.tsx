@@ -368,6 +368,10 @@ export default function ConfigurationItemsManagement() {
       toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
+    if (BASTJANST_TYPES.includes(editForm.service_type) && !editForm.organization.trim()) {
+      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk för bastjänster.', variant: 'destructive' });
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
