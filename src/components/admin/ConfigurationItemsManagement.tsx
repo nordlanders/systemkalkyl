@@ -393,8 +393,12 @@ export default function ConfigurationItemsManagement() {
       toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
-    if (BASTJANST_TYPES.includes(editForm.service_type) && !editForm.organization.trim()) {
-      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk för bastjänster.', variant: 'destructive' });
+    if (!editForm.organization.trim()) {
+      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk.', variant: 'destructive' });
+      return;
+    }
+    if (ANPASSAD_TYPES.includes(editForm.service_type) && !editForm.customer_id) {
+      toast({ title: 'Validering', description: 'Kund är obligatorisk för anpassade tjänster.', variant: 'destructive' });
       return;
     }
     setSaving(true);
