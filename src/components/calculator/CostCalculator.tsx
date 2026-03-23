@@ -1100,7 +1100,9 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   </>
                 ) : (
                   <RadioGroup value={serviceType} onValueChange={setServiceType} className="space-y-2" disabled={readOnly}>
-                    {SERVICE_TYPES.map((type) => (
+                    {SERVICE_TYPES.filter(type => 
+                      isNewCI ? ['Anpassad drift', 'Anpassad förvaltning'].includes(type.value) : true
+                    ).map((type) => (
                       <div key={type.value} className="flex items-center space-x-3">
                         <RadioGroupItem value={type.value} id={type.value} />
                         <Label htmlFor={type.value} className="font-normal cursor-pointer">
