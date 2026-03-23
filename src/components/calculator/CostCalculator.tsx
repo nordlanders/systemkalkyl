@@ -261,14 +261,22 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     }
   }
 
-  // Available pricing for the selected service type
+  // Available pricing for the selected service type (not disallowed)
   const availablePricing = useMemo(() => {
     return pricing.filter(p => {
       const isDisallowed = (p as any).disallowed_service_types?.includes(serviceType);
-      if (isDisallowed) return false;
-      return p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType);
+      return !isDisallowed;
     });
   }, [pricing, serviceType]);
+
+  // Default pricing = those with serviceType in their service_types array
+  const defaultPricingIds = useMemo(() => {
+    return new Set(
+      availablePricing
+        .filter(p => p.service_types && p.service_types.includes(serviceType))
+        .map(p => p.id)
+    );
+  }, [availablePricing, serviceType]);
 
   function populateDefaultRows() {
     const selectedPricing = availablePricing.filter(p => selectedPriceTypeIds.has(p.id));
@@ -1151,8 +1159,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               <div className="pt-4">
                 <Button 
                   onClick={() => {
-                    // Pre-select all available price types
-                    setSelectedPriceTypeIds(new Set(availablePricing.map(p => p.id)));
+                    // Pre-select only default price types
+                    setSelectedPriceTypeIds(new Set(defaultPricingIds));
                     setPriceTypeSelectionDone(false);
                     setStep(2);
                   }} 
@@ -1258,26 +1266,46 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     Välj alla ({availablePricing.length} st)
                   </Label>
                 </div>
-                {availablePricing.map((p) => (
-                  <div key={p.id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`pt-${p.id}`}
-                      checked={selectedPriceTypeIds.has(p.id)}
-                      onCheckedChange={(checked) => {
-                        const next = new Set(selectedPriceTypeIds);
-                        if (checked) {
-                          next.add(p.id);
-                        } else {
-                          next.delete(p.id);
-                        }
-                        setSelectedPriceTypeIds(next);
-                      }}
-                    />
-                    <Label htmlFor={`pt-${p.id}`} className="font-normal cursor-pointer">
-                      {p.price_type}
-                    </Label>
-                  </div>
-                ))}
+                {/* Default price types first, then optional */}
+                {availablePricing
+                  .slice()
+                  .sort((a, b) => {
+                    const aDefault = defaultPricingIds.has(a.id) ? 0 : 1;
+                    const bDefault = defaultPricingIds.has(b.id) ? 0 : 1;
+                    return aDefault - bDefault || a.price_type.localeCompare(b.price_type);
+                  })
+                  .map((p, idx, arr) => {
+                    const isDefault = defaultPricingIds.has(p.id);
+                    const prevIsDefault = idx > 0 ? defaultPricingIds.has(arr[idx - 1].id) : true;
+                    const showSeparator = !isDefault && prevIsDefault;
+                    return (
+                      <div key={p.id}>
+                        {showSeparator && (
+                          <div className="pt-2 pb-1 border-t">
+                            <p className="text-xs font-medium text-muted-foreground">Övriga valbara pristyper</p>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`pt-${p.id}`}
+                            checked={selectedPriceTypeIds.has(p.id)}
+                            onCheckedChange={(checked) => {
+                              const next = new Set(selectedPriceTypeIds);
+                              if (checked) {
+                                next.add(p.id);
+                              } else {
+                                next.delete(p.id);
+                              }
+                              setSelectedPriceTypeIds(next);
+                            }}
+                          />
+                          <Label htmlFor={`pt-${p.id}`} className="font-normal cursor-pointer">
+                            {p.price_type}
+                          </Label>
+                        </div>
+                      </div>
+                    );
+                  })}
               </CardContent>
             </Card>
             <div className="flex gap-3">
