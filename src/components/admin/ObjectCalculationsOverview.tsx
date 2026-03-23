@@ -21,6 +21,8 @@ interface Calculation {
   created_by_name: string | null;
   version: number;
   owning_organization: string | null;
+  updated_at: string | null;
+  approved_at: string | null;
 }
 
 interface ConfigurationItem {
@@ -69,7 +71,7 @@ export default function ObjectCalculationsOverview() {
   async function fetchData() {
     setLoading(true);
     const [calcRes, ciRes] = await Promise.all([
-      supabase.from('calculations').select('id, name, ci_identity, service_type, total_cost, status, calculation_year, created_at, created_by_name, version, owning_organization'),
+      supabase.from('calculations').select('id, name, ci_identity, service_type, total_cost, status, calculation_year, created_at, created_by_name, version, owning_organization, updated_at, approved_at'),
       supabase.from('configuration_items').select('ci_number, system_name, object_number, organization').eq('is_active', true),
     ]);
     setCalculations(calcRes.data ?? []);
@@ -298,6 +300,7 @@ export default function ObjectCalculationsOverview() {
                                     <TableHead>År</TableHead>
                                     <TableHead>Version</TableHead>
                                     <TableHead>Status</TableHead>
+                                    <TableHead>Senast sparad/godkänd</TableHead>
                                     <TableHead>Skapad av</TableHead>
                                     <TableHead className="text-right">Kostnad</TableHead>
                                   </TableRow>
@@ -305,7 +308,14 @@ export default function ObjectCalculationsOverview() {
                                 <TableBody>
                                   {group.calculations
                                     .sort((a, b) => b.calculation_year - a.calculation_year || b.version - a.version)
-                                    .map(calc => (
+                                    .map(calc => {
+                                      const lastDate = calc.status === 'approved' && calc.approved_at
+                                        ? calc.approved_at
+                                        : calc.updated_at || calc.created_at;
+                                      const dateLabel = calc.status === 'approved' && calc.approved_at
+                                        ? 'Godkänd'
+                                        : 'Sparad';
+                                      return (
                                       <TableRow key={calc.id} className="text-sm">
                                         <TableCell>{calc.name || '—'}</TableCell>
                                         <TableCell className="text-muted-foreground">{calc.ci_identity}</TableCell>
@@ -317,12 +327,16 @@ export default function ObjectCalculationsOverview() {
                                             {statusLabels[calc.status] || calc.status}
                                           </Badge>
                                         </TableCell>
+                                        <TableCell className="text-muted-foreground text-xs">
+                                          <span>{dateLabel} {format(new Date(lastDate), 'd MMM yyyy', { locale: sv })}</span>
+                                        </TableCell>
                                         <TableCell className="text-muted-foreground">{calc.created_by_name || '—'}</TableCell>
                                         <TableCell className="text-right font-medium">
                                           {Math.round(calc.total_cost).toLocaleString('sv-SE')} kr/år
                                         </TableCell>
                                       </TableRow>
-                                    ))}
+                                      );
+                                    })}
                                 </TableBody>
                               </Table>
                             </div>
