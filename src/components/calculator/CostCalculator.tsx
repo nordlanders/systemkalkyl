@@ -670,8 +670,16 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       });
     } finally {
       setSaving(false);
-    }
-  }
+                    }
+                    if (item?.organization) {
+                      const matchingOrg = owningOrganizations.find(
+                        o => o.name.toLowerCase() === item.organization!.toLowerCase()
+                      );
+                      if (matchingOrg) {
+                        setOwningOrganizationId(matchingOrg.id);
+                      }
+                    }
+                  }}
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('sv-SE', {
