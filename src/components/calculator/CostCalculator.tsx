@@ -1266,26 +1266,46 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     Välj alla ({availablePricing.length} st)
                   </Label>
                 </div>
-                {availablePricing.map((p) => (
-                  <div key={p.id} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`pt-${p.id}`}
-                      checked={selectedPriceTypeIds.has(p.id)}
-                      onCheckedChange={(checked) => {
-                        const next = new Set(selectedPriceTypeIds);
-                        if (checked) {
-                          next.add(p.id);
-                        } else {
-                          next.delete(p.id);
-                        }
-                        setSelectedPriceTypeIds(next);
-                      }}
-                    />
-                    <Label htmlFor={`pt-${p.id}`} className="font-normal cursor-pointer">
-                      {p.price_type}
-                    </Label>
-                  </div>
-                ))}
+                {/* Default price types first, then optional */}
+                {availablePricing
+                  .slice()
+                  .sort((a, b) => {
+                    const aDefault = defaultPricingIds.has(a.id) ? 0 : 1;
+                    const bDefault = defaultPricingIds.has(b.id) ? 0 : 1;
+                    return aDefault - bDefault || a.price_type.localeCompare(b.price_type);
+                  })
+                  .map((p, idx, arr) => {
+                    const isDefault = defaultPricingIds.has(p.id);
+                    const prevIsDefault = idx > 0 ? defaultPricingIds.has(arr[idx - 1].id) : true;
+                    const showSeparator = !isDefault && prevIsDefault;
+                    return (
+                      <div key={p.id}>
+                        {showSeparator && (
+                          <div className="pt-2 pb-1 border-t">
+                            <p className="text-xs font-medium text-muted-foreground">Övriga valbara pristyper</p>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={`pt-${p.id}`}
+                            checked={selectedPriceTypeIds.has(p.id)}
+                            onCheckedChange={(checked) => {
+                              const next = new Set(selectedPriceTypeIds);
+                              if (checked) {
+                                next.add(p.id);
+                              } else {
+                                next.delete(p.id);
+                              }
+                              setSelectedPriceTypeIds(next);
+                            }}
+                          />
+                          <Label htmlFor={`pt-${p.id}`} className="font-normal cursor-pointer">
+                            {p.price_type}
+                          </Label>
+                        </div>
+                      </div>
+                    );
+                  })}
               </CardContent>
             </Card>
             <div className="flex gap-3">
