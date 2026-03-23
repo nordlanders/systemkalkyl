@@ -708,7 +708,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
     doc.setFontSize(10);
     doc.setFont('Roboto', 'normal');
-    doc.text(`Namn: ${calculationName || 'Ej angivet'}`, 14, yPos);
+    doc.text(`Namn: ${effectiveCalculationName || 'Ej angivet'}`, 14, yPos);
     yPos += 6;
 
     // Show object number
