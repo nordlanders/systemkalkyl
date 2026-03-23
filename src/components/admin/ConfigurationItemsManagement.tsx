@@ -715,7 +715,6 @@ export default function ConfigurationItemsManagement() {
               <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} placeholder="Krävs om CI nummer saknas" />
             </div>
             <p className="text-xs text-muted-foreground">Minst ett av CI nummer eller Objektnummer måste anges.</p>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setEditingItem(null); setIsCreating(false); }}>Avbryt</Button>
