@@ -132,7 +132,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const canProceedToStep2 = (isNewCI ? calculationName.trim() !== '' : ciIdentity.trim() !== '') && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
+  // Auto-set customer to "Interna kalkyler" for bastjänst types
   useEffect(() => {
+    if (BASTJANST_TYPES.includes(serviceType) && customers.length > 0) {
+      const internaCustomer = customers.find(c => c.name === INTERNA_KALKYLER_NAME);
+      if (internaCustomer) setCustomerId(internaCustomer.id);
+    }
+  }, [serviceType, customers]);
+
+
     if (!readOnly) {
       setStep(1);
     }
