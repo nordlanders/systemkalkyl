@@ -376,7 +376,7 @@ export default function ConfigurationItemsManagement() {
   function openCreateDialog() {
     setIsCreating(true);
     setEditingItem(null);
-    setEditForm({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '' });
+    setEditForm({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '', customer_id: '' });
   }
 
   async function handleCreate() {
