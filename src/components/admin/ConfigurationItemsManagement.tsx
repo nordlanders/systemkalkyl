@@ -253,6 +253,51 @@ export default function ConfigurationItemsManagement() {
     }
   }
 
+  function openEditDialog(item: ConfigurationItem) {
+    setEditingItem(item);
+    setEditForm({
+      ci_number: item.ci_number,
+      system_name: item.system_name,
+      system_owner: item.system_owner || '',
+      system_administrator: item.system_administrator || '',
+      organization: item.organization || '',
+      object_number: item.object_number || '',
+    });
+  }
+
+  async function handleSaveEdit() {
+    if (!editingItem) return;
+    if (!editForm.ci_number.trim() || !editForm.system_name.trim()) {
+      toast({ title: 'Validering', description: 'CI nummer och Systemnamn är obligatoriska.', variant: 'destructive' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('configuration_items')
+        .update({
+          ci_number: editForm.ci_number.trim(),
+          system_name: editForm.system_name.trim(),
+          system_owner: editForm.system_owner.trim() || null,
+          system_administrator: editForm.system_administrator.trim() || null,
+          organization: editForm.organization.trim() || null,
+          object_number: editForm.object_number.trim() || null,
+        })
+        .eq('id', editingItem.id);
+
+      if (error) throw error;
+
+      toast({ title: 'Sparad', description: 'CI-posten har uppdaterats.' });
+      setEditingItem(null);
+      loadItems();
+    } catch (error) {
+      console.error('Error updating CI:', error);
+      toast({ title: 'Fel', description: 'Kunde inte spara ändringarna.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function downloadTemplate() {
     const header = 'CI nummer;Systemnamn;Systemägare;Systemförvaltare;Organisation;Objektnummer';
     const exampleRow = 'CI-12345;E-tjänstplattform;Anna Andersson;Erik Eriksson;IT-avdelningen;OBJ-001';
