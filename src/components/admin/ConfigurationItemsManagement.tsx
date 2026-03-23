@@ -413,6 +413,7 @@ export default function ConfigurationItemsManagement() {
           organization: editForm.organization.trim() || null,
           object_number: editForm.object_number.trim() || null,
           service_type: editForm.service_type || null,
+          customer_id: editForm.customer_id || null,
           created_by: user?.id,
         });
 
