@@ -955,6 +955,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     setSelectedCI(item);
                     if (item?.service_type) {
                       setServiceType(item.service_type);
+                      // Auto-set customer for bastjänst types
+                      if (BASTJANST_TYPES.includes(item.service_type)) {
+                        const internaCustomer = customers.find(c => c.name === INTERNA_KALKYLER_NAME);
+                        if (internaCustomer) setCustomerId(internaCustomer.id);
+                      }
                     }
                     if (item?.organization) {
                       const matchingOrg = owningOrganizations.find(
