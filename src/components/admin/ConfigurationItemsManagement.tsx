@@ -54,6 +54,7 @@ export default function ConfigurationItemsManagement() {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [editingItem, setEditingItem] = useState<ConfigurationItem | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '' });
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -298,6 +299,44 @@ export default function ConfigurationItemsManagement() {
     }
   }
 
+  function openCreateDialog() {
+    setIsCreating(true);
+    setEditingItem(null);
+    setEditForm({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '' });
+  }
+
+  async function handleCreate() {
+    if (!editForm.ci_number.trim() || !editForm.system_name.trim()) {
+      toast({ title: 'Validering', description: 'CI nummer och Systemnamn är obligatoriska.', variant: 'destructive' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('configuration_items')
+        .insert({
+          ci_number: editForm.ci_number.trim(),
+          system_name: editForm.system_name.trim(),
+          system_owner: editForm.system_owner.trim() || null,
+          system_administrator: editForm.system_administrator.trim() || null,
+          organization: editForm.organization.trim() || null,
+          object_number: editForm.object_number.trim() || null,
+          created_by: user?.id,
+        });
+
+      if (error) throw error;
+
+      toast({ title: 'Skapad', description: 'Ny CI-post har skapats.' });
+      setIsCreating(false);
+      loadItems();
+    } catch (error) {
+      console.error('Error creating CI:', error);
+      toast({ title: 'Fel', description: 'Kunde inte skapa CI-posten.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function downloadTemplate() {
     const header = 'CI nummer;Systemnamn;Systemägare;Systemförvaltare;Organisation;Objektnummer';
     const exampleRow = 'CI-12345;E-tjänstplattform;Anna Andersson;Erik Eriksson;IT-avdelningen;OBJ-001';
@@ -362,8 +401,13 @@ export default function ConfigurationItemsManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Objekt och Configuration Items (CI)</h2>
-          <p className="text-muted-foreground">Hantera CI-poster genom att importera från CSV-fil</p>
+          <p className="text-muted-foreground">Hantera CI-poster genom import eller manuellt skapande</p>
         </div>
+        {isAdmin && (
+          <Button onClick={openCreateDialog} className="gap-2">
+            + Ny CI-post
+          </Button>
+        )}
       </div>
 
       {/* Import section */}
@@ -547,11 +591,11 @@ export default function ConfigurationItemsManagement() {
         </CardContent>
       </Card>
 
-      {/* Edit dialog */}
-      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+      {/* Create/Edit dialog */}
+      <Dialog open={!!editingItem || isCreating} onOpenChange={(open) => { if (!open) { setEditingItem(null); setIsCreating(false); } }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Redigera CI-post</DialogTitle>
+            <DialogTitle>{isCreating ? 'Skapa ny CI-post' : 'Redigera CI-post'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -580,10 +624,10 @@ export default function ConfigurationItemsManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingItem(null)}>Avbryt</Button>
-            <Button onClick={handleSaveEdit} disabled={saving}>
+            <Button variant="outline" onClick={() => { setEditingItem(null); setIsCreating(false); }}>Avbryt</Button>
+            <Button onClick={isCreating ? handleCreate : handleSaveEdit} disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Spara
+              {isCreating ? 'Skapa' : 'Spara'}
             </Button>
           </DialogFooter>
         </DialogContent>
