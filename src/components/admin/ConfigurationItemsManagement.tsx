@@ -395,7 +395,7 @@ export default function ConfigurationItemsManagement() {
   }
 
   const filteredItems = items.filter((item) =>
-  item.ci_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  (item.ci_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
   item.system_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
   item.system_owner?.toLowerCase().includes(searchTerm.toLowerCase()) ||
   item.organization?.toLowerCase().includes(searchTerm.toLowerCase())
