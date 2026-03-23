@@ -76,7 +76,7 @@ export default function ConfigurationItemsManagement() {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [editingItem, setEditingItem] = useState<ConfigurationItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '' });
+  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '', customer_id: '' });
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
