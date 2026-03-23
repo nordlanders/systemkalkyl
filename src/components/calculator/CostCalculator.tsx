@@ -1226,8 +1226,105 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
             )}
           </div>
         </div>
+      ) : step === 2 && !priceTypeSelectionDone && !isEditing ? (
+        /* Step 2a: Price type selection */
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-primary" />
+                  Välj pristyper
+                </CardTitle>
+                <CardDescription>
+                  Markera vilka pristyper som ska ingå i kalkylen
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Checkbox
+                    id="select-all"
+                    checked={selectedPriceTypeIds.size === availablePricing.length && availablePricing.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPriceTypeIds(new Set(availablePricing.map(p => p.id)));
+                      } else {
+                        setSelectedPriceTypeIds(new Set());
+                      }
+                    }}
+                  />
+                  <Label htmlFor="select-all" className="font-medium cursor-pointer">
+                    Välj alla ({availablePricing.length} st)
+                  </Label>
+                </div>
+                {availablePricing.map((p) => (
+                  <div key={p.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`pt-${p.id}`}
+                      checked={selectedPriceTypeIds.has(p.id)}
+                      onCheckedChange={(checked) => {
+                        const next = new Set(selectedPriceTypeIds);
+                        if (checked) {
+                          next.add(p.id);
+                        } else {
+                          next.delete(p.id);
+                        }
+                        setSelectedPriceTypeIds(next);
+                      }}
+                    />
+                    <Label htmlFor={`pt-${p.id}`} className="font-normal cursor-pointer">
+                      {p.price_type}
+                    </Label>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setStep(1)} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Tillbaka
+              </Button>
+              <Button
+                onClick={() => {
+                  populateDefaultRows();
+                  setPriceTypeSelectionDone(true);
+                }}
+                disabled={selectedPriceTypeIds.size === 0}
+                className="gap-2"
+              >
+                Fortsätt med {selectedPriceTypeIds.size} pristyper
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          {/* CI Information Panel */}
+          <div className="lg:col-span-1">
+            {selectedCI ? (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Server className="h-5 w-5 text-primary" />
+                    Objekt och CI-information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Systemnamn</p>
+                    <p className="font-medium">{selectedCI.system_name}</p>
+                  </div>
+                  {selectedCI.object_number && (
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Objektnummer</p>
+                      <p className="font-medium">{selectedCI.object_number}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : null}
+          </div>
+        </div>
       ) : step === 2 ? (
-        /* Step 2: Price type rows */
+        /* Step 2b: Price type rows */
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Rows Section */}
           <div className="lg:col-span-2 space-y-6">
