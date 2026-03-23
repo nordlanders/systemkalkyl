@@ -1,0 +1,1 @@
+ALTER TABLE public.configuration_items ADD COLUMN service_type text DEFAULT NULL;

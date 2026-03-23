@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +25,13 @@ import {
   Pencil } from
 'lucide-react';
 
+const SERVICE_TYPES = [
+  { value: 'Anpassad drift', label: 'Anpassad drift' },
+  { value: 'Anpassad förvaltning', label: 'Anpassad förvaltning' },
+  { value: 'Bastjänst Digital infrastruktur', label: 'Bastjänst Digital infrastruktur' },
+  { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
+];
+
 interface ConfigurationItem {
   id: string;
   ci_number: string;
@@ -32,6 +40,7 @@ interface ConfigurationItem {
   system_administrator: string | null;
   organization: string | null;
   object_number: string | null;
+  service_type: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -42,7 +51,7 @@ interface ImportResult {
   errors: string[];
 }
 
-type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'is_active';
+type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'service_type' | 'is_active';
 type SortDir = 'asc' | 'desc';
 
 export default function ConfigurationItemsManagement() {
@@ -55,7 +64,7 @@ export default function ConfigurationItemsManagement() {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [editingItem, setEditingItem] = useState<ConfigurationItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '' });
+  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '' });
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -263,6 +272,7 @@ export default function ConfigurationItemsManagement() {
       system_administrator: item.system_administrator || '',
       organization: item.organization || '',
       object_number: item.object_number || '',
+      service_type: item.service_type || '',
     });
   }
 
@@ -283,6 +293,7 @@ export default function ConfigurationItemsManagement() {
           system_administrator: editForm.system_administrator.trim() || null,
           organization: editForm.organization.trim() || null,
           object_number: editForm.object_number.trim() || null,
+          service_type: editForm.service_type || null,
         })
         .eq('id', editingItem.id);
 
@@ -302,7 +313,7 @@ export default function ConfigurationItemsManagement() {
   function openCreateDialog() {
     setIsCreating(true);
     setEditingItem(null);
-    setEditForm({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '' });
+    setEditForm({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '' });
   }
 
   async function handleCreate() {
@@ -321,6 +332,7 @@ export default function ConfigurationItemsManagement() {
           system_administrator: editForm.system_administrator.trim() || null,
           organization: editForm.organization.trim() || null,
           object_number: editForm.object_number.trim() || null,
+          service_type: editForm.service_type || null,
           created_by: user?.id,
         });
 
@@ -542,6 +554,9 @@ export default function ConfigurationItemsManagement() {
                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort('object_number')}>
                        <span className="flex items-center">Objektnummer<SortIcon column="object_number" /></span>
                      </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('service_type')}>
+                       <span className="flex items-center">Tjänstetyp<SortIcon column="service_type" /></span>
+                     </TableHead>
                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort('is_active')}>
                        <span className="flex items-center">Status<SortIcon column="is_active" /></span>
                      </TableHead>
@@ -557,6 +572,11 @@ export default function ConfigurationItemsManagement() {
                       <TableCell>{item.system_administrator || '-'}</TableCell>
                       <TableCell>{item.organization || '-'}</TableCell>
                       <TableCell>{item.object_number || '-'}</TableCell>
+                      <TableCell>
+                        <span className="text-xs px-2 py-1 rounded bg-muted">
+                          {item.service_type || '-'}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <Badge variant={item.is_active ? 'default' : 'secondary'}>
                           {item.is_active ? 'Aktiv' : 'Inaktiv'}
@@ -621,6 +641,19 @@ export default function ConfigurationItemsManagement() {
             <div className="space-y-2">
               <Label htmlFor="edit-obj">Objektnummer</Label>
               <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Tjänstetyp</Label>
+              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj tjänstetyp" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SERVICE_TYPES.map((st) => (
+                    <SelectItem key={st.value} value={st.value}>{st.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
