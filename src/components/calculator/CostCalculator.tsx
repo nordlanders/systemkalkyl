@@ -1026,25 +1026,40 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 <Label htmlFor="owningOrganization">
                   Ägande organisation <span className="text-destructive">*</span>
                 </Label>
-                <Select 
-                  value={owningOrganizationId || ''} 
-                  onValueChange={(val) => setOwningOrganizationId(val || null)}
-                  disabled={readOnly}
-                >
-                  <SelectTrigger id="owningOrganization" className="w-full">
-                    <SelectValue placeholder="Välj ägande organisation" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {owningOrganizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">
-                  Vilken intern organisation som äger kalkylen
-                </p>
+                {(!isNewCI && selectedCI?.organization) ? (
+                  <>
+                    <div className="p-3 bg-muted/50 rounded-md border">
+                      <p className="font-medium text-muted-foreground">
+                        {owningOrganizations.find(o => o.id === owningOrganizationId)?.name || selectedCI.organization}
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Hämtas automatiskt från CI-registret
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Select 
+                      value={owningOrganizationId || ''} 
+                      onValueChange={(val) => setOwningOrganizationId(val || null)}
+                      disabled={readOnly}
+                    >
+                      <SelectTrigger id="owningOrganization" className="w-full">
+                        <SelectValue placeholder="Välj ägande organisation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {owningOrganizations.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Vilken intern organisation som äger kalkylen
+                    </p>
+                  </>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="calculationYear">
