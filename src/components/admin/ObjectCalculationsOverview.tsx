@@ -310,7 +310,7 @@ export default function ObjectCalculationsOverview() {
                                       return (
                                       <TableRow key={calc.id} className="text-sm">
                                         <TableCell>{calc.name || '—'}</TableCell>
-                                        <TableCell className="text-muted-foreground">{calc.ci_identity}</TableCell>
+                                        
                                         <TableCell className="text-muted-foreground">{calc.service_type}</TableCell>
                                         <TableCell>{calc.calculation_year}</TableCell>
                                         <TableCell>v{calc.version}</TableCell>
