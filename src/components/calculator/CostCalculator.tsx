@@ -953,6 +953,14 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     if (item?.service_type) {
                       setServiceType(item.service_type);
                     }
+                    if (item?.organization) {
+                      const matchingOrg = owningOrganizations.find(
+                        (o) => o.name.toLowerCase() === (item.organization || '').toLowerCase()
+                      );
+                      if (matchingOrg) {
+                        setOwningOrganizationId(matchingOrg.id);
+                      }
+                    }
                   }}
                   placeholder="Sök på objektnummer, CI nummer eller systemnamn..."
                   disabled={readOnly}
