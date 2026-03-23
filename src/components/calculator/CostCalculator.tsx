@@ -1159,8 +1159,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               <div className="pt-4">
                 <Button 
                   onClick={() => {
-                    // Pre-select all available price types
-                    setSelectedPriceTypeIds(new Set(availablePricing.map(p => p.id)));
+                    // Pre-select only default price types
+                    setSelectedPriceTypeIds(new Set(defaultPricingIds));
                     setPriceTypeSelectionDone(false);
                     setStep(2);
                   }} 
