@@ -54,8 +54,17 @@ interface ImportResult {
 type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'service_type' | 'is_active';
 type SortDir = 'asc' | 'desc';
 
+const BASTJANST_TYPES = ['Bastjänst Digital infrastruktur', 'Bastjänst IT infrastruktur'];
+
+interface OwningOrg {
+  id: string;
+  name: string;
+  is_active: boolean;
+}
+
 export default function ConfigurationItemsManagement() {
   const [items, setItems] = useState<ConfigurationItem[]>([]);
+  const [owningOrgs, setOwningOrgs] = useState<OwningOrg[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,8 +80,11 @@ export default function ConfigurationItemsManagement() {
   const { user, isAdmin } = useAuth();
   const { toast } = useToast();
 
+  const isBastjanst = BASTJANST_TYPES.includes(editForm.service_type);
+
   useEffect(() => {
     loadItems();
+    loadOwningOrgs();
   }, []);
 
   async function loadItems() {
