@@ -84,6 +84,7 @@ export default function ConfigurationItemsManagement() {
   const { toast } = useToast();
 
   const isBastjanst = BASTJANST_TYPES.includes(editForm.service_type);
+  const isAnpassad = ANPASSAD_TYPES.includes(editForm.service_type);
 
   useEffect(() => {
     loadItems();
