@@ -233,11 +233,6 @@ export default function ObjectCalculationsOverview() {
                 </TableHead>
                 <TableHead>System</TableHead>
                 <TableHead>
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('ciCount')} className="gap-1 -ml-3">
-                    CI <SortIcon column="ciCount" />
-                  </Button>
-                </TableHead>
-                <TableHead>
                   <Button variant="ghost" size="sm" onClick={() => handleSort('calcCount')} className="gap-1 -ml-3">
                     Kalkyler <SortIcon column="calcCount" />
                   </Button>
@@ -252,7 +247,7 @@ export default function ObjectCalculationsOverview() {
             <TableBody>
               {objectGroups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                     Inga resultat hittades
                   </TableCell>
                 </TableRow>
@@ -275,9 +270,6 @@ export default function ObjectCalculationsOverview() {
                         <TableCell className="font-medium">{group.objectNumber}</TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{group.ciItems.length}</Badge>
-                        </TableCell>
-                        <TableCell>
                           <Badge variant={group.calculations.length > 0 ? 'default' : 'outline'}>
                             {group.calculations.length}
                           </Badge>
@@ -289,13 +281,12 @@ export default function ObjectCalculationsOverview() {
 
                       {isExpanded && group.calculations.length > 0 && (
                         <TableRow key={`${group.objectNumber}-details`}>
-                          <TableCell colSpan={6} className="bg-muted/30 p-0">
+                          <TableCell colSpan={5} className="bg-muted/30 p-0">
                             <div className="px-8 py-3">
                               <Table>
                                 <TableHeader>
                                   <TableRow className="text-xs">
                                     <TableHead>Kalkylnamn</TableHead>
-                                    <TableHead>CI</TableHead>
                                     <TableHead>Tjänstetyp</TableHead>
                                     <TableHead>År</TableHead>
                                     <TableHead>Version</TableHead>
@@ -318,7 +309,7 @@ export default function ObjectCalculationsOverview() {
                                       return (
                                       <TableRow key={calc.id} className="text-sm">
                                         <TableCell>{calc.name || '—'}</TableCell>
-                                        <TableCell className="text-muted-foreground">{calc.ci_identity}</TableCell>
+                                        
                                         <TableCell className="text-muted-foreground">{calc.service_type}</TableCell>
                                         <TableCell>{calc.calculation_year}</TableCell>
                                         <TableCell>v{calc.version}</TableCell>
@@ -346,7 +337,7 @@ export default function ObjectCalculationsOverview() {
 
                       {isExpanded && group.calculations.length === 0 && (
                         <TableRow key={`${group.objectNumber}-empty`}>
-                          <TableCell colSpan={6} className="bg-muted/30 text-center text-muted-foreground py-4 text-sm">
+                          <TableCell colSpan={5} className="bg-muted/30 text-center text-muted-foreground py-4 text-sm">
                             Inga kalkyler för detta objekt
                           </TableCell>
                         </TableRow>
