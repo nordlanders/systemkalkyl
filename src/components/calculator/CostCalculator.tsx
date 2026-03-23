@@ -922,50 +922,72 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
 
       {step === 1 ? (
-        /* Step 1: Name, CI Identity and Service Type */
+        /* Step 1: Select object/CI first, then details */
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                Grundläggande information
+                <Server className="h-5 w-5 text-primary" />
+                Välj objekt eller CI
               </CardTitle>
               <CardDescription>
-                Ange namn, CI-identitet och tjänstetyp för kalkylen
+                Sök upp ditt objekt eller CI, eller välj "Nytt" för att skapa en kalkyl utan koppling
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="calcName">
-                  Namn på kalkyl <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="calcName"
-                  placeholder="T.ex. Produktionsmiljö Q1"
-                  value={calculationName}
-                  onChange={(e) => setCalculationName(e.target.value)}
-                  disabled={readOnly}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Ett beskrivande namn som hjälper dig identifiera kalkylen
-                </p>
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="ciIdentity">
-                  Objekt / CI-identitet <span className="text-destructive">*</span>
+                  Objekt / CI <span className="text-destructive">*</span>
                 </Label>
                 <CISelector
                   value={ciIdentity}
-                  onChange={setCiIdentity}
-                  onItemChange={setSelectedCI}
-                  placeholder="Sök på CI nummer eller systemnamn..."
+                  onChange={(val) => {
+                    setCiIdentity(val);
+                    // If selecting an existing CI, auto-set service type from CI if available
+                  }}
+                  onItemChange={(item) => {
+                    setSelectedCI(item);
+                    if (item?.service_type) {
+                      setServiceType(item.service_type);
+                    }
+                  }}
+                  placeholder="Sök på objektnummer, CI nummer eller systemnamn..."
                   disabled={readOnly}
                 />
                 <p className="text-sm text-muted-foreground">
-                  Välj objekt eller CI-identitet från registret, eller ange manuellt
+                  Välj ett befintligt objekt eller "Nytt" för att ange uppgifter manuellt
                 </p>
               </div>
+
+              {/* Show auto-generated name for existing CI, or input for "Nytt" */}
+              {isNewCI ? (
+                <div className="space-y-2">
+                  <Label htmlFor="calcName">
+                    Namn på kalkyl <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="calcName"
+                    placeholder="T.ex. Produktionsmiljö Q1"
+                    value={calculationName}
+                    onChange={(e) => setCalculationName(e.target.value)}
+                    disabled={readOnly}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Ange ett beskrivande namn för kalkylen
+                  </p>
+                </div>
+              ) : selectedCI ? (
+                <div className="space-y-2">
+                  <Label>Kalkylnamn</Label>
+                  <div className="p-3 bg-muted/50 rounded-md border">
+                    <p className="font-medium">{effectiveCalculationName}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Namnet sätts automatiskt baserat på objektnamn och dagens datum
+                  </p>
+                </div>
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="customer">
                   Kund <span className="text-destructive">*</span>
