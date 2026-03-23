@@ -293,6 +293,7 @@ export default function ConfigurationItemsManagement() {
           system_administrator: editForm.system_administrator.trim() || null,
           organization: editForm.organization.trim() || null,
           object_number: editForm.object_number.trim() || null,
+          service_type: editForm.service_type || null,
         })
         .eq('id', editingItem.id);
 
