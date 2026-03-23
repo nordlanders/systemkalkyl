@@ -25,6 +25,13 @@ import {
   Pencil } from
 'lucide-react';
 
+const SERVICE_TYPES = [
+  { value: 'Anpassad drift', label: 'Anpassad drift' },
+  { value: 'Anpassad förvaltning', label: 'Anpassad förvaltning' },
+  { value: 'Bastjänst Digital infrastruktur', label: 'Bastjänst Digital infrastruktur' },
+  { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
+];
+
 interface ConfigurationItem {
   id: string;
   ci_number: string;
@@ -33,6 +40,7 @@ interface ConfigurationItem {
   system_administrator: string | null;
   organization: string | null;
   object_number: string | null;
+  service_type: string | null;
   is_active: boolean;
   created_at: string;
 }
