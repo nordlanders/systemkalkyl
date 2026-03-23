@@ -41,6 +41,7 @@ interface ConfigurationItem {
   organization: string | null;
   object_number: string | null;
   service_type: string | null;
+  customer_id: string | null;
   is_active: boolean;
   created_at: string;
 }
