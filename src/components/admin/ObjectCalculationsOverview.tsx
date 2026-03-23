@@ -281,7 +281,7 @@ export default function ObjectCalculationsOverview() {
 
                       {isExpanded && group.calculations.length > 0 && (
                         <TableRow key={`${group.objectNumber}-details`}>
-                          <TableCell colSpan={6} className="bg-muted/30 p-0">
+                          <TableCell colSpan={5} className="bg-muted/30 p-0">
                             <div className="px-8 py-3">
                               <Table>
                                 <TableHeader>
