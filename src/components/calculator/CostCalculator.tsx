@@ -1246,7 +1246,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   Välj pristyper
                 </CardTitle>
                 <CardDescription>
-                  Markera vilka pristyper som ska ingå i kalkylen
+                  Markera vilka pristyper som ska ingå i kalkylen - det går alltid att lägga till fler senare, man kan även ha flera av samma pristyp.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
