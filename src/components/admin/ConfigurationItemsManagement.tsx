@@ -343,7 +343,7 @@ export default function ConfigurationItemsManagement() {
       const { error } = await supabase
         .from('configuration_items')
         .insert({
-          ci_number: editForm.ci_number.trim(),
+          ci_number: editForm.ci_number.trim() || null,
           system_name: editForm.system_name.trim(),
           system_owner: editForm.system_owner.trim() || null,
           system_administrator: editForm.system_administrator.trim() || null,
