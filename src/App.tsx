@@ -23,6 +23,7 @@ import BudgetCompensationsPage from "./pages/BudgetCompensationsPage";
 import CmdbPage from "./pages/CmdbPage";
 import SimulationPage from "./pages/SimulationPage";
 import GuideManagementPage from "./pages/GuideManagementPage";
+import ObjectCalculationsPage from "./pages/ObjectCalculationsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/cmdb" element={<CmdbPage />} />
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/admin/guide" element={<GuideManagementPage />} />
+            <Route path="/admin/object-calculations" element={<ObjectCalculationsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
