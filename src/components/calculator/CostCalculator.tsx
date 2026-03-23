@@ -110,6 +110,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(readOnly ? 3 : editCalculation ? 2 : 1);
+  const [priceTypeSelectionDone, setPriceTypeSelectionDone] = useState(!!editCalculation);
+  const [selectedPriceTypeIds, setSelectedPriceTypeIds] = useState<Set<string>>(new Set());
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<'draft' | 'pending_approval'>(editCalculation?.status === 'approved' || editCalculation?.status === 'closed' ? 'pending_approval' : (editCalculation?.status as 'draft' | 'pending_approval') ?? 'draft');
   
