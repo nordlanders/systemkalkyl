@@ -49,7 +49,7 @@ const SERVICE_TYPES = [
 ];
 
 const BASTJANST_TYPES = ['Bastjänst Digital infrastruktur', 'Bastjänst IT infrastruktur'];
-const INTERNA_KALKYLER_NAME = 'Interna kalkyler';
+const INTERNA_KALKYLER_NAME = 'Interna kalkyler - Digitalisering och IT';
 
 
 interface Organization {
