@@ -53,6 +53,9 @@ export default function ConfigurationItemsManagement() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [editingItem, setEditingItem] = useState<ConfigurationItem | null>(null);
+  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '' });
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user, isAdmin } = useAuth();
