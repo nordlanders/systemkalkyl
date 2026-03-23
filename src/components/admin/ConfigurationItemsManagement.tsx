@@ -164,8 +164,11 @@ export default function ConfigurationItemsManagement() {
       const organizationIdx = header.findIndex((h) => h === 'organisation' || h === 'organization');
       const objectNumberIdx = header.findIndex((h) => h === 'objektnummer' || h === 'object_number' || h === 'objekt nummer' || h === 'objekt');
 
-      if (ciNumberIdx === -1 || systemNameIdx === -1) {
-        throw new Error('Obligatoriska kolumner saknas. "CI nummer" och "Systemnamn" måste finnas.');
+      if (ciNumberIdx === -1 && objectNumberIdx === -1) {
+        throw new Error('Minst en av kolumnerna "CI nummer" eller "Objektnummer" måste finnas, samt "Systemnamn".');
+      }
+      if (systemNameIdx === -1) {
+        throw new Error('Obligatorisk kolumn "Systemnamn" saknas.');
       }
 
       const dataRows = rows.slice(1);
