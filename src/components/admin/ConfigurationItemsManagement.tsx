@@ -591,11 +591,11 @@ export default function ConfigurationItemsManagement() {
         </CardContent>
       </Card>
 
-      {/* Edit dialog */}
-      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+      {/* Create/Edit dialog */}
+      <Dialog open={!!editingItem || isCreating} onOpenChange={(open) => { if (!open) { setEditingItem(null); setIsCreating(false); } }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Redigera CI-post</DialogTitle>
+            <DialogTitle>{isCreating ? 'Skapa ny CI-post' : 'Redigera CI-post'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
@@ -624,10 +624,10 @@ export default function ConfigurationItemsManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingItem(null)}>Avbryt</Button>
-            <Button onClick={handleSaveEdit} disabled={saving}>
+            <Button variant="outline" onClick={() => { setEditingItem(null); setIsCreating(false); }}>Avbryt</Button>
+            <Button onClick={isCreating ? handleCreate : handleSaveEdit} disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Spara
+              {isCreating ? 'Skapa' : 'Spara'}
             </Button>
           </DialogFooter>
         </DialogContent>
