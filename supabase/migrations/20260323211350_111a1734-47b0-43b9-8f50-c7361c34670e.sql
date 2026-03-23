@@ -1,0 +1,1 @@
+ALTER TABLE public.configuration_items ALTER COLUMN ci_number DROP NOT NULL;

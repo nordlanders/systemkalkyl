@@ -509,7 +509,7 @@ export type Database = {
       }
       configuration_items: {
         Row: {
-          ci_number: string
+          ci_number: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -523,7 +523,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          ci_number: string
+          ci_number?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -537,7 +537,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          ci_number?: string
+          ci_number?: string | null
           created_at?: string
           created_by?: string | null
           id?: string

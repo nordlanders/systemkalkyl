@@ -164,8 +164,11 @@ export default function ConfigurationItemsManagement() {
       const organizationIdx = header.findIndex((h) => h === 'organisation' || h === 'organization');
       const objectNumberIdx = header.findIndex((h) => h === 'objektnummer' || h === 'object_number' || h === 'objekt nummer' || h === 'objekt');
 
-      if (ciNumberIdx === -1 || systemNameIdx === -1) {
-        throw new Error('Obligatoriska kolumner saknas. "CI nummer" och "Systemnamn" måste finnas.');
+      if (ciNumberIdx === -1 && objectNumberIdx === -1) {
+        throw new Error('Minst en av kolumnerna "CI nummer" eller "Objektnummer" måste finnas, samt "Systemnamn".');
+      }
+      if (systemNameIdx === -1) {
+        throw new Error('Obligatorisk kolumn "Systemnamn" saknas.');
       }
 
       const dataRows = rows.slice(1);
@@ -175,17 +178,23 @@ export default function ConfigurationItemsManagement() {
 
       for (let i = 0; i < dataRows.length; i++) {
         const row = dataRows[i];
-        const ciNumber = row[ciNumberIdx]?.trim();
+        const ciNumber = ciNumberIdx >= 0 ? row[ciNumberIdx]?.trim() : '';
         const systemName = row[systemNameIdx]?.trim();
+        const objectNumber = objectNumberIdx >= 0 ? row[objectNumberIdx]?.trim() : '';
 
-        if (!ciNumber || !systemName) {
-          errors.push(`Rad ${i + 2}: CI nummer eller Systemnamn saknas.`);
+        if (!ciNumber && !objectNumber) {
+          errors.push(`Rad ${i + 2}: Varken CI nummer eller Objektnummer angivet.`);
+          failed++;
+          continue;
+        }
+        if (!systemName) {
+          errors.push(`Rad ${i + 2}: Systemnamn saknas.`);
           failed++;
           continue;
         }
 
         const itemData = {
-          ci_number: ciNumber,
+          ci_number: ciNumber || null,
           system_name: systemName,
           system_owner: systemOwnerIdx >= 0 ? row[systemOwnerIdx]?.trim() || null : null,
           system_administrator: systemAdminIdx >= 0 ? row[systemAdminIdx]?.trim() || null : null,
@@ -278,8 +287,12 @@ export default function ConfigurationItemsManagement() {
 
   async function handleSaveEdit() {
     if (!editingItem) return;
-    if (!editForm.ci_number.trim() || !editForm.system_name.trim()) {
-      toast({ title: 'Validering', description: 'CI nummer och Systemnamn är obligatoriska.', variant: 'destructive' });
+    if (!editForm.ci_number.trim() && !editForm.object_number.trim()) {
+      toast({ title: 'Validering', description: 'Antingen CI nummer eller Objektnummer måste anges.', variant: 'destructive' });
+      return;
+    }
+    if (!editForm.system_name.trim()) {
+      toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -287,7 +300,7 @@ export default function ConfigurationItemsManagement() {
       const { error } = await supabase
         .from('configuration_items')
         .update({
-          ci_number: editForm.ci_number.trim(),
+          ci_number: editForm.ci_number.trim() || null,
           system_name: editForm.system_name.trim(),
           system_owner: editForm.system_owner.trim() || null,
           system_administrator: editForm.system_administrator.trim() || null,
@@ -317,8 +330,12 @@ export default function ConfigurationItemsManagement() {
   }
 
   async function handleCreate() {
-    if (!editForm.ci_number.trim() || !editForm.system_name.trim()) {
-      toast({ title: 'Validering', description: 'CI nummer och Systemnamn är obligatoriska.', variant: 'destructive' });
+    if (!editForm.ci_number.trim() && !editForm.object_number.trim()) {
+      toast({ title: 'Validering', description: 'Antingen CI nummer eller Objektnummer måste anges.', variant: 'destructive' });
+      return;
+    }
+    if (!editForm.system_name.trim()) {
+      toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -326,7 +343,7 @@ export default function ConfigurationItemsManagement() {
       const { error } = await supabase
         .from('configuration_items')
         .insert({
-          ci_number: editForm.ci_number.trim(),
+          ci_number: editForm.ci_number.trim() || null,
           system_name: editForm.system_name.trim(),
           system_owner: editForm.system_owner.trim() || null,
           system_administrator: editForm.system_administrator.trim() || null,
@@ -619,8 +636,8 @@ export default function ConfigurationItemsManagement() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="edit-ci">CI nummer *</Label>
-              <Input id="edit-ci" value={editForm.ci_number} onChange={(e) => setEditForm({ ...editForm, ci_number: e.target.value })} />
+              <Label htmlFor="edit-ci">CI nummer</Label>
+              <Input id="edit-ci" value={editForm.ci_number} onChange={(e) => setEditForm({ ...editForm, ci_number: e.target.value })} placeholder="Krävs om objektnummer saknas" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-name">Systemnamn *</Label>
@@ -640,8 +657,9 @@ export default function ConfigurationItemsManagement() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-obj">Objektnummer</Label>
-              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} />
+              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} placeholder="Krävs om CI nummer saknas" />
             </div>
+            <p className="text-xs text-muted-foreground">Minst ett av CI nummer eller Objektnummer måste anges.</p>
             <div className="space-y-2">
               <Label>Tjänstetyp</Label>
               <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v })}>
