@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import {
   Upload,
   FileSpreadsheet,
@@ -19,7 +20,8 @@ import {
   Search,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown } from
+  ArrowDown,
+  Pencil } from
 'lucide-react';
 
 interface ConfigurationItem {
@@ -51,6 +53,9 @@ export default function ConfigurationItemsManagement() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [editingItem, setEditingItem] = useState<ConfigurationItem | null>(null);
+  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '' });
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { user, isAdmin } = useAuth();
@@ -245,6 +250,51 @@ export default function ConfigurationItemsManagement() {
         description: 'Kunde inte ändra status på CI-posten.',
         variant: 'destructive'
       });
+    }
+  }
+
+  function openEditDialog(item: ConfigurationItem) {
+    setEditingItem(item);
+    setEditForm({
+      ci_number: item.ci_number,
+      system_name: item.system_name,
+      system_owner: item.system_owner || '',
+      system_administrator: item.system_administrator || '',
+      organization: item.organization || '',
+      object_number: item.object_number || '',
+    });
+  }
+
+  async function handleSaveEdit() {
+    if (!editingItem) return;
+    if (!editForm.ci_number.trim() || !editForm.system_name.trim()) {
+      toast({ title: 'Validering', description: 'CI nummer och Systemnamn är obligatoriska.', variant: 'destructive' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('configuration_items')
+        .update({
+          ci_number: editForm.ci_number.trim(),
+          system_name: editForm.system_name.trim(),
+          system_owner: editForm.system_owner.trim() || null,
+          system_administrator: editForm.system_administrator.trim() || null,
+          organization: editForm.organization.trim() || null,
+          object_number: editForm.object_number.trim() || null,
+        })
+        .eq('id', editingItem.id);
+
+      if (error) throw error;
+
+      toast({ title: 'Sparad', description: 'CI-posten har uppdaterats.' });
+      setEditingItem(null);
+      loadItems();
+    } catch (error) {
+      console.error('Error updating CI:', error);
+      toast({ title: 'Fel', description: 'Kunde inte spara ändringarna.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -470,14 +520,22 @@ export default function ConfigurationItemsManagement() {
                       </TableCell>
                       {isAdmin &&
                   <TableCell>
-                          <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleToggleActive(item.id, item.is_active)}
-                      className={item.is_active ? 'text-muted-foreground hover:text-foreground' : 'text-primary hover:text-primary'}>
-
-                            {item.is_active ? 'Inaktivera' : 'Aktivera'}
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(item)}
+                              className="text-muted-foreground hover:text-foreground">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleActive(item.id, item.is_active)}
+                              className={item.is_active ? 'text-muted-foreground hover:text-foreground' : 'text-primary hover:text-primary'}>
+                              {item.is_active ? 'Inaktivera' : 'Aktivera'}
+                            </Button>
+                          </div>
                         </TableCell>
                   }
                     </TableRow>
@@ -488,6 +546,48 @@ export default function ConfigurationItemsManagement() {
           }
         </CardContent>
       </Card>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Redigera CI-post</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit-ci">CI nummer *</Label>
+              <Input id="edit-ci" value={editForm.ci_number} onChange={(e) => setEditForm({ ...editForm, ci_number: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Systemnamn *</Label>
+              <Input id="edit-name" value={editForm.system_name} onChange={(e) => setEditForm({ ...editForm, system_name: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-owner">Systemägare</Label>
+              <Input id="edit-owner" value={editForm.system_owner} onChange={(e) => setEditForm({ ...editForm, system_owner: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-admin">Systemförvaltare</Label>
+              <Input id="edit-admin" value={editForm.system_administrator} onChange={(e) => setEditForm({ ...editForm, system_administrator: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-org">Organisation</Label>
+              <Input id="edit-org" value={editForm.organization} onChange={(e) => setEditForm({ ...editForm, organization: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-obj">Objektnummer</Label>
+              <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingItem(null)}>Avbryt</Button>
+            <Button onClick={handleSaveEdit} disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+              Spara
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>);
 
 }
