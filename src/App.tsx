@@ -59,6 +59,7 @@ const App = () => (
             <Route path="/cmdb" element={<CmdbPage />} />
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/admin/guide" element={<GuideManagementPage />} />
+            <Route path="/admin/object-calculations" element={<ObjectCalculationsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
