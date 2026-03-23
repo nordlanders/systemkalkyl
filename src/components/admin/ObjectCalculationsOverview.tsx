@@ -289,7 +289,7 @@ export default function ObjectCalculationsOverview() {
                                 <TableHeader>
                                   <TableRow className="text-xs">
                                     <TableHead>Kalkylnamn</TableHead>
-                                    <TableHead>CI</TableHead>
+                                    <TableHead>Tjänstetyp</TableHead>
                                     <TableHead>Tjänstetyp</TableHead>
                                     <TableHead>År</TableHead>
                                     <TableHead>Version</TableHead>
