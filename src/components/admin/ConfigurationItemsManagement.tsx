@@ -127,7 +127,20 @@ export default function ConfigurationItemsManagement() {
     }
   }
 
-  function parseCSV(text: string): string[][] {
+  async function loadCustomers() {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (error) {
+      console.error('Error loading customers:', error);
+    }
+  }
+
     const lines = text.split(/\r?\n/).filter((line) => line.trim());
     return lines.map((line) => {
       const result: string[] = [];
