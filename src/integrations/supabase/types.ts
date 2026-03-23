@@ -512,6 +512,7 @@ export type Database = {
           ci_number: string | null
           created_at: string
           created_by: string | null
+          customer_id: string | null
           id: string
           is_active: boolean
           object_number: string | null
@@ -526,6 +527,7 @@ export type Database = {
           ci_number?: string | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           id?: string
           is_active?: boolean
           object_number?: string | null
@@ -540,6 +542,7 @@ export type Database = {
           ci_number?: string | null
           created_at?: string
           created_by?: string | null
+          customer_id?: string | null
           id?: string
           is_active?: boolean
           object_number?: string | null
@@ -550,7 +553,15 @@ export type Database = {
           system_owner?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "configuration_items_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       customers: {
         Row: {

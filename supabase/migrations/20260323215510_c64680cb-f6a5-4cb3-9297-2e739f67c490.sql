@@ -1,0 +1,1 @@
+ALTER TABLE public.configuration_items ADD COLUMN customer_id uuid REFERENCES public.customers(id) DEFAULT NULL;

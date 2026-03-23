@@ -41,6 +41,7 @@ interface ConfigurationItem {
   organization: string | null;
   object_number: string | null;
   service_type: string | null;
+  customer_id: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -54,6 +55,7 @@ interface ImportResult {
 type SortKey = 'ci_number' | 'system_name' | 'system_owner' | 'system_administrator' | 'organization' | 'object_number' | 'service_type' | 'is_active';
 type SortDir = 'asc' | 'desc';
 
+const ANPASSAD_TYPES = ['Anpassad drift', 'Anpassad förvaltning'];
 const BASTJANST_TYPES = ['Bastjänst Digital infrastruktur', 'Bastjänst IT infrastruktur'];
 
 interface OwningOrg {
@@ -65,6 +67,7 @@ interface OwningOrg {
 export default function ConfigurationItemsManagement() {
   const [items, setItems] = useState<ConfigurationItem[]>([]);
   const [owningOrgs, setOwningOrgs] = useState<OwningOrg[]>([]);
+  const [customers, setCustomers] = useState<{ id: string; name: string; is_active: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,7 +76,7 @@ export default function ConfigurationItemsManagement() {
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [editingItem, setEditingItem] = useState<ConfigurationItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '' });
+  const [editForm, setEditForm] = useState({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '', customer_id: '' });
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,10 +84,12 @@ export default function ConfigurationItemsManagement() {
   const { toast } = useToast();
 
   const isBastjanst = BASTJANST_TYPES.includes(editForm.service_type);
+  const isAnpassad = ANPASSAD_TYPES.includes(editForm.service_type);
 
   useEffect(() => {
     loadItems();
     loadOwningOrgs();
+    loadCustomers();
   }, []);
 
   async function loadItems() {
@@ -119,6 +124,20 @@ export default function ConfigurationItemsManagement() {
       setOwningOrgs(data || []);
     } catch (error) {
       console.error('Error loading owning organizations:', error);
+    }
+  }
+
+  async function loadCustomers() {
+    try {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      setCustomers(data || []);
+    } catch (error) {
+      console.error('Error loading customers:', error);
     }
   }
 
@@ -308,6 +327,7 @@ export default function ConfigurationItemsManagement() {
       organization: item.organization || '',
       object_number: item.object_number || '',
       service_type: item.service_type || '',
+      customer_id: item.customer_id || '',
     });
   }
 
@@ -321,8 +341,12 @@ export default function ConfigurationItemsManagement() {
       toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
-    if (BASTJANST_TYPES.includes(editForm.service_type) && !editForm.organization.trim()) {
-      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk för bastjänster.', variant: 'destructive' });
+    if (!editForm.organization.trim()) {
+      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk.', variant: 'destructive' });
+      return;
+    }
+    if (ANPASSAD_TYPES.includes(editForm.service_type) && !editForm.customer_id) {
+      toast({ title: 'Validering', description: 'Kund är obligatorisk för anpassade tjänster.', variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -337,6 +361,7 @@ export default function ConfigurationItemsManagement() {
           organization: editForm.organization.trim() || null,
           object_number: editForm.object_number.trim() || null,
           service_type: editForm.service_type || null,
+          customer_id: editForm.customer_id || null,
         })
         .eq('id', editingItem.id);
 
@@ -356,7 +381,7 @@ export default function ConfigurationItemsManagement() {
   function openCreateDialog() {
     setIsCreating(true);
     setEditingItem(null);
-    setEditForm({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '' });
+    setEditForm({ ci_number: '', system_name: '', system_owner: '', system_administrator: '', organization: '', object_number: '', service_type: '', customer_id: '' });
   }
 
   async function handleCreate() {
@@ -368,8 +393,12 @@ export default function ConfigurationItemsManagement() {
       toast({ title: 'Validering', description: 'Systemnamn är obligatoriskt.', variant: 'destructive' });
       return;
     }
-    if (BASTJANST_TYPES.includes(editForm.service_type) && !editForm.organization.trim()) {
-      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk för bastjänster.', variant: 'destructive' });
+    if (!editForm.organization.trim()) {
+      toast({ title: 'Validering', description: 'Ägande organisation är obligatorisk.', variant: 'destructive' });
+      return;
+    }
+    if (ANPASSAD_TYPES.includes(editForm.service_type) && !editForm.customer_id) {
+      toast({ title: 'Validering', description: 'Kund är obligatorisk för anpassade tjänster.', variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -384,6 +413,7 @@ export default function ConfigurationItemsManagement() {
           organization: editForm.organization.trim() || null,
           object_number: editForm.object_number.trim() || null,
           service_type: editForm.service_type || null,
+          customer_id: editForm.customer_id || null,
           created_by: user?.id,
         });
 
@@ -687,7 +717,7 @@ export default function ConfigurationItemsManagement() {
             </div>
             <div className="space-y-2">
               <Label>Tjänstetyp</Label>
-              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v, organization: '' })}>
+              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v, organization: '', customer_id: '' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Välj tjänstetyp" />
                 </SelectTrigger>
@@ -700,24 +730,36 @@ export default function ConfigurationItemsManagement() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-org">
-                {isBastjanst ? 'Ägande organisation inom DigIT av system och/eller kalkyl' : 'Organisation'}
-                {isBastjanst && <span className="text-destructive"> *</span>}
+                Ägande organisation inom DigIT av system och/eller kalkyl <span className="text-destructive">*</span>
               </Label>
-              {isBastjanst ? (
-                <Select value={editForm.organization} onValueChange={(v) => setEditForm({ ...editForm, organization: v })}>
+              <Select value={editForm.organization} onValueChange={(v) => setEditForm({ ...editForm, organization: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj ägande organisation" />
+                </SelectTrigger>
+                <SelectContent>
+                  {owningOrgs.map((org) => (
+                    <SelectItem key={org.id} value={org.name}>{org.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {isAnpassad && (
+              <div className="space-y-2">
+                <Label>
+                  Kund <span className="text-destructive">*</span>
+                </Label>
+                <Select value={editForm.customer_id} onValueChange={(v) => setEditForm({ ...editForm, customer_id: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Välj ägande organisation" />
+                    <SelectValue placeholder="Välj kund" />
                   </SelectTrigger>
                   <SelectContent>
-                    {owningOrgs.map((org) => (
-                      <SelectItem key={org.id} value={org.name}>{org.name}</SelectItem>
+                    {customers.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              ) : (
-                <Input id="edit-org" value={editForm.organization} onChange={(e) => setEditForm({ ...editForm, organization: e.target.value })} />
-              )}
-            </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="edit-obj">Objektnummer</Label>
               <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} placeholder="Krävs om CI nummer saknas" />
