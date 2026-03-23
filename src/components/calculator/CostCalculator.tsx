@@ -1010,25 +1010,38 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 <Label htmlFor="customer">
                   Kund <span className="text-destructive">*</span>
                 </Label>
-                <Select 
-                  value={customerId || ''} 
-                  onValueChange={(val) => setCustomerId(val || null)}
-                  disabled={readOnly}
-                >
-                  <SelectTrigger id="customer" className="w-full">
-                    <SelectValue placeholder="Välj kund" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground">
-                  Välj vilken kund kalkylen avser
-                </p>
+                {BASTJANST_TYPES.includes(serviceType) ? (
+                  <>
+                    <div className="p-3 bg-muted/50 rounded-md border">
+                      <p className="font-medium text-muted-foreground">{INTERNA_KALKYLER_NAME}</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Sätts automatiskt för bastjänster
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Select 
+                      value={customerId || ''} 
+                      onValueChange={(val) => setCustomerId(val || null)}
+                      disabled={readOnly}
+                    >
+                      <SelectTrigger id="customer" className="w-full">
+                        <SelectValue placeholder="Välj kund" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Välj vilken kund kalkylen avser
+                    </p>
+                  </>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="owningOrganization">
