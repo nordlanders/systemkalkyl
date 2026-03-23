@@ -642,6 +642,19 @@ export default function ConfigurationItemsManagement() {
               <Label htmlFor="edit-obj">Objektnummer</Label>
               <Input id="edit-obj" value={editForm.object_number} onChange={(e) => setEditForm({ ...editForm, object_number: e.target.value })} />
             </div>
+            <div className="space-y-2">
+              <Label>Tjänstetyp</Label>
+              <Select value={editForm.service_type} onValueChange={(v) => setEditForm({ ...editForm, service_type: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Välj tjänstetyp" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SERVICE_TYPES.map((st) => (
+                    <SelectItem key={st.value} value={st.value}>{st.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setEditingItem(null); setIsCreating(false); }}>Avbryt</Button>
