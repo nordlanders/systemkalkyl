@@ -1150,9 +1150,9 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
               <div className="pt-4">
                 <Button 
                   onClick={() => {
-                    if (!isEditing && rows.length === 0) {
-                      populateDefaultRows();
-                    }
+                    // Pre-select all available price types
+                    setSelectedPriceTypeIds(new Set(availablePricing.map(p => p.id)));
+                    setPriceTypeSelectionDone(false);
                     setStep(2);
                   }} 
                   disabled={!canProceedToStep2}
