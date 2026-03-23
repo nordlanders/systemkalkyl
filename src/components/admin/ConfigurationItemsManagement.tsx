@@ -554,6 +554,9 @@ export default function ConfigurationItemsManagement() {
                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort('object_number')}>
                        <span className="flex items-center">Objektnummer<SortIcon column="object_number" /></span>
                      </TableHead>
+                     <TableHead className="cursor-pointer select-none" onClick={() => handleSort('service_type')}>
+                       <span className="flex items-center">Tjänstetyp<SortIcon column="service_type" /></span>
+                     </TableHead>
                      <TableHead className="cursor-pointer select-none" onClick={() => handleSort('is_active')}>
                        <span className="flex items-center">Status<SortIcon column="is_active" /></span>
                      </TableHead>
