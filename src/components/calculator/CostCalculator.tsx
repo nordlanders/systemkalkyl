@@ -114,10 +114,19 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const { toast } = useToast();
   
   const isEditing = !!editCalculation;
+  const isNewCI = ciIdentity === NEW_CI_VALUE;
   const isOwner = !editCalculation || editCalculation.user_id === user?.id;
   const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | 'closed' | undefined;
   const isApproved = currentStatus === 'approved' || currentStatus === 'closed';
-  const canProceedToStep2 = calculationName.trim() !== '' && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
+  
+  // For "Nytt" — require a manual name. For existing CI — name is auto-generated.
+  const effectiveCalculationName = isNewCI 
+    ? calculationName 
+    : (selectedCI 
+        ? `${selectedCI.system_name} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}`
+        : calculationName);
+  
+  const canProceedToStep2 = (isNewCI ? calculationName.trim() !== '' : ciIdentity.trim() !== '') && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   useEffect(() => {
