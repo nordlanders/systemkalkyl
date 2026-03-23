@@ -48,6 +48,9 @@ const SERVICE_TYPES = [
   { value: 'Bastjänst IT infrastruktur', label: 'Bastjänst IT infrastruktur' },
 ];
 
+const BASTJANST_TYPES = ['Bastjänst Digital infrastruktur', 'Bastjänst IT infrastruktur'];
+const INTERNA_KALKYLER_NAME = 'Interna kalkyler';
+
 
 interface Organization {
   id: string;
