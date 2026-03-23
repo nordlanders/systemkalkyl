@@ -1277,9 +1277,15 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   .map((p, idx, arr) => {
                     const isDefault = defaultPricingIds.has(p.id);
                     const prevIsDefault = idx > 0 ? defaultPricingIds.has(arr[idx - 1].id) : true;
+                    const showDefaultHeader = isDefault && idx === 0;
                     const showSeparator = !isDefault && prevIsDefault;
                     return (
                       <div key={p.id}>
+                        {showDefaultHeader && (
+                          <div className="pb-1">
+                            <p className="text-xs font-medium text-muted-foreground">Föreslagna pristyper</p>
+                          </div>
+                        )}
                         {showSeparator && (
                           <div className="pt-2 pb-1 border-t">
                             <p className="text-xs font-medium text-muted-foreground">Övriga valbara pristyper</p>
