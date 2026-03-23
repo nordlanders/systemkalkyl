@@ -261,14 +261,22 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     }
   }
 
-  // Available pricing for the selected service type
+  // Available pricing for the selected service type (not disallowed)
   const availablePricing = useMemo(() => {
     return pricing.filter(p => {
       const isDisallowed = (p as any).disallowed_service_types?.includes(serviceType);
-      if (isDisallowed) return false;
-      return p.service_types && p.service_types.length > 0 && p.service_types.includes(serviceType);
+      return !isDisallowed;
     });
   }, [pricing, serviceType]);
+
+  // Default pricing = those with serviceType in their service_types array
+  const defaultPricingIds = useMemo(() => {
+    return new Set(
+      availablePricing
+        .filter(p => p.service_types && p.service_types.includes(serviceType))
+        .map(p => p.id)
+    );
+  }, [availablePricing, serviceType]);
 
   function populateDefaultRows() {
     const selectedPricing = availablePricing.filter(p => selectedPriceTypeIds.has(p.id));
