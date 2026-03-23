@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
-import CISelector, { type ConfigurationItem } from './CISelector';
+import CISelector, { type ConfigurationItem, NEW_CI_VALUE } from './CISelector';
 import BudgetOutcomeInfo from './BudgetOutcomeInfo';
 import { 
   Calculator,
