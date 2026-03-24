@@ -44,10 +44,17 @@ interface DashboardLayoutProps {
 const mainNavItems = [
   { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false, superAdminOnly: false },
   { href: '/cmdb', icon: Server, label: 'CMDB', adminOnly: false, superAdminOnly: true },
-  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true, superAdminOnly: false },
   { href: '/history', icon: History, label: 'Historik', adminOnly: true, superAdminOnly: false },
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true, superAdminOnly: false },
   { href: '/simulation', icon: FlaskConical, label: 'Simulering', adminOnly: true, superAdminOnly: false },
+];
+
+const analyticsNavItems = [
+  { href: '/analytics?view=service-type', label: 'Per tjänstetyp', icon: PieChart },
+  { href: '/analytics?view=price-type', label: 'Per pristyp', icon: BarChart3 },
+  { href: '/analytics?view=budget-comparison', label: 'Jämför med budget & utfall', icon: GitCompareArrows },
+  { href: '/analytics?view=service-cost', label: 'Kostnad per bastjänst', icon: Layers },
+  { href: '/analytics?view=object-calculations', label: 'Kalkyler per objekt', icon: FileSpreadsheet },
 ];
 
 const adminNavItems = [
