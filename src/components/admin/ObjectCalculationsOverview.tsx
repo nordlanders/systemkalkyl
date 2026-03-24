@@ -259,6 +259,10 @@ export default function ObjectCalculationsOverview() {
             ))}
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-2 ml-auto">
+          <Switch id="show-all" checked={showAllStatuses} onCheckedChange={setShowAllStatuses} />
+          <Label htmlFor="show-all" className="text-sm cursor-pointer">Visa alla statusar</Label>
+        </div>
       </div>
 
       {/* Table */}
