@@ -56,7 +56,7 @@ const adminNavItems = [
   { href: '/budget-compensations', icon: DollarSign, label: 'Budgetkompensationer' },
   { href: '/users', icon: Users, label: 'Användare' },
   { href: '/admin/guide', icon: BookOpen, label: 'Kalkylguide' },
-  { href: '/admin/object-calculations', icon: FileSpreadsheet, label: 'Kalkyler per objekt' },
+  
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

@@ -608,6 +608,10 @@ export default function AnalyticsPage() {
                   <Layers className="h-4 w-4" />
                   Kostnad per bastjänst
                 </TabsTrigger>
+                <TabsTrigger value="object-calculations" className="gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Kalkyler per objekt
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="service-type">
