@@ -31,6 +31,7 @@ interface ConfigurationItem {
   system_name: string;
   object_number: string | null;
   organization: string | null;
+  service_type: string | null;
 }
 
 interface ObjectGroup {
