@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck, Code, Database, ExternalLink, Copy, Check, Network, Table2 } from 'lucide-react';
+import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck, Code, Database, ExternalLink, Copy, Check, Network, Table2, FlaskConical, FileSpreadsheet, Building2, Building, DollarSign, Server, Layers, PieChart, GitCompareArrows } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function UserManualPage() {
@@ -20,60 +20,24 @@ export default function UserManualPage() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   const apiEndpoints = [
-    {
-      name: 'Kalkyler',
-      table: 'calculations',
-      description: 'Hämta alla kalkyler för inloggad användare',
-      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    },
-    {
-      name: 'Kalkylrader',
-      table: 'calculation_items',
-      description: 'Prisrader kopplade till kalkyler',
-      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    },
-    {
-      name: 'Kalkylversioner',
-      table: 'calculation_versions',
-      description: 'Historik över kalkylversioner',
-      methods: ['GET'],
-    },
-    {
-      name: 'Priskonfiguration',
-      table: 'pricing_config',
-      description: 'Alla pristyper och priser',
-      methods: ['GET'],
-    },
-    {
-      name: 'Kunder',
-      table: 'customers',
-      description: 'Kunder som kan väljas i kalkyler',
-      methods: ['GET'],
-    },
-    {
-      name: 'Organisationer',
-      table: 'organizations',
-      description: 'Organisationer kopplade till kunder',
-      methods: ['GET'],
-    },
-    {
-      name: 'Användarprofiler',
-      table: 'profiles',
-      description: 'Användarinformation',
-      methods: ['GET'],
-    },
-    {
-      name: 'Nyheter',
-      table: 'news',
-      description: 'Nyheter som visas på startsidan',
-      methods: ['GET'],
-    },
-    {
-      name: 'Granskningslogg',
-      table: 'audit_log',
-      description: 'Logg över alla systemändringar',
-      methods: ['GET'],
-    },
+    { name: 'Kalkyler', table: 'calculations', description: 'Hämta alla kalkyler för inloggad användare', methods: ['GET', 'POST', 'PATCH', 'DELETE'] },
+    { name: 'Kalkylrader', table: 'calculation_items', description: 'Prisrader kopplade till kalkyler', methods: ['GET', 'POST', 'PATCH', 'DELETE'] },
+    { name: 'Kalkylversioner', table: 'calculation_versions', description: 'Historik över kalkylversioner', methods: ['GET'] },
+    { name: 'Priskonfiguration', table: 'pricing_config', description: 'Alla pristyper och priser', methods: ['GET'] },
+    { name: 'Kunder', table: 'customers', description: 'Kunder som kan väljas i kalkyler', methods: ['GET'] },
+    { name: 'Organisationer', table: 'organizations', description: 'Organisationer kopplade till kunder', methods: ['GET'] },
+    { name: 'Ägande organisationer', table: 'owning_organizations', description: 'Ägande organisationer för kalkyler', methods: ['GET'] },
+    { name: 'Konfigurationsobjekt', table: 'configuration_items', description: 'CI-poster med objektnummer och systemnamn', methods: ['GET'] },
+    { name: 'Budget & Utfall', table: 'budget_outcomes', description: 'Budget- och utfallsdata per objekt', methods: ['GET'] },
+    { name: 'Budgetkompensationer', table: 'budget_compensations', description: 'Kompensationsbelopp per organisation och år', methods: ['GET'] },
+    { name: 'CMDB System', table: 'cmdb_systems', description: 'System i konfigurationsdatabasen', methods: ['GET'] },
+    { name: 'CMDB Servrar', table: 'cmdb_servers', description: 'Servrar kopplade till CMDB-system', methods: ['GET'] },
+    { name: 'Simuleringsscenarier', table: 'simulation_scenarios', description: 'Prissimuleringsscenarier', methods: ['GET'] },
+    { name: 'Simuleringspriser', table: 'simulation_prices', description: 'Simulerade priser per scenario', methods: ['GET'] },
+    { name: 'Guidesteg', table: 'guide_steps', description: 'Steg i kalkylguiden', methods: ['GET'] },
+    { name: 'Användarprofiler', table: 'profiles', description: 'Användarinformation', methods: ['GET'] },
+    { name: 'Nyheter', table: 'news', description: 'Nyheter som visas på startsidan', methods: ['GET'] },
+    { name: 'Granskningslogg', table: 'audit_log', description: 'Logg över alla systemändringar', methods: ['GET'] },
   ];
 
   function copyToClipboard(text: string, endpoint: string) {
@@ -161,36 +125,37 @@ export default function UserManualPage() {
                   <p className="text-sm text-muted-foreground">Skapa och hantera dina kalkyler</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                <History className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <h4 className="font-medium">Historik</h4>
-                  <p className="text-sm text-muted-foreground">Se ändringshistorik i systemet</p>
-                </div>
-              </div>
               {isAdmin && (
                 <>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <History className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Historik</h4>
+                      <p className="text-sm text-muted-foreground">Se ändringshistorik i systemet</p>
+                      <Badge variant="outline" className="mt-1">Admin</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <FileCheck className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Godkännanden</h4>
+                      <p className="text-sm text-muted-foreground">Granska och godkänn kalkyler</p>
+                      <Badge variant="outline" className="mt-1">Admin</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                     <BarChart3 className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <h4 className="font-medium">Analys</h4>
-                      <p className="text-sm text-muted-foreground">Statistik och översikt</p>
+                      <h4 className="font-medium">Analys (dropdown)</h4>
+                      <p className="text-sm text-muted-foreground">Analysöversikt med undermenyer: Per tjänstetyp, Per pristyp, Jämför med budget & utfall, Kostnad per bastjänst, Kalkyler per objekt och Simulering</p>
                       <Badge variant="outline" className="mt-1">Admin</Badge>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <Settings className="h-5 w-5 text-primary mt-0.5" />
+                    <Shield className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <h4 className="font-medium">Priskonfiguration</h4>
-                      <p className="text-sm text-muted-foreground">Hantera prislistor och priser</p>
-                      <Badge variant="outline" className="mt-1">Admin</Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <Users className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">Användare</h4>
-                      <p className="text-sm text-muted-foreground">Hantera systemanvändare</p>
+                      <h4 className="font-medium">Administration (dropdown)</h4>
+                      <p className="text-sm text-muted-foreground">Priskonfiguration, Kunder, Ägande organisation, Objekt och CI info, Budget & Utfall, Budgetkompensationer, Användare, Kalkylguide</p>
                       <Badge variant="outline" className="mt-1">Admin</Badge>
                     </div>
                   </div>
@@ -240,9 +205,10 @@ export default function UserManualPage() {
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground space-y-2">
-                  <p>I andra steget lägger du till prisrader baserat på priskonfigurationen:</p>
+                  <p>I andra steget väljer du först vilka pristyper som ska ingå, sedan konfigurerar du varje rad:</p>
                   <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li>Prisrader förpopuleras automatiskt baserat på vald tjänstetyp</li>
+                    <li><strong>Välj pristyper</strong> – Föreslagna pristyper är förikryssade baserat på tjänstetyp. Övriga valbara pristyper kan läggas till med checkboxar</li>
+                    <li>Det går alltid att lägga till fler pristyper senare, och man kan ha flera av samma pristyp</li>
                     <li>Ange antal för varje rad (stödjer decimaler med punkt eller komma)</li>
                     <li>Lägg till kommentarer vid behov</li>
                     <li>Totalkostnaden beräknas automatiskt</li>
@@ -418,12 +384,16 @@ export default function UserManualPage() {
                     </span>
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground space-y-2">
-                    <p>Få översikt över systemanvändning:</p>
+                    <p>Under Analys-menyn finns flera vyer:</p>
                     <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>Antal kalkyler per kund</li>
-                      <li>Totala kostnader per tjänstetyp</li>
-                      <li>Trender över tid</li>
+                      <li><strong>Per tjänstetyp</strong> – Totala kostnader grupperat efter tjänstetyp med cirkeldiagram</li>
+                      <li><strong>Per pristyp</strong> – Debitering per pristyp med stapeldiagram</li>
+                      <li><strong>Jämför med budget & utfall</strong> – Matchar kalkylversioner mot budgetdata via objektnummer</li>
+                      <li><strong>Kostnad per bastjänst</strong> – Aggregerar kalkylkostnader per organisation med möjlighet att dra bort budgetkompensationer</li>
+                      <li><strong>Kalkyler per objekt</strong> – Översikt grupperad per objektnummer med status, godkännandedatum och filter</li>
+                      <li><strong>Simulering</strong> – Skapa prissimuleringsscenarier för att se effekten av prisändringar</li>
                     </ul>
+                    <p>Filtrera på år, kunder, tjänstetyper, ägare och status i de analysvyer som stödjer det.</p>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="approvals">
@@ -456,6 +426,84 @@ export default function UserManualPage() {
                       <li>Skapa och redigera nyheter på startsidan</li>
                       <li>Välj om nyheten ska publiceras direkt eller sparas som utkast</li>
                       <li>Ta bort gamla nyheter</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="ci-items">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <Server className="h-4 w-4" />
+                      Objekt och CI info
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera konfigurationsobjekt (CI) som används i kalkyler:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Lägg till nya CI-poster med CI-nummer, systemnamn och objektnummer</li>
+                      <li>Ange tjänstetyp, systemägare och systemadministratör</li>
+                      <li>Importera CI-data via CSV-fil</li>
+                      <li>Aktivera/inaktivera CI-poster</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="owning-orgs">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Ägande organisation
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera ägande organisationer som kopplas till kalkyler:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Lägg till och redigera organisationer</li>
+                      <li>Aktivera/inaktivera organisationer</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="budget">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Budget & Utfall
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Importera och hantera budget- och utfallsdata:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Importera budgetdata från Excel/CSV</li>
+                      <li>Se budget, utfall och differenser per objekt</li>
+                      <li>Data används i analysvyn för jämförelse med kalkyler</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="budget-compensations">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Budgetkompensationer
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera budgetkompensationer (avskrivningar) per organisation:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Importera kompensationsbelopp per ägande organisation och år</li>
+                      <li>Används i analysvyn "Kostnad per bastjänst" för att visa nettokostnad</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="guide-mgmt">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Kalkylguide
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera kalkylguiden som visas för användare:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Redigera guidesteg med titel, beskrivning och tips</li>
+                      <li>Ändra ordning och aktivera/inaktivera steg</li>
                     </ul>
                   </AccordionContent>
                 </AccordionItem>
@@ -648,6 +696,31 @@ export default function UserManualPage() {
                           <span className="text-muted-foreground">→ används i →</span>
                           <Badge variant="outline" className="font-mono">calculation_items</Badge>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">calculations</Badge>
+                          <span className="text-muted-foreground">→ tillhör →</span>
+                          <Badge variant="outline" className="font-mono">owning_organizations</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">configuration_items</Badge>
+                          <span className="text-muted-foreground">→ tillhör →</span>
+                          <Badge variant="outline" className="font-mono">customers</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">cmdb_systems</Badge>
+                          <span className="text-muted-foreground">→ har många →</span>
+                          <Badge variant="outline" className="font-mono">cmdb_servers</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">simulation_scenarios</Badge>
+                          <span className="text-muted-foreground">→ har många →</span>
+                          <Badge variant="outline" className="font-mono">simulation_prices</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">budget_compensations</Badge>
+                          <span className="text-muted-foreground">→ tillhör →</span>
+                          <Badge variant="outline" className="font-mono">owning_organizations</Badge>
+                        </div>
                       </div>
                     </div>
                     
@@ -675,8 +748,44 @@ export default function UserManualPage() {
                           <p className="text-xs text-muted-foreground mt-1">Organisationer under kunder (hierarkisk)</p>
                         </div>
                         <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">owning_organizations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Ägande organisationer som kopplas till kalkyler</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">configuration_items</p>
+                          <p className="text-xs text-muted-foreground mt-1">CI-poster med objektnummer, systemnamn och tjänstetyp</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
                           <p className="font-mono text-sm font-medium text-primary">pricing_config</p>
-                          <p className="text-xs text-muted-foreground mt-1">Prislistor med giltighetsperioder</p>
+                          <p className="text-xs text-muted-foreground mt-1">Prislistor med giltighetsperioder och tjänstetypskoppling</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">budget_outcomes</p>
+                          <p className="text-xs text-muted-foreground mt-1">Budget- och utfallsdata importerad från ekonomisystem</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">budget_compensations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Budgetkompensationer per organisation och år</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">cmdb_systems</p>
+                          <p className="text-xs text-muted-foreground mt-1">System i konfigurationsdatabasen (CMDB)</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">cmdb_servers</p>
+                          <p className="text-xs text-muted-foreground mt-1">Servrar kopplade till CMDB-system</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">simulation_scenarios</p>
+                          <p className="text-xs text-muted-foreground mt-1">Prissimuleringsscenarier</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">simulation_prices</p>
+                          <p className="text-xs text-muted-foreground mt-1">Simulerade priser kopplade till scenarier</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">guide_steps</p>
+                          <p className="text-xs text-muted-foreground mt-1">Steg i den dynamiska kalkylguiden</p>
                         </div>
                         <div className="p-3 rounded-lg bg-muted/50 border">
                           <p className="font-mono text-sm font-medium text-primary">profiles</p>
@@ -882,6 +991,144 @@ export default function UserManualPage() {
                           { name: 'published', type: 'boolean', required: true },
                           { name: 'created_by', type: 'uuid' },
                           { name: 'created_by_name', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'owning_organizations',
+                        description: 'Ägande organisationer för kalkyler',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'name', type: 'text', required: true },
+                          { name: 'description', type: 'text' },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'configuration_items',
+                        description: 'Konfigurationsobjekt (CI) med objektnummer',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'ci_number', type: 'text' },
+                          { name: 'system_name', type: 'text', required: true },
+                          { name: 'object_number', type: 'text' },
+                          { name: 'organization', type: 'text' },
+                          { name: 'service_type', type: 'text' },
+                          { name: 'system_owner', type: 'text' },
+                          { name: 'system_administrator', type: 'text' },
+                          { name: 'customer_id', type: 'uuid', fk: 'customers' },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'budget_outcomes',
+                        description: 'Budget- och utfallsdata per objekt',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'objekt', type: 'text' },
+                          { name: 'ansvar', type: 'text' },
+                          { name: 'ukonto', type: 'text' },
+                          { name: 'budget_2025', type: 'numeric' },
+                          { name: 'budget_2026', type: 'numeric' },
+                          { name: 'utfall_ack', type: 'numeric' },
+                          { name: 'diff', type: 'numeric' },
+                          { name: 'import_date', type: 'date', required: true },
+                          { name: 'import_label', type: 'text' },
+                          { name: 'imported_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'budget_compensations',
+                        description: 'Budgetkompensationer per organisation och år',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'owning_organization_id', type: 'uuid', required: true, fk: 'owning_organizations' },
+                          { name: 'amount', type: 'numeric', required: true },
+                          { name: 'year', type: 'integer', required: true },
+                          { name: 'imported_by', type: 'uuid' },
+                          { name: 'imported_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'cmdb_systems',
+                        description: 'System i konfigurationsdatabasen',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'system_name', type: 'text', required: true },
+                          { name: 'environment', type: 'text' },
+                          { name: 'responsible_person', type: 'text' },
+                          { name: 'system_owner', type: 'text' },
+                          { name: 'system_administrator', type: 'text' },
+                          { name: 'status', type: 'text' },
+                          { name: 'description', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'cmdb_servers',
+                        description: 'Servrar kopplade till CMDB-system',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'system_id', type: 'uuid', required: true, fk: 'cmdb_systems' },
+                          { name: 'hostname', type: 'text', required: true },
+                          { name: 'os', type: 'text' },
+                          { name: 'vcpu', type: 'integer' },
+                          { name: 'ram_gb', type: 'numeric' },
+                          { name: 'disk_gb', type: 'numeric' },
+                          { name: 'datacenter', type: 'text' },
+                          { name: 'ip_address', type: 'text' },
+                          { name: 'status', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'simulation_scenarios',
+                        description: 'Prissimuleringsscenarier',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'name', type: 'text', required: true },
+                          { name: 'description', type: 'text' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_by_name', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'simulation_prices',
+                        description: 'Simulerade priser per scenario',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'scenario_id', type: 'uuid', required: true, fk: 'simulation_scenarios' },
+                          { name: 'pricing_config_id', type: 'uuid', fk: 'pricing_config' },
+                          { name: 'price_type', type: 'text', required: true },
+                          { name: 'original_price_per_unit', type: 'numeric', required: true },
+                          { name: 'simulated_price_per_unit', type: 'numeric', required: true },
+                          { name: 'unit', type: 'text' },
+                          { name: 'category', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'guide_steps',
+                        description: 'Steg i kalkylguiden',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'step_order', type: 'integer', required: true },
+                          { name: 'title', type: 'text', required: true },
+                          { name: 'description', type: 'text', required: true },
+                          { name: 'icon_name', type: 'text', required: true },
+                          { name: 'tip', type: 'text' },
+                          { name: 'details', type: 'jsonb', required: true },
+                          { name: 'is_active', type: 'boolean', required: true },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
                         ]
