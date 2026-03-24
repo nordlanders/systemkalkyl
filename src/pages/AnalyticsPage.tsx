@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users, CheckCircle2, GitCompareArrows } from 'lucide-react';
+import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users, CheckCircle2, GitCompareArrows, FileSpreadsheet } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -45,6 +45,7 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import BudgetComparisonTab from '@/components/analytics/BudgetComparisonTab';
 import ServiceCostTab from '@/components/analytics/ServiceCostTab';
+import ObjectCalculationsOverview from '@/components/admin/ObjectCalculationsOverview';
 
 interface CalculationItem {
   price_type: string;
@@ -607,6 +608,10 @@ export default function AnalyticsPage() {
                   <Layers className="h-4 w-4" />
                   Kostnad per bastjänst
                 </TabsTrigger>
+                <TabsTrigger value="object-calculations" className="gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Kalkyler per objekt
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="service-type">
@@ -827,6 +832,9 @@ export default function AnalyticsPage() {
               </TabsContent>
               <TabsContent value="service-cost">
                 <ServiceCostTab />
+              </TabsContent>
+              <TabsContent value="object-calculations">
+                <ObjectCalculationsOverview />
               </TabsContent>
             </Tabs>
           </>
