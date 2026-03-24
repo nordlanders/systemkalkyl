@@ -833,6 +833,9 @@ export default function AnalyticsPage() {
               <TabsContent value="service-cost">
                 <ServiceCostTab />
               </TabsContent>
+              <TabsContent value="object-calculations">
+                <ObjectCalculationsOverview />
+              </TabsContent>
             </Tabs>
           </>
         )}
