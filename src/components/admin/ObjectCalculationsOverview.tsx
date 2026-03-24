@@ -317,20 +317,7 @@ export default function ObjectCalculationsOverview() {
                         <TableCell className="w-8">
                           {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </TableCell>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {group.objectNumber}
-                            {hasPending && (
-                              <div className="flex items-center gap-1">
-                                {pendingStatuses.map(status => (
-                                  <Badge key={status} className={`${statusColors[status] || ''} text-[10px] px-1.5 py-0`} variant="secondary">
-                                    {statusLabels[status] || status}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
+                        <TableCell className="font-medium">{group.objectNumber}</TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
                         <TableCell>
                           {(() => {
