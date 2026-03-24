@@ -139,9 +139,27 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   useEffect(() => {
     if (BASTJANST_TYPES.includes(serviceType) && customers.length > 0) {
       const internaCustomer = customers.find(c => c.name === INTERNA_KALKYLER_NAME);
-      if (internaCustomer) setCustomerId(internaCustomer.id);
+      if (internaCustomer) {
+        setCustomerId(internaCustomer.id);
+        setOrganizationId(null);
+      }
     }
   }, [serviceType, customers]);
+
+  // Clear organization when customer changes
+  useEffect(() => {
+    if (!editCalculation) {
+      setOrganizationId(null);
+    }
+  }, [customerId]);
+
+  // Filter organizations for the selected customer
+  const customerOrganizations = useMemo(() => {
+    if (!customerId) return [];
+    const selectedCustomer = customers.find(c => c.id === customerId);
+    if (!selectedCustomer || selectedCustomer.name === INTERNA_KALKYLER_NAME) return [];
+    return organizations.filter(o => o.customer_id === customerId && o.is_active);
+  }, [customerId, organizations, customers]);
 
   useEffect(() => {
     if (!readOnly) {
