@@ -30,7 +30,10 @@ import {
   FileSpreadsheet,
   DollarSign,
   Key,
-  FlaskConical
+  FlaskConical,
+  PieChart,
+  GitCompareArrows,
+  Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
