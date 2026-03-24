@@ -164,7 +164,7 @@ export default function ObjectCalculationsOverview() {
     });
 
     return groups;
-  }, [calculations, ciItems, searchTerm, sortKey, sortDir, selectedServiceType]);
+  }, [calculations, ciItems, searchTerm, sortKey, sortDir, selectedServiceType, showAllStatuses]);
 
   const toggleGroup = (objNum: string) => {
     setExpandedGroups(prev => {
