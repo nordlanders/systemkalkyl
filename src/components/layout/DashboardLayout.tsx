@@ -46,7 +46,6 @@ const mainNavItems = [
   { href: '/cmdb', icon: Server, label: 'CMDB', adminOnly: false, superAdminOnly: true },
   { href: '/history', icon: History, label: 'Historik', adminOnly: true, superAdminOnly: false },
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true, superAdminOnly: false },
-  { href: '/simulation', icon: FlaskConical, label: 'Simulering', adminOnly: true, superAdminOnly: false },
 ];
 
 const analyticsNavItems = [
