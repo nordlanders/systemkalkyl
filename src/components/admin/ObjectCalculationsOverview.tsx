@@ -302,6 +302,8 @@ export default function ObjectCalculationsOverview() {
                   const isExpanded = expandedGroups.has(group.objectNumber);
                   const totalCost = group.calculations.reduce((s, c) => s + c.total_cost, 0);
                   const systemNames = [...new Set(group.ciItems.map(ci => ci.system_name))].join(', ');
+                  const hasPending = group.pendingCalcs.length > 0;
+                  const pendingStatuses = [...new Set(group.pendingCalcs.map(c => c.status))];
 
                   return (
                     <> 
@@ -313,7 +315,20 @@ export default function ObjectCalculationsOverview() {
                         <TableCell className="w-8">
                           {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </TableCell>
-                        <TableCell className="font-medium">{group.objectNumber}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {group.objectNumber}
+                            {hasPending && (
+                              <div className="flex items-center gap-1">
+                                {pendingStatuses.map(status => (
+                                  <Badge key={status} className={`${statusColors[status] || ''} text-[10px] px-1.5 py-0`} variant="secondary">
+                                    {statusLabels[status] || status}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
                         <TableCell>
                           <Badge variant={group.calculations.length > 0 ? 'default' : 'outline'}>
