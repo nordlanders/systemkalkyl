@@ -995,6 +995,144 @@ export default function UserManualPage() {
                           { name: 'updated_at', type: 'timestamp', required: true },
                         ]
                       },
+                      {
+                        name: 'owning_organizations',
+                        description: 'Ägande organisationer för kalkyler',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'name', type: 'text', required: true },
+                          { name: 'description', type: 'text' },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'configuration_items',
+                        description: 'Konfigurationsobjekt (CI) med objektnummer',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'ci_number', type: 'text' },
+                          { name: 'system_name', type: 'text', required: true },
+                          { name: 'object_number', type: 'text' },
+                          { name: 'organization', type: 'text' },
+                          { name: 'service_type', type: 'text' },
+                          { name: 'system_owner', type: 'text' },
+                          { name: 'system_administrator', type: 'text' },
+                          { name: 'customer_id', type: 'uuid', fk: 'customers' },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'budget_outcomes',
+                        description: 'Budget- och utfallsdata per objekt',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'objekt', type: 'text' },
+                          { name: 'ansvar', type: 'text' },
+                          { name: 'ukonto', type: 'text' },
+                          { name: 'budget_2025', type: 'numeric' },
+                          { name: 'budget_2026', type: 'numeric' },
+                          { name: 'utfall_ack', type: 'numeric' },
+                          { name: 'diff', type: 'numeric' },
+                          { name: 'import_date', type: 'date', required: true },
+                          { name: 'import_label', type: 'text' },
+                          { name: 'imported_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'budget_compensations',
+                        description: 'Budgetkompensationer per organisation och år',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'owning_organization_id', type: 'uuid', required: true, fk: 'owning_organizations' },
+                          { name: 'amount', type: 'numeric', required: true },
+                          { name: 'year', type: 'integer', required: true },
+                          { name: 'imported_by', type: 'uuid' },
+                          { name: 'imported_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'cmdb_systems',
+                        description: 'System i konfigurationsdatabasen',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'system_name', type: 'text', required: true },
+                          { name: 'environment', type: 'text' },
+                          { name: 'responsible_person', type: 'text' },
+                          { name: 'system_owner', type: 'text' },
+                          { name: 'system_administrator', type: 'text' },
+                          { name: 'status', type: 'text' },
+                          { name: 'description', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'cmdb_servers',
+                        description: 'Servrar kopplade till CMDB-system',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'system_id', type: 'uuid', required: true, fk: 'cmdb_systems' },
+                          { name: 'hostname', type: 'text', required: true },
+                          { name: 'os', type: 'text' },
+                          { name: 'vcpu', type: 'integer' },
+                          { name: 'ram_gb', type: 'numeric' },
+                          { name: 'disk_gb', type: 'numeric' },
+                          { name: 'datacenter', type: 'text' },
+                          { name: 'ip_address', type: 'text' },
+                          { name: 'status', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'simulation_scenarios',
+                        description: 'Prissimuleringsscenarier',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'name', type: 'text', required: true },
+                          { name: 'description', type: 'text' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_by_name', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'simulation_prices',
+                        description: 'Simulerade priser per scenario',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'scenario_id', type: 'uuid', required: true, fk: 'simulation_scenarios' },
+                          { name: 'pricing_config_id', type: 'uuid', fk: 'pricing_config' },
+                          { name: 'price_type', type: 'text', required: true },
+                          { name: 'original_price_per_unit', type: 'numeric', required: true },
+                          { name: 'simulated_price_per_unit', type: 'numeric', required: true },
+                          { name: 'unit', type: 'text' },
+                          { name: 'category', type: 'text' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'guide_steps',
+                        description: 'Steg i kalkylguiden',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'step_order', type: 'integer', required: true },
+                          { name: 'title', type: 'text', required: true },
+                          { name: 'description', type: 'text', required: true },
+                          { name: 'icon_name', type: 'text', required: true },
+                          { name: 'tip', type: 'text' },
+                          { name: 'details', type: 'jsonb', required: true },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
                     ].map((table) => (
                       <div key={table.name} className="rounded-lg border bg-card">
                         <div className="p-4 border-b bg-muted/30">
