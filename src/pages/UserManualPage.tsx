@@ -696,6 +696,31 @@ export default function UserManualPage() {
                           <span className="text-muted-foreground">→ används i →</span>
                           <Badge variant="outline" className="font-mono">calculation_items</Badge>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">calculations</Badge>
+                          <span className="text-muted-foreground">→ tillhör →</span>
+                          <Badge variant="outline" className="font-mono">owning_organizations</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">configuration_items</Badge>
+                          <span className="text-muted-foreground">→ tillhör →</span>
+                          <Badge variant="outline" className="font-mono">customers</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">cmdb_systems</Badge>
+                          <span className="text-muted-foreground">→ har många →</span>
+                          <Badge variant="outline" className="font-mono">cmdb_servers</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">simulation_scenarios</Badge>
+                          <span className="text-muted-foreground">→ har många →</span>
+                          <Badge variant="outline" className="font-mono">simulation_prices</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">budget_compensations</Badge>
+                          <span className="text-muted-foreground">→ tillhör →</span>
+                          <Badge variant="outline" className="font-mono">owning_organizations</Badge>
+                        </div>
                       </div>
                     </div>
                     
@@ -723,8 +748,44 @@ export default function UserManualPage() {
                           <p className="text-xs text-muted-foreground mt-1">Organisationer under kunder (hierarkisk)</p>
                         </div>
                         <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">owning_organizations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Ägande organisationer som kopplas till kalkyler</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">configuration_items</p>
+                          <p className="text-xs text-muted-foreground mt-1">CI-poster med objektnummer, systemnamn och tjänstetyp</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
                           <p className="font-mono text-sm font-medium text-primary">pricing_config</p>
-                          <p className="text-xs text-muted-foreground mt-1">Prislistor med giltighetsperioder</p>
+                          <p className="text-xs text-muted-foreground mt-1">Prislistor med giltighetsperioder och tjänstetypskoppling</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">budget_outcomes</p>
+                          <p className="text-xs text-muted-foreground mt-1">Budget- och utfallsdata importerad från ekonomisystem</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">budget_compensations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Budgetkompensationer per organisation och år</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">cmdb_systems</p>
+                          <p className="text-xs text-muted-foreground mt-1">System i konfigurationsdatabasen (CMDB)</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">cmdb_servers</p>
+                          <p className="text-xs text-muted-foreground mt-1">Servrar kopplade till CMDB-system</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">simulation_scenarios</p>
+                          <p className="text-xs text-muted-foreground mt-1">Prissimuleringsscenarier</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">simulation_prices</p>
+                          <p className="text-xs text-muted-foreground mt-1">Simulerade priser kopplade till scenarier</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">guide_steps</p>
+                          <p className="text-xs text-muted-foreground mt-1">Steg i den dynamiska kalkylguiden</p>
                         </div>
                         <div className="p-3 rounded-lg bg-muted/50 border">
                           <p className="font-mono text-sm font-medium text-primary">profiles</p>
