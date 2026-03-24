@@ -4,9 +4,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Search, ChevronDown, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Loader2, Search, ChevronDown, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -38,6 +40,7 @@ interface ObjectGroup {
   objectNumber: string;
   ciItems: ConfigurationItem[];
   calculations: Calculation[];
+  pendingCalcs: Calculation[]; // non-approved calcs for indicator
 }
 
 type SortKey = 'objectNumber' | 'ciCount' | 'calcCount' | 'totalCost';
@@ -66,6 +69,7 @@ export default function ObjectCalculationsOverview() {
   const [sortKey, setSortKey] = useState<SortKey>('objectNumber');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
+  const [showAllStatuses, setShowAllStatuses] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -83,11 +87,9 @@ export default function ObjectCalculationsOverview() {
   }
 
   const objectGroups = useMemo(() => {
-    // Build a map: ci_number -> CI item
     const ciMap = new Map<string, ConfigurationItem>();
     ciItems.forEach(ci => ciMap.set(ci.ci_number, ci));
 
-    // Group calculations by object number
     const groupMap = new Map<string, ObjectGroup>();
 
     calculations.forEach(calc => {
@@ -95,10 +97,19 @@ export default function ObjectCalculationsOverview() {
       const objNum = ci?.object_number || '(utan objektnummer)';
 
       if (!groupMap.has(objNum)) {
-        groupMap.set(objNum, { objectNumber: objNum, ciItems: [], calculations: [] });
+        groupMap.set(objNum, { objectNumber: objNum, ciItems: [], calculations: [], pendingCalcs: [] });
       }
       const group = groupMap.get(objNum)!;
-      group.calculations.push(calc);
+
+      if (calc.status === 'approved') {
+        group.calculations.push(calc);
+      } else {
+        group.pendingCalcs.push(calc);
+        if (showAllStatuses) {
+          group.calculations.push(calc);
+        }
+      }
+
       if (ci && !group.ciItems.find(c => c.ci_number === ci.ci_number)) {
         group.ciItems.push(ci);
       }
@@ -108,7 +119,7 @@ export default function ObjectCalculationsOverview() {
     ciItems.forEach(ci => {
       const objNum = ci.object_number || '(utan objektnummer)';
       if (!groupMap.has(objNum)) {
-        groupMap.set(objNum, { objectNumber: objNum, ciItems: [ci], calculations: [] });
+        groupMap.set(objNum, { objectNumber: objNum, ciItems: [ci], calculations: [], pendingCalcs: [] });
       } else {
         const group = groupMap.get(objNum)!;
         if (!group.ciItems.find(c => c.ci_number === ci.ci_number)) {
@@ -155,7 +166,7 @@ export default function ObjectCalculationsOverview() {
     });
 
     return groups;
-  }, [calculations, ciItems, searchTerm, sortKey, sortDir, selectedServiceType]);
+  }, [calculations, ciItems, searchTerm, sortKey, sortDir, selectedServiceType, showAllStatuses]);
 
   const toggleGroup = (objNum: string) => {
     setExpandedGroups(prev => {
@@ -248,6 +259,10 @@ export default function ObjectCalculationsOverview() {
             ))}
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-2 ml-auto">
+          <Switch id="show-all" checked={showAllStatuses} onCheckedChange={setShowAllStatuses} />
+          <Label htmlFor="show-all" className="text-sm cursor-pointer">Visa alla statusar</Label>
+        </div>
       </div>
 
       {/* Table */}
@@ -287,6 +302,8 @@ export default function ObjectCalculationsOverview() {
                   const isExpanded = expandedGroups.has(group.objectNumber);
                   const totalCost = group.calculations.reduce((s, c) => s + c.total_cost, 0);
                   const systemNames = [...new Set(group.ciItems.map(ci => ci.system_name))].join(', ');
+                  const hasPending = group.pendingCalcs.length > 0;
+                  const pendingStatuses = [...new Set(group.pendingCalcs.map(c => c.status))];
 
                   return (
                     <> 
@@ -298,7 +315,20 @@ export default function ObjectCalculationsOverview() {
                         <TableCell className="w-8">
                           {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </TableCell>
-                        <TableCell className="font-medium">{group.objectNumber}</TableCell>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            {group.objectNumber}
+                            {hasPending && (
+                              <div className="flex items-center gap-1">
+                                {pendingStatuses.map(status => (
+                                  <Badge key={status} className={`${statusColors[status] || ''} text-[10px] px-1.5 py-0`} variant="secondary">
+                                    {statusLabels[status] || status}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
                         <TableCell>
                           <Badge variant={group.calculations.length > 0 ? 'default' : 'outline'}>
