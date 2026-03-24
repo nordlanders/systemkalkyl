@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck, Code, Database, ExternalLink, Copy, Check, Network, Table2 } from 'lucide-react';
+import { Loader2, BookOpen, Calculator, Settings, Users, History, BarChart3, Home, Shield, FileText, Download, Search, Filter, Clock, CheckCircle2, FileCheck, Code, Database, ExternalLink, Copy, Check, Network, Table2, FlaskConical, FileSpreadsheet, Building2, Building, DollarSign, Server, Layers, PieChart, GitCompareArrows } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function UserManualPage() {
