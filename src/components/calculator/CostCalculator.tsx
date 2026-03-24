@@ -1083,6 +1083,32 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   </>
                 )}
               </div>
+              {customerOrganizations.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="organization">
+                    Förvaltning/Bolag
+                  </Label>
+                  <Select 
+                    value={organizationId || ''} 
+                    onValueChange={(val) => setOrganizationId(val || null)}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger id="organization" className="w-full">
+                      <SelectValue placeholder="Välj förvaltning/bolag (valfritt)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customerOrganizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    Välj vilken förvaltning eller bolag inom kunden
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="owningOrganization">
                   Ägande organisation <span className="text-destructive">*</span>
