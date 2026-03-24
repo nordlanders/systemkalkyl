@@ -45,6 +45,7 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import BudgetComparisonTab from '@/components/analytics/BudgetComparisonTab';
 import ServiceCostTab from '@/components/analytics/ServiceCostTab';
+import ObjectCalculationsOverview from '@/components/admin/ObjectCalculationsOverview';
 
 interface CalculationItem {
   price_type: string;
