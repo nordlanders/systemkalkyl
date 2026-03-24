@@ -118,7 +118,15 @@ export default function ObjectCalculationsOverview() {
 
     let groups = Array.from(groupMap.values());
 
-    // Filter
+    // Filter by service type
+    if (selectedServiceType !== 'all') {
+      groups = groups.filter(g =>
+        g.calculations.some(c => c.service_type === selectedServiceType) ||
+        g.ciItems.some(ci => ci.service_type === selectedServiceType)
+      );
+    }
+
+    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       groups = groups.filter(g =>
@@ -146,7 +154,7 @@ export default function ObjectCalculationsOverview() {
     });
 
     return groups;
-  }, [calculations, ciItems, searchTerm, sortKey, sortDir]);
+  }, [calculations, ciItems, searchTerm, sortKey, sortDir, selectedServiceType]);
 
   const toggleGroup = (objNum: string) => {
     setExpandedGroups(prev => {
