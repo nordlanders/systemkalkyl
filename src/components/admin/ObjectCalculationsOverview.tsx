@@ -278,6 +278,8 @@ export default function ObjectCalculationsOverview() {
                   </Button>
                 </TableHead>
                 <TableHead>System</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Godkänd</TableHead>
                 <TableHead>
                   <Button variant="ghost" size="sm" onClick={() => handleSort('calcCount')} className="gap-1 -ml-3">
                     Kalkyler <SortIcon column="calcCount" />
