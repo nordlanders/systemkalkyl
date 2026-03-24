@@ -272,12 +272,12 @@ export default function ObjectCalculationsOverview() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-8"></TableHead>
+                <TableHead>System</TableHead>
                 <TableHead>
                   <Button variant="ghost" size="sm" onClick={() => handleSort('objectNumber')} className="gap-1 -ml-3">
                     Objektnummer <SortIcon column="objectNumber" />
                   </Button>
                 </TableHead>
-                <TableHead>System</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Godkänd</TableHead>
                 <TableHead>
