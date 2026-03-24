@@ -85,11 +85,9 @@ export default function ObjectCalculationsOverview() {
   }
 
   const objectGroups = useMemo(() => {
-    // Build a map: ci_number -> CI item
     const ciMap = new Map<string, ConfigurationItem>();
     ciItems.forEach(ci => ciMap.set(ci.ci_number, ci));
 
-    // Group calculations by object number
     const groupMap = new Map<string, ObjectGroup>();
 
     calculations.forEach(calc => {
@@ -97,10 +95,19 @@ export default function ObjectCalculationsOverview() {
       const objNum = ci?.object_number || '(utan objektnummer)';
 
       if (!groupMap.has(objNum)) {
-        groupMap.set(objNum, { objectNumber: objNum, ciItems: [], calculations: [] });
+        groupMap.set(objNum, { objectNumber: objNum, ciItems: [], calculations: [], pendingCalcs: [] });
       }
       const group = groupMap.get(objNum)!;
-      group.calculations.push(calc);
+
+      if (calc.status === 'approved') {
+        group.calculations.push(calc);
+      } else {
+        group.pendingCalcs.push(calc);
+        if (showAllStatuses) {
+          group.calculations.push(calc);
+        }
+      }
+
       if (ci && !group.ciItems.find(c => c.ci_number === ci.ci_number)) {
         group.ciItems.push(ci);
       }
@@ -110,7 +117,7 @@ export default function ObjectCalculationsOverview() {
     ciItems.forEach(ci => {
       const objNum = ci.object_number || '(utan objektnummer)';
       if (!groupMap.has(objNum)) {
-        groupMap.set(objNum, { objectNumber: objNum, ciItems: [ci], calculations: [] });
+        groupMap.set(objNum, { objectNumber: objNum, ciItems: [ci], calculations: [], pendingCalcs: [] });
       } else {
         const group = groupMap.get(objNum)!;
         if (!group.ciItems.find(c => c.ci_number === ci.ci_number)) {
