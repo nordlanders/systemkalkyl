@@ -333,6 +333,40 @@ export default function ObjectCalculationsOverview() {
                         </TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
                         <TableCell>
+                          {(() => {
+                            const approvedCalcs = group.calculations.filter(c => c.status === 'approved');
+                            if (approvedCalcs.length > 0) {
+                              return (
+                                <Badge className={statusColors['approved']} variant="secondary">
+                                  {statusLabels['approved']}
+                                </Badge>
+                              );
+                            }
+                            if (hasPending) {
+                              return (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  {pendingStatuses.map(status => (
+                                    <Badge key={status} className={`${statusColors[status] || ''} text-[10px] px-1.5 py-0`} variant="secondary">
+                                      {statusLabels[status] || status}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              );
+                            }
+                            return <span className="text-muted-foreground">—</span>;
+                          })()}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">
+                          {(() => {
+                            const latestApproved = group.calculations
+                              .filter(c => c.status === 'approved' && c.approved_at)
+                              .sort((a, b) => new Date(b.approved_at!).getTime() - new Date(a.approved_at!).getTime())[0];
+                            return latestApproved
+                              ? format(new Date(latestApproved.approved_at!), 'd MMM yyyy', { locale: sv })
+                              : '—';
+                          })()}
+                        </TableCell>
+                        <TableCell>
                           <Badge variant={group.calculations.length > 0 ? 'default' : 'outline'}>
                             {group.calculations.length}
                           </Badge>
