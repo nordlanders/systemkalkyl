@@ -38,6 +38,7 @@ interface ObjectGroup {
   objectNumber: string;
   ciItems: ConfigurationItem[];
   calculations: Calculation[];
+  pendingCalcs: Calculation[]; // non-approved calcs for indicator
 }
 
 type SortKey = 'objectNumber' | 'ciCount' | 'calcCount' | 'totalCost';
