@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Search, ChevronDown, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 
@@ -30,6 +31,7 @@ interface ConfigurationItem {
   system_name: string;
   object_number: string | null;
   organization: string | null;
+  service_type: string | null;
 }
 
 interface ObjectGroup {
@@ -63,6 +65,7 @@ export default function ObjectCalculationsOverview() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>('objectNumber');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
 
   useEffect(() => {
     fetchData();
@@ -72,7 +75,7 @@ export default function ObjectCalculationsOverview() {
     setLoading(true);
     const [calcRes, ciRes] = await Promise.all([
       supabase.from('calculations').select('id, name, ci_identity, service_type, total_cost, status, calculation_year, created_at, created_by_name, version, owning_organization, updated_at, approved_at'),
-      supabase.from('configuration_items').select('ci_number, system_name, object_number, organization').eq('is_active', true),
+      supabase.from('configuration_items').select('ci_number, system_name, object_number, organization, service_type').eq('is_active', true),
     ]);
     setCalculations(calcRes.data ?? []);
     setCiItems(ciRes.data ?? []);
@@ -116,7 +119,15 @@ export default function ObjectCalculationsOverview() {
 
     let groups = Array.from(groupMap.values());
 
-    // Filter
+    // Filter by service type
+    if (selectedServiceType !== 'all') {
+      groups = groups.filter(g =>
+        g.calculations.some(c => c.service_type === selectedServiceType) ||
+        g.ciItems.some(ci => ci.service_type === selectedServiceType)
+      );
+    }
+
+    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       groups = groups.filter(g =>
@@ -144,7 +155,7 @@ export default function ObjectCalculationsOverview() {
     });
 
     return groups;
-  }, [calculations, ciItems, searchTerm, sortKey, sortDir]);
+  }, [calculations, ciItems, searchTerm, sortKey, sortDir, selectedServiceType]);
 
   const toggleGroup = (objNum: string) => {
     setExpandedGroups(prev => {
@@ -167,6 +178,13 @@ export default function ObjectCalculationsOverview() {
     if (sortKey !== column) return <ArrowUpDown className="h-3 w-3 ml-1" />;
     return sortDir === 'asc' ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
   };
+
+  const serviceTypes = useMemo(() => {
+    const types = new Set<string>();
+    calculations.forEach(c => { if (c.service_type) types.add(c.service_type); });
+    ciItems.forEach(ci => { if (ci.service_type) types.add(ci.service_type); });
+    return Array.from(types).sort((a, b) => a.localeCompare(b, 'sv'));
+  }, [calculations, ciItems]);
 
   const totalCalcCount = calculations.length;
   const uniqueObjects = new Set(ciItems.map(ci => ci.object_number).filter(Boolean)).size;
@@ -208,15 +226,28 @@ export default function ObjectCalculationsOverview() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Sök på objektnummer, systemnamn, CI..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Sök på objektnummer, systemnamn, CI..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={selectedServiceType} onValueChange={setSelectedServiceType}>
+          <SelectTrigger className="w-[260px]">
+            <SelectValue placeholder="Alla tjänstetyper" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alla tjänstetyper</SelectItem>
+            {serviceTypes.map(st => (
+              <SelectItem key={st} value={st}>{st}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
