@@ -63,6 +63,7 @@ export default function ObjectCalculationsOverview() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [sortKey, setSortKey] = useState<SortKey>('objectNumber');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [selectedServiceType, setSelectedServiceType] = useState<string>('all');
 
   useEffect(() => {
     fetchData();
