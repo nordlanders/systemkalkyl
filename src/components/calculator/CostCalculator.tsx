@@ -98,7 +98,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
   const [customerId, setCustomerId] = useState<string | null>(editCalculation?.customer_id ?? null);
-  
+  const [organizationId, setOrganizationId] = useState<string | null>(editCalculation?.organization_id ?? null);
   const [owningOrganizationId, setOwningOrganizationId] = useState<string | null>(editCalculation?.owning_organization_id ?? null);
   const [calculationYear, setCalculationYear] = useState<number>(editCalculation?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
