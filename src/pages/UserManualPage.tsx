@@ -542,6 +542,7 @@ export default function UserManualPage() {
                       <li>Ändra ordning och aktivera/inaktivera steg</li>
                     </ul>
                   </AccordionContent>
+                </AccordionItem>
               </Accordion>
             </CardContent>
           </Card>
