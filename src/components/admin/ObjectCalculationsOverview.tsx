@@ -75,7 +75,7 @@ export default function ObjectCalculationsOverview() {
     setLoading(true);
     const [calcRes, ciRes] = await Promise.all([
       supabase.from('calculations').select('id, name, ci_identity, service_type, total_cost, status, calculation_year, created_at, created_by_name, version, owning_organization, updated_at, approved_at'),
-      supabase.from('configuration_items').select('ci_number, system_name, object_number, organization').eq('is_active', true),
+      supabase.from('configuration_items').select('ci_number, system_name, object_number, organization, service_type').eq('is_active', true),
     ]);
     setCalculations(calcRes.data ?? []);
     setCiItems(ciRes.data ?? []);
