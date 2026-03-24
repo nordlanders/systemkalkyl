@@ -439,7 +439,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
         ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
         service_type: serviceType,
         customer_id: customerId,
-        organization_id: null,
+        organization_id: organizationId,
         owning_organization_id: owningOrganizationId,
         // Keep text fields for backwards compatibility
         municipality: selectedCustomer?.name || '',
