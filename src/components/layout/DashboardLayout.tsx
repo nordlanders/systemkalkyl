@@ -60,6 +60,7 @@ const analyticsNavItems = [
 const adminNavItems = [
   { href: '/pricing', icon: Settings, label: 'Priskonfiguration' },
   { href: '/customers', icon: Building2, label: 'Kunder' },
+  { href: '/organizations', icon: Building2, label: 'Förvaltningar & Bolag' },
   { href: '/owning-organizations', icon: Building, label: 'Ägande organisation' },
   { href: '/configuration-items', icon: Server, label: 'Objekt och CI info' },
   { href: '/budget-outcome', icon: FileSpreadsheet, label: 'Budget & Utfall' },

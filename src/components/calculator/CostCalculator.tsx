@@ -98,7 +98,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
   const [customerId, setCustomerId] = useState<string | null>(editCalculation?.customer_id ?? null);
-  
+  const [organizationId, setOrganizationId] = useState<string | null>(editCalculation?.organization_id ?? null);
   const [owningOrganizationId, setOwningOrganizationId] = useState<string | null>(editCalculation?.owning_organization_id ?? null);
   const [calculationYear, setCalculationYear] = useState<number>(editCalculation?.calculation_year ?? currentYear);
   const [pricing, setPricing] = useState<PricingConfig[]>([]);
@@ -139,9 +139,27 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   useEffect(() => {
     if (BASTJANST_TYPES.includes(serviceType) && customers.length > 0) {
       const internaCustomer = customers.find(c => c.name === INTERNA_KALKYLER_NAME);
-      if (internaCustomer) setCustomerId(internaCustomer.id);
+      if (internaCustomer) {
+        setCustomerId(internaCustomer.id);
+        setOrganizationId(null);
+      }
     }
   }, [serviceType, customers]);
+
+  // Clear organization when customer changes
+  useEffect(() => {
+    if (!editCalculation) {
+      setOrganizationId(null);
+    }
+  }, [customerId]);
+
+  // Filter organizations for the selected customer
+  const customerOrganizations = useMemo(() => {
+    if (!customerId) return [];
+    const selectedCustomer = customers.find(c => c.id === customerId);
+    if (!selectedCustomer || selectedCustomer.name === INTERNA_KALKYLER_NAME) return [];
+    return organizations.filter(o => o.customer_id === customerId && o.is_active);
+  }, [customerId, organizations, customers]);
 
   useEffect(() => {
     if (!readOnly) {
@@ -421,7 +439,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
         ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
         service_type: serviceType,
         customer_id: customerId,
-        organization_id: null,
+        organization_id: organizationId,
         owning_organization_id: owningOrganizationId,
         // Keep text fields for backwards compatibility
         municipality: selectedCustomer?.name || '',
@@ -634,7 +652,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
           ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
           service_type: serviceType,
           customer_id: customerId,
-          organization_id: null,
+          organization_id: organizationId,
           owning_organization_id: owningOrganizationId,
           municipality: selectedCustomer?.name || '',
           owning_organization: selectedOwningOrg?.name || null,
@@ -1065,6 +1083,32 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   </>
                 )}
               </div>
+              {customerOrganizations.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="organization">
+                    Förvaltning/Bolag
+                  </Label>
+                  <Select 
+                    value={organizationId || ''} 
+                    onValueChange={(val) => setOrganizationId(val || null)}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger id="organization" className="w-full">
+                      <SelectValue placeholder="Välj förvaltning/bolag (valfritt)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customerOrganizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    Välj vilken förvaltning eller bolag inom kunden
+                  </p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="owningOrganization">
                   Ägande organisation <span className="text-destructive">*</span>

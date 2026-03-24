@@ -24,6 +24,7 @@ import CmdbPage from "./pages/CmdbPage";
 import SimulationPage from "./pages/SimulationPage";
 import GuideManagementPage from "./pages/GuideManagementPage";
 import ObjectCalculationsPage from "./pages/ObjectCalculationsPage";
+import OrganizationsPage from "./pages/OrganizationsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/simulation" element={<SimulationPage />} />
             <Route path="/admin/guide" element={<GuideManagementPage />} />
             <Route path="/admin/object-calculations" element={<ObjectCalculationsPage />} />
+            <Route path="/organizations" element={<OrganizationsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
