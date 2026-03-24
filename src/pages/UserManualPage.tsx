@@ -420,12 +420,16 @@ export default function UserManualPage() {
                     </span>
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground space-y-2">
-                    <p>Få översikt över systemanvändning:</p>
+                    <p>Under Analys-menyn finns flera vyer:</p>
                     <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>Antal kalkyler per kund</li>
-                      <li>Totala kostnader per tjänstetyp</li>
-                      <li>Trender över tid</li>
+                      <li><strong>Per tjänstetyp</strong> – Totala kostnader grupperat efter tjänstetyp med cirkeldiagram</li>
+                      <li><strong>Per pristyp</strong> – Debitering per pristyp med stapeldiagram</li>
+                      <li><strong>Jämför med budget & utfall</strong> – Matchar kalkylversioner mot budgetdata via objektnummer</li>
+                      <li><strong>Kostnad per bastjänst</strong> – Aggregerar kalkylkostnader per organisation med möjlighet att dra bort budgetkompensationer</li>
+                      <li><strong>Kalkyler per objekt</strong> – Översikt grupperad per objektnummer med status, godkännandedatum och filter</li>
+                      <li><strong>Simulering</strong> – Skapa prissimuleringsscenarier för att se effekten av prisändringar</li>
                     </ul>
+                    <p>Filtrera på år, kunder, tjänstetyper, ägare och status i de analysvyer som stödjer det.</p>
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="approvals">
