@@ -317,8 +317,8 @@ export default function ObjectCalculationsOverview() {
                         <TableCell className="w-8">
                           {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </TableCell>
-                        <TableCell className="font-medium">{group.objectNumber}</TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
+                        <TableCell className="font-medium">{group.objectNumber}</TableCell>
                         <TableCell>
                           {(() => {
                             const approvedCalcs = group.calculations.filter(c => c.status === 'approved');
