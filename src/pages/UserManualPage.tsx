@@ -20,60 +20,24 @@ export default function UserManualPage() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
   const apiEndpoints = [
-    {
-      name: 'Kalkyler',
-      table: 'calculations',
-      description: 'Hämta alla kalkyler för inloggad användare',
-      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    },
-    {
-      name: 'Kalkylrader',
-      table: 'calculation_items',
-      description: 'Prisrader kopplade till kalkyler',
-      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    },
-    {
-      name: 'Kalkylversioner',
-      table: 'calculation_versions',
-      description: 'Historik över kalkylversioner',
-      methods: ['GET'],
-    },
-    {
-      name: 'Priskonfiguration',
-      table: 'pricing_config',
-      description: 'Alla pristyper och priser',
-      methods: ['GET'],
-    },
-    {
-      name: 'Kunder',
-      table: 'customers',
-      description: 'Kunder som kan väljas i kalkyler',
-      methods: ['GET'],
-    },
-    {
-      name: 'Organisationer',
-      table: 'organizations',
-      description: 'Organisationer kopplade till kunder',
-      methods: ['GET'],
-    },
-    {
-      name: 'Användarprofiler',
-      table: 'profiles',
-      description: 'Användarinformation',
-      methods: ['GET'],
-    },
-    {
-      name: 'Nyheter',
-      table: 'news',
-      description: 'Nyheter som visas på startsidan',
-      methods: ['GET'],
-    },
-    {
-      name: 'Granskningslogg',
-      table: 'audit_log',
-      description: 'Logg över alla systemändringar',
-      methods: ['GET'],
-    },
+    { name: 'Kalkyler', table: 'calculations', description: 'Hämta alla kalkyler för inloggad användare', methods: ['GET', 'POST', 'PATCH', 'DELETE'] },
+    { name: 'Kalkylrader', table: 'calculation_items', description: 'Prisrader kopplade till kalkyler', methods: ['GET', 'POST', 'PATCH', 'DELETE'] },
+    { name: 'Kalkylversioner', table: 'calculation_versions', description: 'Historik över kalkylversioner', methods: ['GET'] },
+    { name: 'Priskonfiguration', table: 'pricing_config', description: 'Alla pristyper och priser', methods: ['GET'] },
+    { name: 'Kunder', table: 'customers', description: 'Kunder som kan väljas i kalkyler', methods: ['GET'] },
+    { name: 'Organisationer', table: 'organizations', description: 'Organisationer kopplade till kunder', methods: ['GET'] },
+    { name: 'Ägande organisationer', table: 'owning_organizations', description: 'Ägande organisationer för kalkyler', methods: ['GET'] },
+    { name: 'Konfigurationsobjekt', table: 'configuration_items', description: 'CI-poster med objektnummer och systemnamn', methods: ['GET'] },
+    { name: 'Budget & Utfall', table: 'budget_outcomes', description: 'Budget- och utfallsdata per objekt', methods: ['GET'] },
+    { name: 'Budgetkompensationer', table: 'budget_compensations', description: 'Kompensationsbelopp per organisation och år', methods: ['GET'] },
+    { name: 'CMDB System', table: 'cmdb_systems', description: 'System i konfigurationsdatabasen', methods: ['GET'] },
+    { name: 'CMDB Servrar', table: 'cmdb_servers', description: 'Servrar kopplade till CMDB-system', methods: ['GET'] },
+    { name: 'Simuleringsscenarier', table: 'simulation_scenarios', description: 'Prissimuleringsscenarier', methods: ['GET'] },
+    { name: 'Simuleringspriser', table: 'simulation_prices', description: 'Simulerade priser per scenario', methods: ['GET'] },
+    { name: 'Guidesteg', table: 'guide_steps', description: 'Steg i kalkylguiden', methods: ['GET'] },
+    { name: 'Användarprofiler', table: 'profiles', description: 'Användarinformation', methods: ['GET'] },
+    { name: 'Nyheter', table: 'news', description: 'Nyheter som visas på startsidan', methods: ['GET'] },
+    { name: 'Granskningslogg', table: 'audit_log', description: 'Logg över alla systemändringar', methods: ['GET'] },
   ];
 
   function copyToClipboard(text: string, endpoint: string) {
