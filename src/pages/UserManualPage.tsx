@@ -465,6 +465,83 @@ export default function UserManualPage() {
                     </ul>
                   </AccordionContent>
                 </AccordionItem>
+                <AccordionItem value="ci-items">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <Server className="h-4 w-4" />
+                      Objekt och CI info
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera konfigurationsobjekt (CI) som används i kalkyler:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Lägg till nya CI-poster med CI-nummer, systemnamn och objektnummer</li>
+                      <li>Ange tjänstetyp, systemägare och systemadministratör</li>
+                      <li>Importera CI-data via CSV-fil</li>
+                      <li>Aktivera/inaktivera CI-poster</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="owning-orgs">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Ägande organisation
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera ägande organisationer som kopplas till kalkyler:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Lägg till och redigera organisationer</li>
+                      <li>Aktivera/inaktivera organisationer</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="budget">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <FileSpreadsheet className="h-4 w-4" />
+                      Budget & Utfall
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Importera och hantera budget- och utfallsdata:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Importera budgetdata från Excel/CSV</li>
+                      <li>Se budget, utfall och differenser per objekt</li>
+                      <li>Data används i analysvyn för jämförelse med kalkyler</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="budget-compensations">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Budgetkompensationer
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera budgetkompensationer (avskrivningar) per organisation:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Importera kompensationsbelopp per ägande organisation och år</li>
+                      <li>Används i analysvyn "Kostnad per bastjänst" för att visa nettokostnad</li>
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="guide-mgmt">
+                  <AccordionTrigger>
+                    <span className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Kalkylguide
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground space-y-2">
+                    <p>Hantera kalkylguiden som visas för användare:</p>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>Redigera guidesteg med titel, beskrivning och tips</li>
+                      <li>Ändra ordning och aktivera/inaktivera steg</li>
+                    </ul>
+                  </AccordionContent>
               </Accordion>
             </CardContent>
           </Card>
