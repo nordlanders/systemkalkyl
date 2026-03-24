@@ -595,8 +595,7 @@ export default function AnalyticsPage() {
               </Card>
             </div>
 
-            ) : (
-              <>
+
                 {activeView === 'service-type' && (
                 <Card>
                   <CardHeader>
