@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, BarChart3, PieChart, TrendingUp, Layers, Calendar, Building2, Filter, Settings2, Users, CheckCircle2, GitCompareArrows, FileSpreadsheet } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import {
   Select,
   SelectContent,
@@ -112,6 +112,8 @@ const CHART_COLORS = [
 
 export default function AnalyticsPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const activeView = searchParams.get('view') || 'service-type';
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
@@ -339,6 +341,10 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8 fade-in">
+        {activeView === 'object-calculations' ? (
+          <ObjectCalculationsOverview />
+        ) : (
+          <>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Analysöversikt</h1>
@@ -589,32 +595,8 @@ export default function AnalyticsPage() {
               </Card>
             </div>
 
-            {/* Pivot Tables */}
-            <Tabs defaultValue="service-type" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="service-type" className="gap-2">
-                  <PieChart className="h-4 w-4" />
-                  Per tjänstetyp
-                </TabsTrigger>
-                <TabsTrigger value="price-type" className="gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Per pristyp
-                </TabsTrigger>
-                <TabsTrigger value="budget-comparison" className="gap-2">
-                  <GitCompareArrows className="h-4 w-4" />
-                  Jämför med budget & utfall
-                </TabsTrigger>
-                <TabsTrigger value="service-cost" className="gap-2">
-                  <Layers className="h-4 w-4" />
-                  Kostnad per bastjänst
-                </TabsTrigger>
-                <TabsTrigger value="object-calculations" className="gap-2">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Kalkyler per objekt
-                </TabsTrigger>
-              </TabsList>
 
-              <TabsContent value="service-type">
+                {activeView === 'service-type' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Kostnad per tjänstetyp</CardTitle>
@@ -710,9 +692,9 @@ export default function AnalyticsPage() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
+                )}
 
-              <TabsContent value="price-type">
+                {activeView === 'price-type' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Debitering per pristyp</CardTitle>
@@ -826,18 +808,18 @@ export default function AnalyticsPage() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
-              <TabsContent value="budget-comparison">
-                <BudgetComparisonTab />
-              </TabsContent>
-              <TabsContent value="service-cost">
-                <ServiceCostTab />
-              </TabsContent>
-              <TabsContent value="object-calculations">
-                <ObjectCalculationsOverview />
-              </TabsContent>
-            </Tabs>
+                )}
+
+                {activeView === 'budget-comparison' && (
+                  <BudgetComparisonTab />
+                )}
+
+                {activeView === 'service-cost' && (
+                  <ServiceCostTab />
+                )}
           </>
+        )}
+        </>
         )}
       </div>
     </DashboardLayout>

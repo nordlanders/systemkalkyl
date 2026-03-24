@@ -30,7 +30,10 @@ import {
   FileSpreadsheet,
   DollarSign,
   Key,
-  FlaskConical
+  FlaskConical,
+  PieChart,
+  GitCompareArrows,
+  Layers
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,10 +44,17 @@ interface DashboardLayoutProps {
 const mainNavItems = [
   { href: '/calculator', icon: Calculator, label: 'Kalkyler', adminOnly: false, superAdminOnly: false },
   { href: '/cmdb', icon: Server, label: 'CMDB', adminOnly: false, superAdminOnly: true },
-  { href: '/analytics', icon: BarChart3, label: 'Analys', adminOnly: true, superAdminOnly: false },
   { href: '/history', icon: History, label: 'Historik', adminOnly: true, superAdminOnly: false },
   { href: '/approvals', icon: FileCheck, label: 'Godkännanden', adminOnly: true, superAdminOnly: false },
   { href: '/simulation', icon: FlaskConical, label: 'Simulering', adminOnly: true, superAdminOnly: false },
+];
+
+const analyticsNavItems = [
+  { href: '/analytics?view=service-type', label: 'Per tjänstetyp', icon: PieChart },
+  { href: '/analytics?view=price-type', label: 'Per pristyp', icon: BarChart3 },
+  { href: '/analytics?view=budget-comparison', label: 'Jämför med budget & utfall', icon: GitCompareArrows },
+  { href: '/analytics?view=service-cost', label: 'Kostnad per bastjänst', icon: Layers },
+  { href: '/analytics?view=object-calculations', label: 'Kalkyler per objekt', icon: FileSpreadsheet },
 ];
 
 const adminNavItems = [
@@ -106,7 +116,36 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 );
               })}
-            
+
+            {/* Analys dropdown */}
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={location.pathname === '/analytics' ? 'secondary' : 'ghost'}
+                    className={cn(
+                      'gap-2',
+                      location.pathname === '/analytics' && 'bg-primary/10 text-primary hover:bg-primary/15'
+                    )}
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Analys
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {analyticsNavItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link to={item.href} className="flex items-center gap-2 cursor-pointer">
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             {/* Administration dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -198,6 +237,37 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 );
               })}
+
+            {/* Analys section for mobile */}
+            {isAdmin && (
+              <div className="pt-2 mt-2 border-t">
+                <span className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <BarChart3 className="h-3 w-3" />
+                  Analys
+                </span>
+                {analyticsNavItems.map((item) => {
+                  const isActive = location.pathname + location.search === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        className={cn(
+                          'w-full justify-start gap-3',
+                          isActive && 'bg-primary/10 text-primary'
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
             
             {/* Administration section for mobile */}
             <div className="pt-2 mt-2 border-t">
