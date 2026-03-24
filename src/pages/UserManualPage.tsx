@@ -161,36 +161,37 @@ export default function UserManualPage() {
                   <p className="text-sm text-muted-foreground">Skapa och hantera dina kalkyler</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                <History className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <h4 className="font-medium">Historik</h4>
-                  <p className="text-sm text-muted-foreground">Se ändringshistorik i systemet</p>
-                </div>
-              </div>
               {isAdmin && (
                 <>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <History className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Historik</h4>
+                      <p className="text-sm text-muted-foreground">Se ändringshistorik i systemet</p>
+                      <Badge variant="outline" className="mt-1">Admin</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <FileCheck className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium">Godkännanden</h4>
+                      <p className="text-sm text-muted-foreground">Granska och godkänn kalkyler</p>
+                      <Badge variant="outline" className="mt-1">Admin</Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                     <BarChart3 className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <h4 className="font-medium">Analys</h4>
-                      <p className="text-sm text-muted-foreground">Statistik och översikt</p>
+                      <h4 className="font-medium">Analys (dropdown)</h4>
+                      <p className="text-sm text-muted-foreground">Analysöversikt med undermenyer: Per tjänstetyp, Per pristyp, Jämför med budget & utfall, Kostnad per bastjänst, Kalkyler per objekt och Simulering</p>
                       <Badge variant="outline" className="mt-1">Admin</Badge>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <Settings className="h-5 w-5 text-primary mt-0.5" />
+                    <Shield className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <h4 className="font-medium">Priskonfiguration</h4>
-                      <p className="text-sm text-muted-foreground">Hantera prislistor och priser</p>
-                      <Badge variant="outline" className="mt-1">Admin</Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                    <Users className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <h4 className="font-medium">Användare</h4>
-                      <p className="text-sm text-muted-foreground">Hantera systemanvändare</p>
+                      <h4 className="font-medium">Administration (dropdown)</h4>
+                      <p className="text-sm text-muted-foreground">Priskonfiguration, Kunder, Ägande organisation, Objekt och CI info, Budget & Utfall, Budgetkompensationer, Användare, Kalkylguide</p>
                       <Badge variant="outline" className="mt-1">Admin</Badge>
                     </div>
                   </div>
