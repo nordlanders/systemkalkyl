@@ -179,6 +179,13 @@ export default function ObjectCalculationsOverview() {
     return sortDir === 'asc' ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
+  const serviceTypes = useMemo(() => {
+    const types = new Set<string>();
+    calculations.forEach(c => { if (c.service_type) types.add(c.service_type); });
+    ciItems.forEach(ci => { if (ci.service_type) types.add(ci.service_type); });
+    return Array.from(types).sort((a, b) => a.localeCompare(b, 'sv'));
+  }, [calculations, ciItems]);
+
   const totalCalcCount = calculations.length;
   const uniqueObjects = new Set(ciItems.map(ci => ci.object_number).filter(Boolean)).size;
 
