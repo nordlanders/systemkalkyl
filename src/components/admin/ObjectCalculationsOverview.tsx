@@ -226,15 +226,28 @@ export default function ObjectCalculationsOverview() {
         </Card>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Sök på objektnummer, systemnamn, CI..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Sök på objektnummer, systemnamn, CI..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={selectedServiceType} onValueChange={setSelectedServiceType}>
+          <SelectTrigger className="w-[260px]">
+            <SelectValue placeholder="Alla tjänstetyper" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alla tjänstetyper</SelectItem>
+            {serviceTypes.map(st => (
+              <SelectItem key={st} value={st}>{st}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
