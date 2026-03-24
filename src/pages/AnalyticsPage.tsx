@@ -341,6 +341,10 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8 fade-in">
+        {activeView === 'object-calculations' ? (
+          <ObjectCalculationsOverview />
+        ) : (
+          <>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Analysöversikt</h1>
@@ -591,9 +595,6 @@ export default function AnalyticsPage() {
               </Card>
             </div>
 
-            {/* Pivot Tables */}
-            {activeView === 'object-calculations' ? (
-              <ObjectCalculationsOverview />
             ) : (
               <>
                 {activeView === 'service-type' && (
