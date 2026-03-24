@@ -112,6 +112,8 @@ const CHART_COLORS = [
 
 export default function AnalyticsPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const activeView = searchParams.get('view') || 'service-type';
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [availableYears, setAvailableYears] = useState<number[]>([currentYear]);
