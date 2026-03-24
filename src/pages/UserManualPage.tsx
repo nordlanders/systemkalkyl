@@ -241,9 +241,10 @@ export default function UserManualPage() {
                   </span>
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground space-y-2">
-                  <p>I andra steget lägger du till prisrader baserat på priskonfigurationen:</p>
+                  <p>I andra steget väljer du först vilka pristyper som ska ingå, sedan konfigurerar du varje rad:</p>
                   <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li>Prisrader förpopuleras automatiskt baserat på vald tjänstetyp</li>
+                    <li><strong>Välj pristyper</strong> – Föreslagna pristyper är förikryssade baserat på tjänstetyp. Övriga valbara pristyper kan läggas till med checkboxar</li>
+                    <li>Det går alltid att lägga till fler pristyper senare, och man kan ha flera av samma pristyp</li>
                     <li>Ange antal för varje rad (stödjer decimaler med punkt eller komma)</li>
                     <li>Lägg till kommentarer vid behov</li>
                     <li>Totalkostnaden beräknas automatiskt</li>
