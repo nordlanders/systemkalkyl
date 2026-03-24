@@ -24,6 +24,7 @@ import CmdbPage from "./pages/CmdbPage";
 import SimulationPage from "./pages/SimulationPage";
 import GuideManagementPage from "./pages/GuideManagementPage";
 import ObjectCalculationsPage from "./pages/ObjectCalculationsPage";
+import OrganizationsPage from "./pages/OrganizationsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
