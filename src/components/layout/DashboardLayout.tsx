@@ -116,7 +116,36 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 );
               })}
-            
+
+            {/* Analys dropdown */}
+            {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={location.pathname === '/analytics' ? 'secondary' : 'ghost'}
+                    className={cn(
+                      'gap-2',
+                      location.pathname === '/analytics' && 'bg-primary/10 text-primary hover:bg-primary/15'
+                    )}
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    Analys
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {analyticsNavItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link to={item.href} className="flex items-center gap-2 cursor-pointer">
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             {/* Administration dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
