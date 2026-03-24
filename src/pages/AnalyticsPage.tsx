@@ -817,8 +817,6 @@ export default function AnalyticsPage() {
                 {activeView === 'service-cost' && (
                   <ServiceCostTab />
                 )}
-              </>
-            )}
           </>
         )}
         )}
