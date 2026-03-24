@@ -592,31 +592,11 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Pivot Tables */}
-            <Tabs defaultValue="service-type" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="service-type" className="gap-2">
-                  <PieChart className="h-4 w-4" />
-                  Per tjänstetyp
-                </TabsTrigger>
-                <TabsTrigger value="price-type" className="gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Per pristyp
-                </TabsTrigger>
-                <TabsTrigger value="budget-comparison" className="gap-2">
-                  <GitCompareArrows className="h-4 w-4" />
-                  Jämför med budget & utfall
-                </TabsTrigger>
-                <TabsTrigger value="service-cost" className="gap-2">
-                  <Layers className="h-4 w-4" />
-                  Kostnad per bastjänst
-                </TabsTrigger>
-                <TabsTrigger value="object-calculations" className="gap-2">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Kalkyler per objekt
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="service-type">
+            {activeView === 'object-calculations' ? (
+              <ObjectCalculationsOverview />
+            ) : (
+              <>
+                {activeView === 'service-type' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Kostnad per tjänstetyp</CardTitle>
@@ -712,9 +692,9 @@ export default function AnalyticsPage() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
+                )}
 
-              <TabsContent value="price-type">
+                {activeView === 'price-type' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Debitering per pristyp</CardTitle>
@@ -828,17 +808,17 @@ export default function AnalyticsPage() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
-              <TabsContent value="budget-comparison">
-                <BudgetComparisonTab />
-              </TabsContent>
-              <TabsContent value="service-cost">
-                <ServiceCostTab />
-              </TabsContent>
-              <TabsContent value="object-calculations">
-                <ObjectCalculationsOverview />
-              </TabsContent>
-            </Tabs>
+                )}
+
+                {activeView === 'budget-comparison' && (
+                  <BudgetComparisonTab />
+                )}
+
+                {activeView === 'service-cost' && (
+                  <ServiceCostTab />
+                )}
+              </>
+            )}
           </>
         )}
       </div>
