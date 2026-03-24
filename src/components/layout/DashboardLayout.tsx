@@ -54,6 +54,7 @@ const analyticsNavItems = [
   { href: '/analytics?view=budget-comparison', label: 'Jämför med budget & utfall', icon: GitCompareArrows },
   { href: '/analytics?view=service-cost', label: 'Kostnad per bastjänst', icon: Layers },
   { href: '/analytics?view=object-calculations', label: 'Kalkyler per objekt', icon: FileSpreadsheet },
+  { href: '/simulation', label: 'Simulering', icon: FlaskConical },
 ];
 
 const adminNavItems = [
