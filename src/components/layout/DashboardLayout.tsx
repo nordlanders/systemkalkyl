@@ -237,6 +237,37 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </Link>
                 );
               })}
+
+            {/* Analys section for mobile */}
+            {isAdmin && (
+              <div className="pt-2 mt-2 border-t">
+                <span className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <BarChart3 className="h-3 w-3" />
+                  Analys
+                </span>
+                {analyticsNavItems.map((item) => {
+                  const isActive = location.pathname + location.search === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        className={cn(
+                          'w-full justify-start gap-3',
+                          isActive && 'bg-primary/10 text-primary'
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
             
             {/* Administration section for mobile */}
             <div className="pt-2 mt-2 border-t">
