@@ -278,6 +278,8 @@ export default function ObjectCalculationsOverview() {
                   </Button>
                 </TableHead>
                 <TableHead>System</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Godkänd</TableHead>
                 <TableHead>
                   <Button variant="ghost" size="sm" onClick={() => handleSort('calcCount')} className="gap-1 -ml-3">
                     Kalkyler <SortIcon column="calcCount" />
@@ -293,7 +295,7 @@ export default function ObjectCalculationsOverview() {
             <TableBody>
               {objectGroups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     Inga resultat hittades
                   </TableCell>
                 </TableRow>
@@ -315,21 +317,42 @@ export default function ObjectCalculationsOverview() {
                         <TableCell className="w-8">
                           {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                         </TableCell>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            {group.objectNumber}
-                            {hasPending && (
-                              <div className="flex items-center gap-1">
-                                {pendingStatuses.map(status => (
-                                  <Badge key={status} className={`${statusColors[status] || ''} text-[10px] px-1.5 py-0`} variant="secondary">
-                                    {statusLabels[status] || status}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
+                        <TableCell className="font-medium">{group.objectNumber}</TableCell>
                         <TableCell className="text-muted-foreground max-w-[300px] truncate">{systemNames || '—'}</TableCell>
+                        <TableCell>
+                          {(() => {
+                            const approvedCalcs = group.calculations.filter(c => c.status === 'approved');
+                            if (approvedCalcs.length > 0) {
+                              return (
+                                <Badge className={statusColors['approved']} variant="secondary">
+                                  {statusLabels['approved']}
+                                </Badge>
+                              );
+                            }
+                            if (hasPending) {
+                              return (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  {pendingStatuses.map(status => (
+                                    <Badge key={status} className={`${statusColors[status] || ''} text-[10px] px-1.5 py-0`} variant="secondary">
+                                      {statusLabels[status] || status}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              );
+                            }
+                            return <span className="text-muted-foreground">—</span>;
+                          })()}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">
+                          {(() => {
+                            const latestApproved = group.calculations
+                              .filter(c => c.status === 'approved' && c.approved_at)
+                              .sort((a, b) => new Date(b.approved_at!).getTime() - new Date(a.approved_at!).getTime())[0];
+                            return latestApproved
+                              ? format(new Date(latestApproved.approved_at!), 'd MMM yyyy', { locale: sv })
+                              : '—';
+                          })()}
+                        </TableCell>
                         <TableCell>
                           <Badge variant={group.calculations.length > 0 ? 'default' : 'outline'}>
                             {group.calculations.length}
@@ -342,7 +365,7 @@ export default function ObjectCalculationsOverview() {
 
                       {isExpanded && group.calculations.length > 0 && (
                         <TableRow key={`${group.objectNumber}-details`}>
-                          <TableCell colSpan={5} className="bg-muted/30 p-0">
+                          <TableCell colSpan={7} className="bg-muted/30 p-0">
                             <div className="px-8 py-3">
                               <Table>
                                 <TableHeader>
@@ -398,7 +421,7 @@ export default function ObjectCalculationsOverview() {
 
                       {isExpanded && group.calculations.length === 0 && (
                         <TableRow key={`${group.objectNumber}-empty`}>
-                          <TableCell colSpan={5} className="bg-muted/30 text-center text-muted-foreground py-4 text-sm">
+                          <TableCell colSpan={7} className="bg-muted/30 text-center text-muted-foreground py-4 text-sm">
                             Inga kalkyler för detta objekt
                           </TableCell>
                         </TableRow>
