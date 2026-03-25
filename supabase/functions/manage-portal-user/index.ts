@@ -75,18 +75,33 @@ Deno.serve(async (req) => {
         });
       }
 
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: { is_portal_user: true },
-      });
+      // Check if user already exists in auth
+      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find(
+        (u) => u.email?.toLowerCase() === email.toLowerCase()
+      );
 
-      if (createError) {
-        return new Response(JSON.stringify({ error: createError.message }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+      let authUserId: string;
+
+      if (existingUser) {
+        // User already exists - just link them
+        authUserId = existingUser.id;
+      } else {
+        // Create new auth user
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { is_portal_user: true },
         });
+
+        if (createError) {
+          return new Response(JSON.stringify({ error: createError.message }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        authUserId = newUser.user!.id;
       }
 
       // Update portal_users record with auth_user_id
