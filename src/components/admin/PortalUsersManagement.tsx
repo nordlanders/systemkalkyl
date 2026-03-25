@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Plus, Pencil, Trash2, Loader2, Users, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Users, AlertCircle, KeyRound } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ interface PortalUser {
   role: 'portal_admin' | 'portal_user' | 'portal_reader';
   is_active: boolean;
   created_at: string;
+  auth_user_id: string | null;
 }
 
 interface Customer {
@@ -53,8 +54,16 @@ export default function PortalUsersManagement() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Password reset dialog
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetTarget, setResetTarget] = useState<PortalUser | null>(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetting, setResetting] = useState(false);
+
+  // Form state
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<string>('portal_user');
   const [isActive, setIsActive] = useState(true);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
@@ -96,6 +105,7 @@ export default function PortalUsersManagement() {
   function resetForm() {
     setEmail('');
     setFullName('');
+    setPassword('');
     setRole('portal_user');
     setIsActive(true);
     setSelectedCustomerIds([]);
@@ -109,6 +119,7 @@ export default function PortalUsersManagement() {
     setEditingId(pu.id);
     setEmail(pu.email);
     setFullName(pu.full_name || '');
+    setPassword('');
     setRole(pu.role);
     setIsActive(pu.is_active);
 
@@ -135,6 +146,15 @@ export default function PortalUsersManagement() {
       toast({ title: 'Valideringsfel', description: 'Ange e-postadress.', variant: 'destructive' });
       return;
     }
+    // Require password for new users
+    if (!editingId && !password) {
+      toast({ title: 'Valideringsfel', description: 'Ange lösenord för ny användare.', variant: 'destructive' });
+      return;
+    }
+    if (!editingId && password.length < 12) {
+      toast({ title: 'Valideringsfel', description: 'Lösenordet måste vara minst 12 tecken.', variant: 'destructive' });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -147,6 +167,7 @@ export default function PortalUsersManagement() {
           .eq('id', editingId);
         if (error) throw error;
       } else {
+        // First create the portal_users record
         const { data, error } = await supabase
           .from('portal_users')
           .insert([{ email: email.trim(), full_name: fullName.trim() || null, role: role as 'portal_admin' | 'portal_user' | 'portal_reader', is_active: isActive, created_by: user.id }])
@@ -154,46 +175,45 @@ export default function PortalUsersManagement() {
           .single();
         if (error) throw error;
         portalUserId = data.id;
+
+        // Create auth user via edge function
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('manage-portal-user', {
+          body: { action: 'create', email: email.trim(), password, portalUserId },
+        });
+
+        if (fnError || fnData?.error) {
+          // Rollback: delete portal_users record
+          await supabase.from('portal_users').delete().eq('id', portalUserId);
+          throw new Error(fnData?.error || fnError?.message || 'Kunde inte skapa inloggning');
+        }
       }
 
+      // Sync customer assignments
       if (editingId) {
         const toRemoveCust = existingCustomerIds.filter(id => !selectedCustomerIds.includes(id));
         const toAddCust = selectedCustomerIds.filter(id => !existingCustomerIds.includes(id));
-
         if (toRemoveCust.length > 0) {
-          await supabase.from('portal_user_customers').delete()
-            .eq('portal_user_id', portalUserId!)
-            .in('customer_id', toRemoveCust);
+          await supabase.from('portal_user_customers').delete().eq('portal_user_id', portalUserId!).in('customer_id', toRemoveCust);
         }
         if (toAddCust.length > 0) {
-          await supabase.from('portal_user_customers').insert(
-            toAddCust.map(cid => ({ portal_user_id: portalUserId!, customer_id: cid }))
-          );
+          await supabase.from('portal_user_customers').insert(toAddCust.map(cid => ({ portal_user_id: portalUserId!, customer_id: cid })));
         }
       } else if (selectedCustomerIds.length > 0) {
-        await supabase.from('portal_user_customers').insert(
-          selectedCustomerIds.map(cid => ({ portal_user_id: portalUserId!, customer_id: cid }))
-        );
+        await supabase.from('portal_user_customers').insert(selectedCustomerIds.map(cid => ({ portal_user_id: portalUserId!, customer_id: cid })));
       }
 
+      // Sync organization assignments
       if (editingId) {
         const toRemoveOrg = existingOrgIds.filter(id => !selectedOrgIds.includes(id));
         const toAddOrg = selectedOrgIds.filter(id => !existingOrgIds.includes(id));
-
         if (toRemoveOrg.length > 0) {
-          await supabase.from('portal_user_organizations').delete()
-            .eq('portal_user_id', portalUserId!)
-            .in('organization_id', toRemoveOrg);
+          await supabase.from('portal_user_organizations').delete().eq('portal_user_id', portalUserId!).in('organization_id', toRemoveOrg);
         }
         if (toAddOrg.length > 0) {
-          await supabase.from('portal_user_organizations').insert(
-            toAddOrg.map(oid => ({ portal_user_id: portalUserId!, organization_id: oid }))
-          );
+          await supabase.from('portal_user_organizations').insert(toAddOrg.map(oid => ({ portal_user_id: portalUserId!, organization_id: oid })));
         }
       } else if (selectedOrgIds.length > 0) {
-        await supabase.from('portal_user_organizations').insert(
-          selectedOrgIds.map(oid => ({ portal_user_id: portalUserId!, organization_id: oid }))
-        );
+        await supabase.from('portal_user_organizations').insert(selectedOrgIds.map(oid => ({ portal_user_id: portalUserId!, organization_id: oid })));
       }
 
       toast({ title: editingId ? 'Uppdaterad' : 'Skapad', description: `Kundportal-användare har ${editingId ? 'uppdaterats' : 'skapats'}.` });
@@ -205,6 +225,35 @@ export default function PortalUsersManagement() {
       toast({ title: 'Fel vid sparande', description: error.message || 'Kunde inte spara.', variant: 'destructive' });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!resetTarget || !resetPassword) return;
+    if (resetPassword.length < 12) {
+      toast({ title: 'Valideringsfel', description: 'Lösenordet måste vara minst 12 tecken.', variant: 'destructive' });
+      return;
+    }
+
+    setResetting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-portal-user', {
+        body: { action: 'reset_password', email: resetTarget.email, password: resetPassword },
+      });
+
+      if (error || data?.error) {
+        throw new Error(data?.error || error?.message || 'Kunde inte återställa lösenord');
+      }
+
+      toast({ title: 'Lösenord återställt', description: `Lösenordet har uppdaterats för ${resetTarget.email}.` });
+      setResetDialogOpen(false);
+      setResetTarget(null);
+      setResetPassword('');
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast({ title: 'Fel', description: error.message || 'Kunde inte återställa lösenord.', variant: 'destructive' });
+    } finally {
+      setResetting(false);
     }
   }
 
@@ -276,13 +325,32 @@ export default function PortalUsersManagement() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>E-post *</Label>
-                    <Input placeholder="namn@foretag.se" value={email} onChange={e => setEmail(e.target.value)} />
+                    <Input
+                      placeholder="namn@foretag.se"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      disabled={!!editingId}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Namn</Label>
                     <Input placeholder="Förnamn Efternamn" value={fullName} onChange={e => setFullName(e.target.value)} />
                   </div>
                 </div>
+
+                {/* Password field for new users */}
+                {!editingId && (
+                  <div className="space-y-2">
+                    <Label>Lösenord *</Label>
+                    <Input
+                      type="password"
+                      placeholder="Minst 12 tecken"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">Lösenordet måste vara minst 12 tecken långt</p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -302,6 +370,7 @@ export default function PortalUsersManagement() {
                   </div>
                 </div>
 
+                {/* Customer assignments */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Kunder</Label>
                   <p className="text-sm text-muted-foreground">Välj vilka kunder användaren tillhör</p>
@@ -322,6 +391,7 @@ export default function PortalUsersManagement() {
                   </div>
                 </div>
 
+                {/* Organization assignments */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Förvaltningar & Bolag</Label>
                   <p className="text-sm text-muted-foreground">
@@ -368,6 +438,37 @@ export default function PortalUsersManagement() {
         )}
       </div>
 
+      {/* Reset password dialog */}
+      <Dialog open={resetDialogOpen} onOpenChange={(open) => { setResetDialogOpen(open); if (!open) { setResetTarget(null); setResetPassword(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Återställ lösenord</DialogTitle>
+            <DialogDescription>
+              Ange nytt lösenord för {resetTarget?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Nytt lösenord *</Label>
+              <Input
+                type="password"
+                placeholder="Minst 12 tecken"
+                value={resetPassword}
+                onChange={e => setResetPassword(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Lösenordet måste vara minst 12 tecken långt</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setResetDialogOpen(false)}>Avbryt</Button>
+              <Button onClick={handleResetPassword} disabled={resetting}>
+                {resetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Återställ
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {!isAdmin && (
         <Card className="border-warning/50 bg-warning/5">
           <CardContent className="flex items-center gap-3 pt-6">
@@ -393,6 +494,7 @@ export default function PortalUsersManagement() {
                   <TableHead>E-post</TableHead>
                   <TableHead>Namn</TableHead>
                   <TableHead>Roll</TableHead>
+                  <TableHead>Inloggning</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Skapad</TableHead>
                   {isAdmin && <TableHead className="text-right">Åtgärder</TableHead>}
@@ -401,7 +503,7 @@ export default function PortalUsersManagement() {
               <TableBody>
                 {portalUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin ? 6 : 5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={isAdmin ? 7 : 6} className="text-center text-muted-foreground py-8">
                       Inga kundportal-användare hittades
                     </TableCell>
                   </TableRow>
@@ -414,6 +516,13 @@ export default function PortalUsersManagement() {
                         <Badge variant="outline">{ROLE_LABELS[pu.role] || pu.role}</Badge>
                       </TableCell>
                       <TableCell>
+                        {pu.auth_user_id ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">Aktiverad</span>
+                        ) : (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Ej skapad</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${pu.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
                           {pu.is_active ? 'Aktiv' : 'Inaktiv'}
                         </span>
@@ -421,7 +530,17 @@ export default function PortalUsersManagement() {
                       <TableCell>{format(new Date(pu.created_at), 'd MMM yyyy', { locale: sv })}</TableCell>
                       {isAdmin && (
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex justify-end gap-1">
+                            {pu.auth_user_id && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => { setResetTarget(pu); setResetDialogOpen(true); }}
+                                title="Återställ lösenord"
+                              >
+                                <KeyRound className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="icon" onClick={() => openEditDialog(pu)} title="Redigera">
                               <Pencil className="h-4 w-4" />
                             </Button>
