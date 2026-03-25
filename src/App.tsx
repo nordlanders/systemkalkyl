@@ -25,6 +25,7 @@ import SimulationPage from "./pages/SimulationPage";
 import GuideManagementPage from "./pages/GuideManagementPage";
 import ObjectCalculationsPage from "./pages/ObjectCalculationsPage";
 import OrganizationsPage from "./pages/OrganizationsPage";
+import PortalUsersPage from "./pages/PortalUsersPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
