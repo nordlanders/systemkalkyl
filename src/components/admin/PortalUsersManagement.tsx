@@ -282,9 +282,9 @@ export default function PortalUsersManagement() {
     );
   }
 
-  const availableOrgs = organizations.filter(o =>
-    selectedCustomerIds.length === 0 || (o.customer_id && selectedCustomerIds.includes(o.customer_id))
-  );
+  const availableOrgs = selectedCustomerIds.length === 0
+    ? []
+    : organizations.filter(o => o.customer_id && selectedCustomerIds.includes(o.customer_id));
 
   const getCustomerName = (customerId: string) => customers.find(c => c.id === customerId)?.name || '—';
 
