@@ -149,7 +149,7 @@ export default function PortalUsersManagement() {
       } else {
         const { data, error } = await supabase
           .from('portal_users')
-          .insert({ email: email.trim(), full_name: fullName.trim() || null, role, is_active: isActive, created_by: user.id })
+          .insert([{ email: email.trim(), full_name: fullName.trim() || null, role: role as 'portal_admin' | 'portal_user' | 'portal_reader', is_active: isActive, created_by: user.id }])
           .select('id')
           .single();
         if (error) throw error;
