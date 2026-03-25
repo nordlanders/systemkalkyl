@@ -823,6 +823,7 @@ export type Database = {
       }
       portal_users: {
         Row: {
+          auth_user_id: string | null
           created_at: string
           created_by: string | null
           email: string
@@ -833,6 +834,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string
           created_by?: string | null
           email: string
@@ -843,6 +845,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string
           created_by?: string | null
           email?: string
