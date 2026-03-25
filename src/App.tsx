@@ -63,6 +63,7 @@ const App = () => (
             <Route path="/admin/guide" element={<GuideManagementPage />} />
             <Route path="/admin/object-calculations" element={<ObjectCalculationsPage />} />
             <Route path="/organizations" element={<OrganizationsPage />} />
+            <Route path="/portal-users" element={<PortalUsersPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
