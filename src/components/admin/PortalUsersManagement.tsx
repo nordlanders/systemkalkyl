@@ -143,7 +143,7 @@ export default function PortalUsersManagement() {
       if (editingId) {
         const { error } = await supabase
           .from('portal_users')
-          .update({ email: email.trim(), full_name: fullName.trim() || null, role, is_active: isActive })
+          .update({ email: email.trim(), full_name: fullName.trim() || null, role: role as 'portal_admin' | 'portal_user' | 'portal_reader', is_active: isActive })
           .eq('id', editingId);
         if (error) throw error;
       } else {
