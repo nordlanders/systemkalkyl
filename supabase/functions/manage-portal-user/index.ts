@@ -105,14 +105,14 @@ Deno.serve(async (req) => {
       }
 
       // Update portal_users record with auth_user_id
-      if (portalUserId && newUser.user) {
+      if (portalUserId) {
         await supabaseAdmin
           .from("portal_users")
-          .update({ auth_user_id: newUser.user.id })
+          .update({ auth_user_id: authUserId })
           .eq("id", portalUserId);
       }
 
-      return new Response(JSON.stringify({ success: true, authUserId: newUser.user?.id }), {
+      return new Response(JSON.stringify({ success: true, authUserId }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
