@@ -1121,7 +1121,11 @@ export default function UserManualPage() {
                           { name: 'disk_gb', type: 'numeric' },
                           { name: 'datacenter', type: 'text' },
                           { name: 'ip_address', type: 'text' },
+                          { name: 'vlan', type: 'text' },
                           { name: 'status', type: 'text' },
+                          { name: 'notes', type: 'text' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'imported_by', type: 'uuid' },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
                         ]
