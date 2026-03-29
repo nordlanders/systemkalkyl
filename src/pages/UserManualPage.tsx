@@ -721,6 +721,16 @@ export default function UserManualPage() {
                           <span className="text-muted-foreground">→ tillhör →</span>
                           <Badge variant="outline" className="font-mono">owning_organizations</Badge>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">portal_user_customers</Badge>
+                          <span className="text-muted-foreground">→ kopplar →</span>
+                          <Badge variant="outline" className="font-mono">portal_users ↔ customers</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">portal_user_organizations</Badge>
+                          <span className="text-muted-foreground">→ kopplar →</span>
+                          <Badge variant="outline" className="font-mono">portal_users ↔ organizations</Badge>
+                        </div>
                       </div>
                     </div>
                     
