@@ -813,6 +813,18 @@ export default function UserManualPage() {
                           <p className="font-mono text-sm font-medium text-primary">news</p>
                           <p className="text-xs text-muted-foreground mt-1">Nyheter som visas på startsidan</p>
                         </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">portal_users</p>
+                          <p className="text-xs text-muted-foreground mt-1">Användare i den externa kundportalen</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">portal_user_customers</p>
+                          <p className="text-xs text-muted-foreground mt-1">Koppling portal-användare till kunder</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">portal_user_organizations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Koppling portal-användare till förvaltningar</p>
+                        </div>
                       </div>
                     </div>
                   </div>
