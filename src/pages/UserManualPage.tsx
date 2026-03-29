@@ -1097,8 +1097,13 @@ export default function UserManualPage() {
                           { name: 'responsible_person', type: 'text' },
                           { name: 'system_owner', type: 'text' },
                           { name: 'system_administrator', type: 'text' },
+                          { name: 'ops_responsible', type: 'text' },
+                          { name: 'ops_team', type: 'text' },
                           { name: 'status', type: 'text' },
                           { name: 'description', type: 'text' },
+                          { name: 'notes', type: 'text' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'imported_by', type: 'uuid' },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
                         ]
