@@ -1155,6 +1155,8 @@ export default function UserManualPage() {
                           { name: 'simulated_price_per_unit', type: 'numeric', required: true },
                           { name: 'unit', type: 'text' },
                           { name: 'category', type: 'text' },
+                          { name: 'account_type', type: 'text', required: true },
+                          { name: 'ukonto', type: 'text' },
                           { name: 'created_at', type: 'timestamp', required: true },
                         ]
                       },
