@@ -721,6 +721,16 @@ export default function UserManualPage() {
                           <span className="text-muted-foreground">→ tillhör →</span>
                           <Badge variant="outline" className="font-mono">owning_organizations</Badge>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">portal_user_customers</Badge>
+                          <span className="text-muted-foreground">→ kopplar →</span>
+                          <Badge variant="outline" className="font-mono">portal_users ↔ customers</Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">portal_user_organizations</Badge>
+                          <span className="text-muted-foreground">→ kopplar →</span>
+                          <Badge variant="outline" className="font-mono">portal_users ↔ organizations</Badge>
+                        </div>
                       </div>
                     </div>
                     
@@ -803,6 +813,18 @@ export default function UserManualPage() {
                           <p className="font-mono text-sm font-medium text-primary">news</p>
                           <p className="text-xs text-muted-foreground mt-1">Nyheter som visas på startsidan</p>
                         </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">portal_users</p>
+                          <p className="text-xs text-muted-foreground mt-1">Användare i den externa kundportalen</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">portal_user_customers</p>
+                          <p className="text-xs text-muted-foreground mt-1">Koppling portal-användare till kunder</p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="font-mono text-sm font-medium text-primary">portal_user_organizations</p>
+                          <p className="text-xs text-muted-foreground mt-1">Koppling portal-användare till förvaltningar</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -844,7 +866,10 @@ export default function UserManualPage() {
                           { name: 'owning_organization', type: 'text' },
                           { name: 'calculation_year', type: 'integer', required: true },
                           { name: 'total_cost', type: 'numeric', required: true },
-                          { name: 'status', type: 'enum (draft, pending_approval, approved)', required: true },
+                          { name: 'status', type: 'enum (draft, pending_approval, approved, closed)', required: true },
+                          { name: 'customer_id', type: 'uuid', fk: 'customers' },
+                          { name: 'organization_id', type: 'uuid', fk: 'organizations' },
+                          { name: 'owning_organization_id', type: 'uuid', fk: 'owning_organizations' },
                           { name: 'version', type: 'integer', required: true },
                           { name: 'approved_by', type: 'uuid' },
                           { name: 'approved_at', type: 'timestamp' },
@@ -930,6 +955,8 @@ export default function UserManualPage() {
                           { name: 'category', type: 'text' },
                           { name: 'comment', type: 'text' },
                           { name: 'cost_owner', type: 'text' },
+                          { name: 'account_type', type: 'text', required: true },
+                          { name: 'ukonto', type: 'text' },
                           { name: 'internal_account', type: 'text' },
                           { name: 'external_account', type: 'text' },
                           { name: 'service_types', type: 'text[]' },
@@ -952,6 +979,8 @@ export default function UserManualPage() {
                           { name: 'permission_level', type: 'enum (read_only, read_write)', required: true },
                           { name: 'can_approve', type: 'boolean', required: true },
                           { name: 'approval_organizations', type: 'text[]' },
+                          { name: 'deactivated_at', type: 'date' },
+                          { name: 'password_changed_at', type: 'timestamp' },
                           { name: 'last_login_at', type: 'timestamp' },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
@@ -1040,7 +1069,9 @@ export default function UserManualPage() {
                           { name: 'diff', type: 'numeric' },
                           { name: 'import_date', type: 'date', required: true },
                           { name: 'import_label', type: 'text' },
+                          { name: 'extraction_date', type: 'date' },
                           { name: 'imported_at', type: 'timestamp', required: true },
+                          { name: 'imported_by', type: 'uuid' },
                         ]
                       },
                       {
@@ -1053,6 +1084,7 @@ export default function UserManualPage() {
                           { name: 'year', type: 'integer', required: true },
                           { name: 'imported_by', type: 'uuid' },
                           { name: 'imported_at', type: 'timestamp', required: true },
+                          { name: 'created_at', type: 'timestamp', required: true },
                         ]
                       },
                       {
@@ -1065,8 +1097,13 @@ export default function UserManualPage() {
                           { name: 'responsible_person', type: 'text' },
                           { name: 'system_owner', type: 'text' },
                           { name: 'system_administrator', type: 'text' },
+                          { name: 'ops_responsible', type: 'text' },
+                          { name: 'ops_team', type: 'text' },
                           { name: 'status', type: 'text' },
                           { name: 'description', type: 'text' },
+                          { name: 'notes', type: 'text' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'imported_by', type: 'uuid' },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
                         ]
@@ -1084,7 +1121,11 @@ export default function UserManualPage() {
                           { name: 'disk_gb', type: 'numeric' },
                           { name: 'datacenter', type: 'text' },
                           { name: 'ip_address', type: 'text' },
+                          { name: 'vlan', type: 'text' },
                           { name: 'status', type: 'text' },
+                          { name: 'notes', type: 'text' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'imported_by', type: 'uuid' },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
                         ]
@@ -1114,6 +1155,8 @@ export default function UserManualPage() {
                           { name: 'simulated_price_per_unit', type: 'numeric', required: true },
                           { name: 'unit', type: 'text' },
                           { name: 'category', type: 'text' },
+                          { name: 'account_type', type: 'text', required: true },
+                          { name: 'ukonto', type: 'text' },
                           { name: 'created_at', type: 'timestamp', required: true },
                         ]
                       },
@@ -1131,6 +1174,41 @@ export default function UserManualPage() {
                           { name: 'is_active', type: 'boolean', required: true },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'portal_users',
+                        description: 'Användare i den externa kundportalen',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'email', type: 'text', required: true },
+                          { name: 'full_name', type: 'text' },
+                          { name: 'role', type: 'enum (portal_admin, portal_user, portal_reader)', required: true },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'auth_user_id', type: 'uuid' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'portal_user_customers',
+                        description: 'Koppling mellan portal-användare och kunder',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'portal_user_id', type: 'uuid', required: true, fk: 'portal_users' },
+                          { name: 'customer_id', type: 'uuid', required: true, fk: 'customers' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'portal_user_organizations',
+                        description: 'Koppling mellan portal-användare och förvaltningar/bolag',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'portal_user_id', type: 'uuid', required: true, fk: 'portal_users' },
+                          { name: 'organization_id', type: 'uuid', required: true, fk: 'organizations' },
+                          { name: 'created_at', type: 'timestamp', required: true },
                         ]
                       },
                     ].map((table) => (
