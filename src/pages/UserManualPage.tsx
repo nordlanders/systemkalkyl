@@ -979,6 +979,8 @@ export default function UserManualPage() {
                           { name: 'permission_level', type: 'enum (read_only, read_write)', required: true },
                           { name: 'can_approve', type: 'boolean', required: true },
                           { name: 'approval_organizations', type: 'text[]' },
+                          { name: 'deactivated_at', type: 'date' },
+                          { name: 'password_changed_at', type: 'timestamp' },
                           { name: 'last_login_at', type: 'timestamp' },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
