@@ -1176,6 +1176,41 @@ export default function UserManualPage() {
                           { name: 'updated_at', type: 'timestamp', required: true },
                         ]
                       },
+                      {
+                        name: 'portal_users',
+                        description: 'Användare i den externa kundportalen',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'email', type: 'text', required: true },
+                          { name: 'full_name', type: 'text' },
+                          { name: 'role', type: 'enum (portal_admin, portal_user, portal_reader)', required: true },
+                          { name: 'is_active', type: 'boolean', required: true },
+                          { name: 'auth_user_id', type: 'uuid' },
+                          { name: 'created_by', type: 'uuid' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                          { name: 'updated_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'portal_user_customers',
+                        description: 'Koppling mellan portal-användare och kunder',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'portal_user_id', type: 'uuid', required: true, fk: 'portal_users' },
+                          { name: 'customer_id', type: 'uuid', required: true, fk: 'customers' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
+                      {
+                        name: 'portal_user_organizations',
+                        description: 'Koppling mellan portal-användare och förvaltningar/bolag',
+                        columns: [
+                          { name: 'id', type: 'uuid', pk: true },
+                          { name: 'portal_user_id', type: 'uuid', required: true, fk: 'portal_users' },
+                          { name: 'organization_id', type: 'uuid', required: true, fk: 'organizations' },
+                          { name: 'created_at', type: 'timestamp', required: true },
+                        ]
+                      },
                     ].map((table) => (
                       <div key={table.name} className="rounded-lg border bg-card">
                         <div className="p-4 border-b bg-muted/30">
