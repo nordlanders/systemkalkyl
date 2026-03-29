@@ -1069,7 +1069,9 @@ export default function UserManualPage() {
                           { name: 'diff', type: 'numeric' },
                           { name: 'import_date', type: 'date', required: true },
                           { name: 'import_label', type: 'text' },
+                          { name: 'extraction_date', type: 'date' },
                           { name: 'imported_at', type: 'timestamp', required: true },
+                          { name: 'imported_by', type: 'uuid' },
                         ]
                       },
                       {
@@ -1082,6 +1084,7 @@ export default function UserManualPage() {
                           { name: 'year', type: 'integer', required: true },
                           { name: 'imported_by', type: 'uuid' },
                           { name: 'imported_at', type: 'timestamp', required: true },
+                          { name: 'created_at', type: 'timestamp', required: true },
                         ]
                       },
                       {
