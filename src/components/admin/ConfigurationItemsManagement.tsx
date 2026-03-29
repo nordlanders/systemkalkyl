@@ -320,7 +320,7 @@ export default function ConfigurationItemsManagement() {
   function openEditDialog(item: ConfigurationItem) {
     setEditingItem(item);
     setEditForm({
-      ci_number: item.ci_number,
+      ci_number: item.ci_number || '',
       system_name: item.system_name,
       system_owner: item.system_owner || '',
       system_administrator: item.system_administrator || '',
