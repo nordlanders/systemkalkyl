@@ -955,6 +955,8 @@ export default function UserManualPage() {
                           { name: 'category', type: 'text' },
                           { name: 'comment', type: 'text' },
                           { name: 'cost_owner', type: 'text' },
+                          { name: 'account_type', type: 'text', required: true },
+                          { name: 'ukonto', type: 'text' },
                           { name: 'internal_account', type: 'text' },
                           { name: 'external_account', type: 'text' },
                           { name: 'service_types', type: 'text[]' },
