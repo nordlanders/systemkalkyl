@@ -1006,6 +1006,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                         const internaCustomer = customers.find(c => c.name === INTERNA_KALKYLER_NAME);
                         if (internaCustomer) setCustomerId(internaCustomer.id);
                       }
+                    } else {
+                      setServiceType('');
                     }
                     if (item?.organization) {
                       const matchingOrg = owningOrganizations.find(
@@ -1013,7 +1015,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                       );
                       if (matchingOrg) {
                         setOwningOrganizationId(matchingOrg.id);
+                      } else {
+                        setOwningOrganizationId(null);
                       }
+                    } else {
+                      setOwningOrganizationId(null);
                     }
                   }}
                   placeholder="Sök på objektnummer, CI nummer eller systemnamn..."
