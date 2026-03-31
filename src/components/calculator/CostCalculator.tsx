@@ -132,7 +132,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
         ? `${selectedCI.system_name} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}`
         : calculationName);
   
-  const canProceedToStep2 = (isNewCI ? calculationName.trim() !== '' : ciIdentity.trim() !== '') && ciIdentity.trim() !== '' && serviceType !== '' && customerId !== null && owningOrganizationId !== null;
+  const missingStep1Fields = [
+    (isNewCI ? calculationName.trim() === '' : ciIdentity.trim() === '') && 'Objektnamn/CI',
+    serviceType === '' && 'Tjänstetyp',
+    customerId === null && 'Kund',
+    owningOrganizationId === null && 'Ägande organisation',
+  ].filter(Boolean) as string[];
+  const canProceedToStep2 = missingStep1Fields.length === 0;
   const canProceedToStep3 = rows.length > 0 && rows.some(r => r.pricingConfigId);
 
   // Auto-set customer to "Interna kalkyler" for bastjänst types
@@ -1214,6 +1220,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   Fortsätt till konfiguration
                   <ArrowRight className="h-4 w-4" />
                 </Button>
+                {missingStep1Fields.length > 0 && (
+                  <p className="text-sm text-destructive mt-2">
+                    För att gå vidare måste du ange: {missingStep1Fields.join(', ')}.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
