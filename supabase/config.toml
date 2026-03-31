@@ -11,6 +11,3 @@ verify_jwt = false
 
 [functions.update-user-settings]
 verify_jwt = false
-
-[functions.get-service-key]
-verify_jwt = false
