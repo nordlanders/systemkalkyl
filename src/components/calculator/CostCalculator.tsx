@@ -1220,6 +1220,11 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   Fortsätt till konfiguration
                   <ArrowRight className="h-4 w-4" />
                 </Button>
+                {missingStep1Fields.length > 0 && (
+                  <p className="text-sm text-destructive mt-2">
+                    För att gå vidare måste du ange: {missingStep1Fields.join(', ')}.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
