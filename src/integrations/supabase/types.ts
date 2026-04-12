@@ -749,114 +749,6 @@ export type Database = {
         }
         Relationships: []
       }
-      portal_user_customers: {
-        Row: {
-          created_at: string
-          customer_id: string
-          id: string
-          portal_user_id: string
-        }
-        Insert: {
-          created_at?: string
-          customer_id: string
-          id?: string
-          portal_user_id: string
-        }
-        Update: {
-          created_at?: string
-          customer_id?: string
-          id?: string
-          portal_user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portal_user_customers_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portal_user_customers_portal_user_id_fkey"
-            columns: ["portal_user_id"]
-            isOneToOne: false
-            referencedRelation: "portal_users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portal_user_organizations: {
-        Row: {
-          created_at: string
-          id: string
-          organization_id: string
-          portal_user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          organization_id: string
-          portal_user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          organization_id?: string
-          portal_user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "portal_user_organizations_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "portal_user_organizations_portal_user_id_fkey"
-            columns: ["portal_user_id"]
-            isOneToOne: false
-            referencedRelation: "portal_users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      portal_users: {
-        Row: {
-          auth_user_id: string | null
-          created_at: string
-          created_by: string | null
-          email: string
-          full_name: string | null
-          id: string
-          is_active: boolean
-          role: Database["public"]["Enums"]["portal_role"]
-          updated_at: string
-        }
-        Insert: {
-          auth_user_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          email: string
-          full_name?: string | null
-          id?: string
-          is_active?: boolean
-          role?: Database["public"]["Enums"]["portal_role"]
-          updated_at?: string
-        }
-        Update: {
-          auth_user_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          is_active?: boolean
-          role?: Database["public"]["Enums"]["portal_role"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
       pricing_config: {
         Row: {
           account_type: string
@@ -1091,7 +983,6 @@ export type Database = {
       app_role: "admin" | "user" | "superadmin"
       calculation_status: "draft" | "pending_approval" | "approved" | "closed"
       permission_level: "read_only" | "read_write"
-      portal_role: "portal_admin" | "portal_user" | "portal_reader"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1222,7 +1113,6 @@ export const Constants = {
       app_role: ["admin", "user", "superadmin"],
       calculation_status: ["draft", "pending_approval", "approved", "closed"],
       permission_level: ["read_only", "read_write"],
-      portal_role: ["portal_admin", "portal_user", "portal_reader"],
     },
   },
 } as const
