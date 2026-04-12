@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Check, ChevronsUpDown, Search, Server, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -68,7 +68,7 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
   }
 
   // Notify parent when selected item changes
-  const onItemChangeRef = React.useRef(onItemChange);
+  const onItemChangeRef = useRef(onItemChange);
   onItemChangeRef.current = onItemChange;
 
   useEffect(() => {
