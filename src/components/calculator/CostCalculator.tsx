@@ -446,7 +446,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       
       const calculationData = {
         name: effectiveCalculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
-        ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
+        ci_identity: isNewCI ? newCiNumber.trim() : ciIdentity.trim(),
         service_type: serviceType,
         customer_id: customerId,
         organization_id: organizationId,
