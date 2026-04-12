@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Check, ChevronsUpDown, Search, Server, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -68,16 +68,19 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
   }
 
   // Notify parent when selected item changes
+  const onItemChangeRef = useRef(onItemChange);
+  onItemChangeRef.current = onItemChange;
+
   useEffect(() => {
-    if (onItemChange) {
+    if (onItemChangeRef.current) {
       if (value === NEW_CI_VALUE) {
-        onItemChange(null);
+        onItemChangeRef.current(null);
       } else {
         const selectedItem = items.find(item => item.id === value) || null;
-        onItemChange(selectedItem);
+        onItemChangeRef.current(selectedItem);
       }
     }
-  }, [value, items, onItemChange]);
+  }, [value, items]);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery) return items;
