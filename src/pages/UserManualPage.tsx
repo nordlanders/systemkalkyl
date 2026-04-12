@@ -721,16 +721,6 @@ export default function UserManualPage() {
                           <span className="text-muted-foreground">→ tillhör →</span>
                           <Badge variant="outline" className="font-mono">owning_organizations</Badge>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-mono">portal_user_customers</Badge>
-                          <span className="text-muted-foreground">→ kopplar →</span>
-                          <Badge variant="outline" className="font-mono">portal_users ↔ customers</Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="font-mono">portal_user_organizations</Badge>
-                          <span className="text-muted-foreground">→ kopplar →</span>
-                          <Badge variant="outline" className="font-mono">portal_users ↔ organizations</Badge>
-                        </div>
                       </div>
                     </div>
                     
@@ -812,18 +802,6 @@ export default function UserManualPage() {
                         <div className="p-3 rounded-lg bg-muted/50 border">
                           <p className="font-mono text-sm font-medium text-primary">news</p>
                           <p className="text-xs text-muted-foreground mt-1">Nyheter som visas på startsidan</p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-muted/50 border">
-                          <p className="font-mono text-sm font-medium text-primary">portal_users</p>
-                          <p className="text-xs text-muted-foreground mt-1">Användare i den externa kundportalen</p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-muted/50 border">
-                          <p className="font-mono text-sm font-medium text-primary">portal_user_customers</p>
-                          <p className="text-xs text-muted-foreground mt-1">Koppling portal-användare till kunder</p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-muted/50 border">
-                          <p className="font-mono text-sm font-medium text-primary">portal_user_organizations</p>
-                          <p className="text-xs text-muted-foreground mt-1">Koppling portal-användare till förvaltningar</p>
                         </div>
                       </div>
                     </div>
@@ -1174,41 +1152,6 @@ export default function UserManualPage() {
                           { name: 'is_active', type: 'boolean', required: true },
                           { name: 'created_at', type: 'timestamp', required: true },
                           { name: 'updated_at', type: 'timestamp', required: true },
-                        ]
-                      },
-                      {
-                        name: 'portal_users',
-                        description: 'Användare i den externa kundportalen',
-                        columns: [
-                          { name: 'id', type: 'uuid', pk: true },
-                          { name: 'email', type: 'text', required: true },
-                          { name: 'full_name', type: 'text' },
-                          { name: 'role', type: 'enum (portal_admin, portal_user, portal_reader)', required: true },
-                          { name: 'is_active', type: 'boolean', required: true },
-                          { name: 'auth_user_id', type: 'uuid' },
-                          { name: 'created_by', type: 'uuid' },
-                          { name: 'created_at', type: 'timestamp', required: true },
-                          { name: 'updated_at', type: 'timestamp', required: true },
-                        ]
-                      },
-                      {
-                        name: 'portal_user_customers',
-                        description: 'Koppling mellan portal-användare och kunder',
-                        columns: [
-                          { name: 'id', type: 'uuid', pk: true },
-                          { name: 'portal_user_id', type: 'uuid', required: true, fk: 'portal_users' },
-                          { name: 'customer_id', type: 'uuid', required: true, fk: 'customers' },
-                          { name: 'created_at', type: 'timestamp', required: true },
-                        ]
-                      },
-                      {
-                        name: 'portal_user_organizations',
-                        description: 'Koppling mellan portal-användare och förvaltningar/bolag',
-                        columns: [
-                          { name: 'id', type: 'uuid', pk: true },
-                          { name: 'portal_user_id', type: 'uuid', required: true, fk: 'portal_users' },
-                          { name: 'organization_id', type: 'uuid', required: true, fk: 'organizations' },
-                          { name: 'created_at', type: 'timestamp', required: true },
                         ]
                       },
                     ].map((table) => (
