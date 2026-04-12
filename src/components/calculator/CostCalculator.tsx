@@ -96,6 +96,8 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const currentYear = new Date().getFullYear();
   const [calculationName, setCalculationName] = useState(editCalculation?.name ?? '');
   const [ciIdentity, setCiIdentity] = useState(editCalculation?.ci_identity ?? '');
+  const [newObjectName, setNewObjectName] = useState('');
+  const [newCiNumber, setNewCiNumber] = useState('');
   const [serviceType, setServiceType] = useState(editCalculation?.service_type ?? '');
   const [customerId, setCustomerId] = useState<string | null>(editCalculation?.customer_id ?? null);
   const [organizationId, setOrganizationId] = useState<string | null>(editCalculation?.organization_id ?? null);
@@ -125,15 +127,17 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | 'closed' | undefined;
   const isApproved = currentStatus === 'approved' || currentStatus === 'closed';
   
-  // For "Nytt" — require a manual name. For existing CI — name is auto-generated.
+  // For "Nytt" — name is auto-generated from object name + date. For existing CI — from system_name + date.
   const effectiveCalculationName = isNewCI 
-    ? calculationName 
+    ? (newObjectName.trim() ? `${newObjectName.trim()} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}` : calculationName)
     : (selectedCI 
         ? `${selectedCI.system_name} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}`
         : calculationName);
   
   const missingStep1Fields = [
-    (isNewCI ? calculationName.trim() === '' : ciIdentity.trim() === '') && 'Objektnamn/CI',
+    isNewCI && newObjectName.trim() === '' && 'Objektnamn',
+    isNewCI && newCiNumber.trim() === '' && 'CI-nummer',
+    !isNewCI && ciIdentity.trim() === '' && 'Objekt/CI',
     serviceType === '' && 'Tjänstetyp',
     customerId === null && 'Kund',
     owningOrganizationId === null && 'Ägande organisation',
@@ -442,7 +446,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
       
       const calculationData = {
         name: effectiveCalculationName || `Beräkning ${new Date().toLocaleDateString('sv-SE')}`,
-        ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
+        ci_identity: isNewCI ? newCiNumber.trim() : ciIdentity.trim(),
         service_type: serviceType,
         customer_id: customerId,
         organization_id: organizationId,
@@ -655,7 +659,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
           user_id: user.id,
           created_by_name: userName,
           name: `${effectiveCalculationName || 'Kopia'} (kopia)`,
-          ci_identity: isNewCI ? uuidv4() : ciIdentity.trim(),
+          ci_identity: isNewCI ? newCiNumber.trim() : ciIdentity.trim(),
           service_type: serviceType,
           customer_id: customerId,
           organization_id: organizationId,
@@ -1027,23 +1031,54 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 />
               </div>
 
-              {/* Show auto-generated name for existing CI, or input for "Nytt" */}
+              {/* Show object name + CI number for new, or auto-generated name for existing CI */}
               {isNewCI ? (
-                <div className="space-y-2">
-                  <Label htmlFor="calcName">
-                    Namn på kalkyl <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="calcName"
-                    placeholder="T.ex. Produktionsmiljö Q1"
-                    value={calculationName}
-                    onChange={(e) => setCalculationName(e.target.value)}
-                    disabled={readOnly}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Ange ett beskrivande namn för kalkylen
-                  </p>
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="newObjectName">
+                      Objektnamn (tjänst/system) <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="newObjectName"
+                      placeholder="T.ex. E-tjänsteplattform, AD-tjänst"
+                      value={newObjectName}
+                      onChange={(e) => setNewObjectName(e.target.value)}
+                      disabled={readOnly}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Ange namnet på tjänsten eller systemet
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newCiNumber">
+                      CI-nummer <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="newCiNumber"
+                      placeholder="T.ex. CI-12345"
+                      value={newCiNumber}
+                      onChange={(e) => setNewCiNumber(e.target.value)}
+                      disabled={readOnly}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Ange CI-nummer för objektet
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kalkylnamn</Label>
+                    <div className="p-3 bg-muted/50 rounded-md border">
+                      <p className="font-medium">
+                        {newObjectName.trim() 
+                          ? `${newObjectName.trim()} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}`
+                          : <span className="text-muted-foreground italic">Genereras automatiskt från objektnamn</span>
+                        }
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Kalkylnamnet sätts automatiskt baserat på objektnamn och dagens datum
+                    </p>
+                  </div>
+                </>
               ) : selectedCI ? (
                 <div className="space-y-2">
                   <Label>Kalkylnamn</Label>
