@@ -206,20 +206,6 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
           </>
         ) : null}
       </div>
-      {!disabled && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            onChange('');
-            setSearchQuery('');
-          }}
-          className="shrink-0 text-xs"
-        >
-          Ändra
-        </Button>
-      )}
     </div>
   );
 }
