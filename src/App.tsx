@@ -25,7 +25,7 @@ import SimulationPage from "./pages/SimulationPage";
 import GuideManagementPage from "./pages/GuideManagementPage";
 import ObjectCalculationsPage from "./pages/ObjectCalculationsPage";
 import OrganizationsPage from "./pages/OrganizationsPage";
-import PortalUsersPage from "./pages/PortalUsersPage";
+
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,7 +63,7 @@ const App = () => (
             <Route path="/admin/guide" element={<GuideManagementPage />} />
             <Route path="/admin/object-calculations" element={<ObjectCalculationsPage />} />
             <Route path="/organizations" element={<OrganizationsPage />} />
-            <Route path="/portal-users" element={<PortalUsersPage />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
