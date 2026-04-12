@@ -1031,23 +1031,54 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 />
               </div>
 
-              {/* Show auto-generated name for existing CI, or input for "Nytt" */}
+              {/* Show object name + CI number for new, or auto-generated name for existing CI */}
               {isNewCI ? (
-                <div className="space-y-2">
-                  <Label htmlFor="calcName">
-                    Namn på kalkyl <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="calcName"
-                    placeholder="T.ex. Produktionsmiljö Q1"
-                    value={calculationName}
-                    onChange={(e) => setCalculationName(e.target.value)}
-                    disabled={readOnly}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Ange ett beskrivande namn för kalkylen
-                  </p>
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="newObjectName">
+                      Objektnamn (tjänst/system) <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="newObjectName"
+                      placeholder="T.ex. E-tjänsteplattform, AD-tjänst"
+                      value={newObjectName}
+                      onChange={(e) => setNewObjectName(e.target.value)}
+                      disabled={readOnly}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Ange namnet på tjänsten eller systemet
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newCiNumber">
+                      CI-nummer <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="newCiNumber"
+                      placeholder="T.ex. CI-12345"
+                      value={newCiNumber}
+                      onChange={(e) => setNewCiNumber(e.target.value)}
+                      disabled={readOnly}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Ange CI-nummer för objektet
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Kalkylnamn</Label>
+                    <div className="p-3 bg-muted/50 rounded-md border">
+                      <p className="font-medium">
+                        {newObjectName.trim() 
+                          ? `${newObjectName.trim()} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}`
+                          : <span className="text-muted-foreground italic">Genereras automatiskt från objektnamn</span>
+                        }
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Kalkylnamnet sätts automatiskt baserat på objektnamn och dagens datum
+                    </p>
+                  </div>
+                </>
               ) : selectedCI ? (
                 <div className="space-y-2">
                   <Label>Kalkylnamn</Label>
