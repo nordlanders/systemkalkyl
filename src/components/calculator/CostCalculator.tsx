@@ -127,15 +127,17 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
   const currentStatus = editCalculation?.status as 'draft' | 'pending_approval' | 'approved' | 'closed' | undefined;
   const isApproved = currentStatus === 'approved' || currentStatus === 'closed';
   
-  // For "Nytt" — require a manual name. For existing CI — name is auto-generated.
+  // For "Nytt" — name is auto-generated from object name + date. For existing CI — from system_name + date.
   const effectiveCalculationName = isNewCI 
-    ? calculationName 
+    ? (newObjectName.trim() ? `${newObjectName.trim()} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}` : calculationName)
     : (selectedCI 
         ? `${selectedCI.system_name} ${format(new Date(), 'yyyy-MM-dd', { locale: sv })}`
         : calculationName);
   
   const missingStep1Fields = [
-    (isNewCI ? calculationName.trim() === '' : ciIdentity.trim() === '') && 'Objektnamn/CI',
+    isNewCI && newObjectName.trim() === '' && 'Objektnamn',
+    isNewCI && newCiNumber.trim() === '' && 'CI-nummer',
+    !isNewCI && ciIdentity.trim() === '' && 'Objekt/CI',
     serviceType === '' && 'Tjänstetyp',
     customerId === null && 'Kund',
     owningOrganizationId === null && 'Ägande organisation',
