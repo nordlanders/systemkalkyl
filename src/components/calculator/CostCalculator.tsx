@@ -984,13 +984,16 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Server className="h-5 w-5 text-primary" />
-                Välj objekt eller CI
+                {isNewCI ? 'Nytt objekt' : 'Välj objekt eller CI'}
               </CardTitle>
               <CardDescription>
-                Sök upp ditt objekt eller CI, eller välj "Nytt" för att skapa en kalkyl utan koppling
+                {isNewCI 
+                  ? 'Ange uppgifter för det nya objektet'
+                  : 'Sök upp ditt objekt eller CI, eller välj "Nytt" för att skapa en kalkyl utan koppling'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {!isNewCI && (
               <div className="space-y-2">
                 <Label htmlFor="ciIdentity">
                   Objekt / CI <span className="text-destructive">*</span>
@@ -1030,6 +1033,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   disabled={readOnly}
                 />
               </div>
+              )}
 
               {/* Show object name + CI number for new, or auto-generated name for existing CI */}
               {isNewCI ? (
