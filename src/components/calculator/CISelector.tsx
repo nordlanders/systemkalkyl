@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Check, ChevronsUpDown, Search, Server, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, Search, Server, Plus, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,7 +9,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -96,116 +95,131 @@ export default function CISelector({ value, onChange, onItemChange, placeholder 
 
   const selectedItem = value === NEW_CI_VALUE ? null : items.find(item => item.id === value);
   const isNew = value === NEW_CI_VALUE;
+  const hasSelection = isNew || !!selectedItem;
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between font-normal"
-          disabled={disabled || loading}
-        >
-          {isNew ? (
-            <span className="flex items-center gap-2 truncate">
-              <Plus className="h-4 w-4 text-primary shrink-0" />
-              <span className="truncate font-medium text-primary">Nytt objekt (manuellt)</span>
-            </span>
-          ) : selectedItem ? (
-            <span className="flex items-center gap-2 truncate">
-              <Server className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="truncate">
-                {selectedItem.system_name}
-                {selectedItem.object_number && (
-                  <span className="text-muted-foreground ml-1 text-xs">
-                    (Objekt: {selectedItem.object_number})
-                  </span>
-                )}
-              </span>
-            </span>
-          ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0 bg-popover border shadow-md z-50" align="start">
-        <Command shouldFilter={false}>
-          <CommandInput 
-            placeholder="Sök på objektnummer, CI nummer, systemnamn..." 
-            value={searchQuery}
-            onValueChange={setSearchQuery}
-          />
-          <CommandList>
-            <CommandGroup>
-              <CommandItem
-                value={NEW_CI_VALUE}
-                onSelect={() => {
-                  onChange(NEW_CI_VALUE);
-                  setOpen(false);
-                  setSearchQuery('');
-                }}
-                className="flex items-center gap-2 py-3 text-primary font-medium"
+  // If no selection yet, show the two prominent choice cards
+  if (!hasSelection && !disabled) {
+    return (
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Existing object card */}
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex flex-col items-center gap-3 p-5 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer text-center group"
               >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4 shrink-0",
-                    isNew ? "opacity-100" : "opacity-0"
-                  )}
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <Search className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm text-foreground">Befintligt objekt</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Sök bland {loading ? '...' : items.length} registrerade objekt</p>
+                </div>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[460px] p-0 bg-popover border shadow-lg z-50" align="start">
+              <Command shouldFilter={false}>
+                <CommandInput 
+                  placeholder="Sök på objektnummer, CI-nummer, systemnamn..." 
+                  value={searchQuery}
+                  onValueChange={setSearchQuery}
                 />
-                <Plus className="h-4 w-4" />
-                Nytt (ange manuellt)
-              </CommandItem>
-            </CommandGroup>
-            <CommandSeparator />
-            <CommandGroup heading="Befintliga objekt">
-              {filteredItems.length === 0 && (
-                <CommandEmpty>
-                  {loading ? 'Laddar...' : 'Ingen CI hittades.'}
-                </CommandEmpty>
+                <CommandList className="max-h-[300px]">
+                  <CommandGroup heading={`Befintliga objekt (${filteredItems.length})`}>
+                    {filteredItems.length === 0 && (
+                      <CommandEmpty>
+                        {loading ? 'Laddar...' : 'Inget objekt hittades.'}
+                      </CommandEmpty>
+                    )}
+                    {filteredItems.map((item) => (
+                      <CommandItem
+                        key={item.id}
+                        value={item.id}
+                        onSelect={() => {
+                          onChange(item.id);
+                          setOpen(false);
+                          setSearchQuery('');
+                        }}
+                        className="flex flex-col items-start gap-1 py-3"
+                      >
+                        <div className="flex items-center w-full">
+                          <Server className="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">
+                              {item.system_name}
+                            </div>
+                            <div className="text-sm text-muted-foreground truncate">
+                              {item.object_number ? `Objekt: ${item.object_number}` : ''}
+                              {(item.system_owner || item.organization) ? `${item.object_number ? ' • ' : ''}${[item.system_owner, item.organization].filter(Boolean).join(' • ')}` : ''}
+                            </div>
+                          </div>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          {/* New object card */}
+          <button
+            type="button"
+            onClick={() => onChange(NEW_CI_VALUE)}
+            className="flex flex-col items-center gap-3 p-5 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-card hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer text-center group"
+          >
+            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+              <Plus className="h-5 w-5 text-accent-foreground" />
+            </div>
+            <div>
+              <p className="font-medium text-sm text-foreground">Nytt objekt</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Skapa kalkyl utan befintligt CI</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // After selection — show compact display with change button
+  return (
+    <div className="flex items-center gap-2">
+      <div className={cn(
+        "flex-1 flex items-center gap-2 px-3 py-2.5 rounded-md border bg-muted/30",
+        isNew ? "border-primary/30" : "border-border"
+      )}>
+        {isNew ? (
+          <>
+            <Plus className="h-4 w-4 text-primary shrink-0" />
+            <span className="font-medium text-primary text-sm">Nytt objekt (manuellt)</span>
+          </>
+        ) : selectedItem ? (
+          <>
+            <Server className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="font-medium text-sm truncate block">{selectedItem.system_name}</span>
+              {selectedItem.object_number && (
+                <span className="text-xs text-muted-foreground">Objekt: {selectedItem.object_number}</span>
               )}
-              {filteredItems.map((item) => (
-                <CommandItem
-                  key={item.id}
-                  value={item.id}
-                  onSelect={() => {
-                    onChange(item.id);
-                    setOpen(false);
-                    setSearchQuery('');
-                  }}
-                  className="flex flex-col items-start gap-1 py-3"
-                >
-                  <div className="flex items-center w-full">
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4 shrink-0",
-                        value === item.id ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">
-                        {item.system_name}
-                      </div>
-                      <div className="text-sm text-muted-foreground truncate">
-                        {item.object_number ? `Objekt: ${item.object_number}` : ''}
-                        {(item.system_owner || item.organization) ? `${item.object_number ? ' • ' : ''}${[item.system_owner, item.organization].filter(Boolean).join(' • ')}` : ''}
-                      </div>
-                    </div>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-        {items.length > 0 && (
-          <div className="border-t p-2">
-            <p className="text-xs text-muted-foreground text-center">
-              {filteredItems.length} av {items.length} objekt
-            </p>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
+            </div>
+          </>
+        ) : null}
+      </div>
+      {!disabled && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            onChange('');
+            setSearchQuery('');
+          }}
+          className="shrink-0 text-xs"
+        >
+          Ändra
+        </Button>
+      )}
+    </div>
   );
 }
