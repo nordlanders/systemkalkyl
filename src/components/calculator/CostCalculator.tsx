@@ -1025,9 +1025,6 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                   placeholder="Sök på objektnummer, CI nummer eller systemnamn..."
                   disabled={readOnly}
                 />
-                <p className="text-sm text-muted-foreground">
-                  Välj ett befintligt objekt eller "Nytt" för att ange uppgifter manuellt
-                </p>
               </div>
 
               {/* Show auto-generated name for existing CI, or input for "Nytt" */}
