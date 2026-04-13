@@ -15,6 +15,7 @@ import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import CISelector, { type ConfigurationItem, NEW_CI_VALUE } from './CISelector';
 import BudgetOutcomeInfo from './BudgetOutcomeInfo';
+import CalculationAuditTimeline from './CalculationAuditTimeline';
 import { 
   Calculator,
   Save,
@@ -1996,34 +1997,7 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Skapad</p>
-                    <p className="font-medium">
-                      {format(new Date(createdAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
-                    </p>
-                    {createdByName && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {createdByName}
-                      </p>
-                    )}
-                  </div>
-                  {updatedAt && (
-                    <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Senast ändrad</p>
-                      <p className="font-medium">
-                        {format(new Date(updatedAt), 'd MMMM yyyy, HH:mm', { locale: sv })}
-                      </p>
-                      {updatedByName && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          {updatedByName}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <CalculationAuditTimeline calculationId={editCalculation!.id} />
               </CardContent>
             </Card>
           )}
