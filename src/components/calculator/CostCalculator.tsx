@@ -15,6 +15,7 @@ import { logAudit, type PricingConfig, type Calculation } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import CISelector, { type ConfigurationItem, NEW_CI_VALUE } from './CISelector';
 import BudgetOutcomeInfo from './BudgetOutcomeInfo';
+import CalculationAuditTimeline from './CalculationAuditTimeline';
 import { 
   Calculator,
   Save,
