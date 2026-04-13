@@ -849,16 +849,14 @@ export default function CalculationsList({ onEdit, onCreateNew, onShowGuide }: C
                       </TableCell>
                       <TableCell className="text-right">
                           <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                            {(status === 'approved' || status === 'closed') && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setHistoryCalculation(calc)}
-                                title="Visa versionshistorik"
-                              >
-                                <History className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setHistoryCalculation(calc)}
+                              title="Visa versionshistorik"
+                            >
+                              <History className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
