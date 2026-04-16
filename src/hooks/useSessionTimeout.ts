@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_SESSION_DURATION_MS = 8 * 60 * 60 * 1000; // 8 hours
 const SESSION_START_KEY = 'session_start_time';
+const LAST_ACTIVITY_KEY = 'last_activity_time';
 
 export function useSessionTimeout() {
   const { user, signOut } = useAuth();
