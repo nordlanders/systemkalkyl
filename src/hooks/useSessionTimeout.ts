@@ -19,16 +19,50 @@ export function useSessionTimeout() {
       description: reason,
       variant: 'destructive',
     });
-    sessionStorage.removeItem(SESSION_START_KEY);
+    localStorage.removeItem(SESSION_START_KEY);
+    localStorage.removeItem(LAST_ACTIVITY_KEY);
     await signOut();
   }, [signOut, toast]);
 
+  const updateLastActivity = useCallback(() => {
+    if (!user) return;
+    localStorage.setItem(LAST_ACTIVITY_KEY, Date.now().toString());
+  }, [user]);
+
   const resetInactivityTimer = useCallback(() => {
     if (!user) return;
+    updateLastActivity();
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
       handleTimeout('Du har loggats ut på grund av inaktivitet (30 minuter).');
     }, INACTIVITY_TIMEOUT_MS);
+  }, [user, handleTimeout, updateLastActivity]);
+
+  // Check on mount if session or inactivity has expired (e.g. after closing browser)
+  useEffect(() => {
+    if (!user) return;
+
+    const now = Date.now();
+
+    // Check max session duration
+    const sessionStart = localStorage.getItem(SESSION_START_KEY);
+    if (sessionStart) {
+      const elapsed = now - parseInt(sessionStart, 10);
+      if (elapsed >= MAX_SESSION_DURATION_MS) {
+        handleTimeout('Din session har löpt ut (max 8 timmar). Logga in igen.');
+        return;
+      }
+    }
+
+    // Check inactivity since last recorded activity
+    const lastActivity = localStorage.getItem(LAST_ACTIVITY_KEY);
+    if (lastActivity) {
+      const idle = now - parseInt(lastActivity, 10);
+      if (idle >= INACTIVITY_TIMEOUT_MS) {
+        handleTimeout('Du har loggats ut på grund av inaktivitet (30 minuter).');
+        return;
+      }
+    }
   }, [user, handleTimeout]);
 
   // Inactivity tracking
@@ -50,15 +84,16 @@ export function useSessionTimeout() {
   // Max session duration
   useEffect(() => {
     if (!user) {
-      sessionStorage.removeItem(SESSION_START_KEY);
+      localStorage.removeItem(SESSION_START_KEY);
+      localStorage.removeItem(LAST_ACTIVITY_KEY);
       if (maxSessionTimer.current) clearTimeout(maxSessionTimer.current);
       return;
     }
 
-    let sessionStart = sessionStorage.getItem(SESSION_START_KEY);
+    let sessionStart = localStorage.getItem(SESSION_START_KEY);
     if (!sessionStart) {
       sessionStart = Date.now().toString();
-      sessionStorage.setItem(SESSION_START_KEY, sessionStart);
+      localStorage.setItem(SESSION_START_KEY, sessionStart);
     }
 
     const elapsed = Date.now() - parseInt(sessionStart, 10);
