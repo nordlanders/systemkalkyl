@@ -36,12 +36,30 @@ import {
   CheckCircle2,
   FileEdit,
   Server,
-  Copy
+  Copy,
+  GripVertical
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import { registerSwedishFont } from '@/lib/pdf-font';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const SERVICE_TYPES = [
   { value: 'Anpassad drift', label: 'Anpassad drift' },
