@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import CISelector, { type ConfigurationItem, NEW_CI_VALUE } from './CISelector';
 import BudgetOutcomeInfo from './BudgetOutcomeInfo';
 import CalculationAuditTimeline from './CalculationAuditTimeline';
+import { SortableRowWrapper } from './SortableRowWrapper';
 import { 
   Calculator,
   Save,
@@ -36,12 +37,30 @@ import {
   CheckCircle2,
   FileEdit,
   Server,
-  Copy
+  Copy,
+  GripVertical
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import { registerSwedishFont } from '@/lib/pdf-font';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const SERVICE_TYPES = [
   { value: 'Anpassad drift', label: 'Anpassad drift' },
@@ -339,6 +358,22 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
 
   function removeRow(id: string) {
     setRows(rows.filter(row => row.id !== id));
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setRows((items) => {
+      const oldIndex = items.findIndex(i => i.id === active.id);
+      const newIndex = items.findIndex(i => i.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
   }
 
   function updateRowPricing(rowId: string, pricingConfigId: string) {
@@ -1483,21 +1518,33 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {rows.map((row, index) => {
-                      const isRowEditing = !readOnly && (!isEditing || editingRowId === row.id);
-                      const isLocked = readOnly || (isEditing && editingRowId !== row.id);
-                      
-                      return (
-                        <div 
-                          key={row.id} 
-                          className={`flex items-start gap-3 p-4 border rounded-lg transition-colors ${
-                            isLocked 
-                              ? 'bg-muted/50 opacity-75 cursor-pointer hover:opacity-100' 
-                              : 'bg-muted/30'
-                          }`}
-                          onClick={() => isLocked && setEditingRowId(row.id)}
-                        >
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={rows.map(r => r.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-3">
+                        {rows.map((row, index) => {
+                          const isRowEditing = !readOnly && (!isEditing || editingRowId === row.id);
+                          const isLocked = readOnly || (isEditing && editingRowId !== row.id);
+                          
+                          return (
+                            <SortableRowWrapper
+                              key={row.id}
+                              id={row.id}
+                              disabled={readOnly}
+                              className={`p-4 border rounded-lg transition-colors bg-card ${
+                                isLocked 
+                                  ? 'bg-muted/50 opacity-75 cursor-pointer hover:opacity-100' 
+                                  : 'bg-muted/30'
+                              }`}
+                              onClick={() => isLocked && setEditingRowId(row.id)}
+                            >
+                              <div className="flex items-start gap-3">
                           <div className="flex-1 space-y-3">
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-sm font-medium text-muted-foreground">
@@ -1695,10 +1742,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                              </div>
+                            </SortableRowWrapper>
+                          );
+                        })}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 )}
                 
                 {!readOnly && (
