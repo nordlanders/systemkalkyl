@@ -359,6 +359,22 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
     setRows(rows.filter(row => row.id !== id));
   }
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setRows((items) => {
+      const oldIndex = items.findIndex(i => i.id === active.id);
+      const newIndex = items.findIndex(i => i.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  }
+
   function updateRowPricing(rowId: string, pricingConfigId: string) {
     const pricingConfig = pricing.find(p => p.id === pricingConfigId);
     if (!pricingConfig) return;
