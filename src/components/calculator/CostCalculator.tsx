@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import CISelector, { type ConfigurationItem, NEW_CI_VALUE } from './CISelector';
 import BudgetOutcomeInfo from './BudgetOutcomeInfo';
 import CalculationAuditTimeline from './CalculationAuditTimeline';
+import { SortableRowWrapper } from './SortableRowWrapper';
 import { 
   Calculator,
   Save,
