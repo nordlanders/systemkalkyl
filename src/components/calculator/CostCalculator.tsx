@@ -1518,21 +1518,33 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {rows.map((row, index) => {
-                      const isRowEditing = !readOnly && (!isEditing || editingRowId === row.id);
-                      const isLocked = readOnly || (isEditing && editingRowId !== row.id);
-                      
-                      return (
-                        <div 
-                          key={row.id} 
-                          className={`flex items-start gap-3 p-4 border rounded-lg transition-colors ${
-                            isLocked 
-                              ? 'bg-muted/50 opacity-75 cursor-pointer hover:opacity-100' 
-                              : 'bg-muted/30'
-                          }`}
-                          onClick={() => isLocked && setEditingRowId(row.id)}
-                        >
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={rows.map(r => r.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-3">
+                        {rows.map((row, index) => {
+                          const isRowEditing = !readOnly && (!isEditing || editingRowId === row.id);
+                          const isLocked = readOnly || (isEditing && editingRowId !== row.id);
+                          
+                          return (
+                            <SortableRowWrapper
+                              key={row.id}
+                              id={row.id}
+                              disabled={readOnly}
+                              className={`p-4 border rounded-lg transition-colors bg-card ${
+                                isLocked 
+                                  ? 'bg-muted/50 opacity-75 cursor-pointer hover:opacity-100' 
+                                  : 'bg-muted/30'
+                              }`}
+                              onClick={() => isLocked && setEditingRowId(row.id)}
+                            >
+                              <div className="flex items-start gap-3">
                           <div className="flex-1 space-y-3">
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-sm font-medium text-muted-foreground">
