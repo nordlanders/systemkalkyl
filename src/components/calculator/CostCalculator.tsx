@@ -1742,10 +1742,13 @@ export default function CostCalculator({ editCalculation, onBack, onSaved, readO
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                              </div>
+                            </SortableRowWrapper>
+                          );
+                        })}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 )}
                 
                 {!readOnly && (
